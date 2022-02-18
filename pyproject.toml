@@ -13,8 +13,6 @@ classifiers=[
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
 ]
 packages = [
@@ -23,7 +21,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7.0,<4.0"
+python = ">=3.9.0,<4.0"
 click = "8.0.1"
 
 black  = { version = "^21.5b2", optional = true}
@@ -77,7 +75,7 @@ unifi-protect-backup = 'unifi_protect_backup.cli:main'
 [tool.black]
 line-length = 120
 skip-string-normalization = true
-target-version = ['py37', 'py38']
+target-version = ['py39']
 include = '\.pyi?$'
 exclude = '''
 /(
