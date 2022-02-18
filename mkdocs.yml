@@ -51,7 +51,7 @@ plugins:
       lang: en
   - mkdocstrings:
       watch:
-        - unifi-protect-backup
+        - unifi_protect_backup
 extra:
   social:
     - icon: fontawesome/brands/twitter
