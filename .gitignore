@@ -112,3 +112,6 @@ ENV/
 
 # mkdocs build dir
 site/
+
+
+.envrc
