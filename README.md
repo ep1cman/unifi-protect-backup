@@ -11,7 +11,6 @@
 Python tool to backup unifi event clips in realtime
 
 
-* Documentation: <https://ep1cman.github.io/unifi-protect-backup>
 * GitHub: <https://github.com/ep1cman/unifi-protect-backup>
 * PyPI: <https://pypi.org/project/unifi-protect-backup/>
 * Free software: MIT
