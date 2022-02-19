@@ -6,8 +6,8 @@ import shutil
 
 import aiocron
 from pyunifiprotect import ProtectApiClient
-from pyunifiprotect.data.types import EventType, ModelType
 from pyunifiprotect.data.nvr import Event
+from pyunifiprotect.data.types import EventType, ModelType
 from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
 
 logger = logging.getLogger(__name__)
