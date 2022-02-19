@@ -34,7 +34,7 @@ from unifi_protect_backup import UnifiProtectBackup
 )
 @click.option('-v', '--verbose', count=True)
 def main(**kwargs):
-    """Main entrypoint."""
+    """A Python based tool for backing up Unifi Protect event clips as they occur."""
     loop = asyncio.get_event_loop()
     event_listener = UnifiProtectBackup(**kwargs)
     loop.run_until_complete(event_listener.start())
