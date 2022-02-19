@@ -134,20 +134,15 @@ class UnifiProtectBackup:
     def __init__(self, address, port, username, password, verify_ssl, rclone_destination, retention, verbose):
         setup_logging(verbose)
 
-        self.address = address
-        self.port = port
-        self.username = username
-        self.password = password
-        self.verify_ssl = verify_ssl
         self.rclone_destination = rclone_destination
         self.retention = retention
 
         self._protect = ProtectApiClient(
-            self.address,
-            self.port,
-            self.username,
-            self.password,
-            verify_ssl=self.verify_ssl,
+            address,
+            port,
+            username,
+            password,
+            verify_ssl=verify_ssl,
             subscribed_models={ModelType.EVENT},
         )
         self._download_queue = asyncio.Queue()
