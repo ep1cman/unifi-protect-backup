@@ -146,6 +146,24 @@ class UnifiProtectBackup:
         self._camera_names = {camera.id: camera.name for camera in self._protect.bootstrap.cameras.values()}
         self._unsub = self._protect.subscribe_websocket(self.websocket_callback)
 
+        logger.info("Setting up purge task...")
+
+        @aiocron.crontab("0 0 * * *")
+        async def rclone_purge_old():
+            logger.info("Deleting old files...")
+            cmd = f"rclone delete --min-age {self.retention} '{self.rclone_destination}'"
+            cmd += f" && rclone rmdirs --leave-root '{self.rclone_destination}'"
+            logger.debug(f"rclone command: {cmd}")
+            proc = await asyncio.create_subprocess_shell(
+                cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode != 0:
+                raise Exception(stderr)
+            logger.info("Successfully deleted old files")
+
         logger.info("Listening for events...")
         await self.backup_events()
 
@@ -236,15 +254,3 @@ class UnifiProtectBackup:
         path /= file_name
 
         return path
-
-    @aiocron.crontab("0 0 * * *")
-    async def rclone_purge_old(self):
-        logger.info("Deleting old files")
-        proc = await asyncio.create_subprocess_shell(
-            f"rclone delete --min-age {self.retention} --rm-dirs '{self.rclone_destination}'",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await proc.communicate()
-        if proc.returncode != 0:
-            raise Exception(stderr)
