@@ -32,7 +32,27 @@ from unifi_protect_backup import UnifiProtectBackup
     help="How long should event clips be backed up for. Format as per the `--max-age` argument of "
     "rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
 )
-@click.option('-v', '--verbose', count=True)
+@click.option(
+    '-v',
+    '--verbose',
+    count=True,
+    help="How verbose the logging output should be."
+    """
+    \n
+    None: Only log info messages created by `unifi-protect-backup`, and all warnings
+
+    -v: Only log info & debug messages created by `unifi-protect-backup`, and all warnings
+
+    -vv: Log info & debug messages created by `unifi-protect-backup`, command output, and all warnings
+
+    -vvv Log debug messages created by `unifi-protect-backup`, command output, all info messages, and all warnings
+
+    -vvvv: Log debug messages created by `unifi-protect-backup` command output, all info messages,
+all warnings, and websocket data
+
+    -vvvvv: Log websocket data, command output, all debug messages, all info messages and all warnings
+""",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     loop = asyncio.get_event_loop()
