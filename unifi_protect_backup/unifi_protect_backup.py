@@ -164,8 +164,10 @@ class UnifiProtectBackup:
         if not rclone:
             raise RuntimeError("`rclone` is not installed on this system")
 
+        cmd = "rclone listremotes"
+        logger.debug(f"rclone command: {cmd}")
         proc = await asyncio.create_subprocess_shell(
-            "rclone listremotes",
+            cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
