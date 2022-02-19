@@ -42,6 +42,7 @@ tox-asdf = {version = "^0.1.0", optional = true}
 pyunifiprotect = "^3.2.1"
 aiofiles = "^0.8.0"
 aiocron = "^1.8"
+types-aiofiles = "^0.8.3"
 
 [tool.poetry.extras]
 test = [

@@ -1,14 +1,43 @@
 """Console script for unifi_protect_backup."""
 
+import asyncio
+
 import click
+
+from unifi_protect_backup import UnifiProtectBackup
 
 
 @click.command()
-def main():
+@click.option('--address', required=True, envvar='UFP_ADDRESS', help='Address of Unifi Protect instance')
+@click.option('--port', default=443, envvar='UFP_PORT', help='Port of Unifi Protect instance')
+@click.option('--username', required=True, envvar='UFP_USERNAME', help='Username to login to Unifi Protect instance')
+@click.option('--password', required=True, envvar='UFP_PASSWORD', help='Password for Unifi Protect user')
+@click.option(
+    '--verify-ssl/--no-verify-ssl',
+    default=True,
+    envvar='UFP_SSL_VERIFY',
+    help="Set if you do not have a valid HTTPS Certificate for your instance",
+)
+@click.option(
+    '--rclone-destination',
+    required=True,
+    envvar='RCLONE_DESTINATION',
+    help="`rclone` destination path in the format {rclone remote}:{path on remote}."
+    " E.g. `gdrive:/backups/unifi_protect`",
+)
+@click.option(
+    '--retention',
+    default='7d',
+    envvar='RCLONE_RETENTION',
+    help="How long should event clips be backed up for. Format as per the `--max-age` argument of "
+    "rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
+)
+@click.option('-v', '--verbose', count=True)
+def main(**kwargs):
     """Main entrypoint."""
-    click.echo("unifi-protect-backup")
-    click.echo("=" * len("unifi-protect-backup"))
-    click.echo("Python tool to backup unifi event clips in realtime")
+    loop = asyncio.get_event_loop()
+    event_listener = UnifiProtectBackup(**kwargs)
+    loop.run_until_complete(event_listener.start())
 
 
 if __name__ == "__main__":
