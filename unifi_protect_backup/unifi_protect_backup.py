@@ -239,18 +239,16 @@ class UnifiProtectBackup:
 
             logger.info(f"Backing up event: {event.id}")
             logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
-            logger.debug(f"\tCamera: {self._camera_names[event.camera_id]}")
-            logger.debug(f"\tType: {event.type}")
-            logger.debug(f"\tStart: {event.start.strftime('%Y-%m-%dT%H-%M-%S')}")
-            logger.debug(f"\tEnd: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
-            logger.debug(f"\tDuration: {event.end-event.start}")
-            logger.debug(f"\tTo: {destination}")
+            logger.debug(f"  Camera: {self._camera_names[event.camera_id]}")
+            logger.debug(f"  Type: {event.type}")
+            logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')}")
+            logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
+            logger.debug(f"  Duration: {event.end-event.start}")
 
             # TODO: Retry down/upload
-            video = None
             try:
                 # Download video
-                logger.debug("\tDownloading video...")
+                logger.debug("  Downloading video...")
                 video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
             except Exception as e:
                 logger.warn("Failed to download video")
