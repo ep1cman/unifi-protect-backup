@@ -5,7 +5,6 @@ import pathlib
 import shutil
 
 import aiocron
-import aiofiles
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.types import EventType, ModelType
 from pyunifiprotect.data.nvr import Event
@@ -97,17 +96,6 @@ def setup_logging(verbosity):
         logging.getLogger("pyunifiprotect").setLevel(logging.DEBUG)
         logging.getLogger("pyunifiprotect.api").setLevel(logging.DEBUG)
         logger.setLevel(logging.WEBSOCKET_DUMP)
-
-
-async def rclone_move(source, dest):
-    proc = await asyncio.create_subprocess_shell(
-        f"rclone moveto '{source}' '{dest}'",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
-    if proc.returncode != 0:
-        raise Exception(stderr)
 
 
 class UnifiProtectBackup:
@@ -218,26 +206,29 @@ class UnifiProtectBackup:
                 # Download video
                 logger.debug("Downloading video...")
                 video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
+
+                destination = self.generate_file_path(event)
+                cmd = f"rclone rcat '{destination}'"
+
+                logger.debug("Backing up video via rclone...")
+                logger.debug(f"rclone command: {cmd}")
+
+                proc = await asyncio.create_subprocess_shell(
+                    cmd,
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, stderr = await proc.communicate(video)
+                if proc.returncode != 0:
+                    raise Exception(stderr)
+
             except Exception as e:
-                logger.warn("Failed to download video")
+                logger.warn("Failed to backup video")
                 logger.exception(e)
                 continue
 
-            # Write to a temp file
-            async with aiofiles.tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as f:
-                logger.debug("Writing video to temp file...")
-                await f.write(video)
-                del video  # Ensure its not taking up memory needlessly
-                destination = self.generate_file_path(event)
-
-                try:
-                    logger.debug("Backing up video via rclone...")
-                    await rclone_move(f.name, destination)
-                except Exception as e:
-                    logger.warn("Failed to backup video")
-                    logger.exception(e)
-                    continue
-                logger.info("Backed up successfully!")
+            logger.info("Backed up successfully!")
 
     def generate_file_path(self, event):
         path = pathlib.Path(self.rclone_destination)
