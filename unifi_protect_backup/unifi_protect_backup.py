@@ -257,28 +257,36 @@ class UnifiProtectBackup:
                 logger.exception(e)
                 continue
 
-            logger.debug(f"\tSize: {human_readable_size(len(video))}")
-
-            # Upload video
-            logger.debug("\tUploading video via rclone...")
-            cmd = f"rclone rcat -vv '{destination}'"
-            proc = await asyncio.create_subprocess_shell(
-                cmd,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            stdout, stderr = await proc.communicate(video)
-            if proc.returncode == 0:
-                logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
-                logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
-            else:
-                logger.warn("Failed to download video")
-                logger.warn(f"stdout:\n{stdout.decode()}")
-                logger.warn(f"stderr:\n{stderr.decode()}")
+            try:
+                await self._upload_video(video, destination)
+            except RuntimeError:
                 continue
 
-            logger.info("Backed up successfully!")
+    async def _upload_video(self, video: bytes, destination: pathlib.Path):
+        """ """
+
+        logger.debug("  Uploading video via rclone...")
+        logger.debug(f"    To: {destination}")
+        logger.debug(f"    Size: {human_readable_size(len(video))}")
+
+        cmd = f"rclone rcat -vv '{destination}'"
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(video)
+        if proc.returncode == 0:
+            logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
+            logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
+        else:
+            logger.warn("Failed to download video")
+            logger.warn(f"stdout:\n{stdout.decode()}")
+            logger.warn(f"stderr:\n{stderr.decode()}")
+            raise RuntimeError()
+
+        logger.info("Backed up successfully!")
 
     def generate_file_path(self, event):
         path = pathlib.Path(self.rclone_destination)
