@@ -200,21 +200,26 @@ class UnifiProtectBackup:
         while True:
             event = await self._download_queue.get()
             destination = self.generate_file_path(event)
-            logger.info(f"Backing up event: {destination}")
+
+            logger.info(f"Backing up event: {event.id}")
+            logger.debug(f"\tCamera: {self._camera_names[event.camera_id]}")
+            logger.debug(f"\tType: {event.type}")
+            logger.debug(f"\tStart: {event.start.strftime('%Y-%m-%dT%H-%M-%S')}")
+            logger.debug(f"\tEnd: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
+            logger.debug(f"\tDuration: {event.end-event.start}")
+            logger.debug(f"\tTo: {destination}")
+            logger.debug(f"")
 
             # TODO: Retry down/upload
 
             try:
                 # Download video
-                logger.debug("Downloading video...")
+                logger.debug("\tDownloading video...")
                 video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
 
-                destination = self.generate_file_path(event)
+                # Upload video
+                logger.debug("\tUploading video via rclone...")
                 cmd = f"rclone rcat '{destination}'"
-
-                logger.debug("Backing up video via rclone...")
-                logger.debug(f"rclone command: {cmd}")
-
                 proc = await asyncio.create_subprocess_shell(
                     cmd,
                     stdin=asyncio.subprocess.PIPE,
