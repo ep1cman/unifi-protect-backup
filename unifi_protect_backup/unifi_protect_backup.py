@@ -331,22 +331,37 @@ class UnifiProtectBackup:
             logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
             logger.debug(f"  Duration: {event.end-event.start}")
 
-            # TODO: Retry down/upload
             try:
                 # Download video
-                logger.debug("  Downloading video...")
-                video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
-            except Exception as e:
-                logger.warn("Failed to download video")
-                logger.exception(e)
-                continue
+                for x in range(5):
+                    try:
+                        logger.debug("  Downloading video...")
+                        video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
+                        assert isinstance(video, bytes)
+                        break
+                    except AssertionError as e:
+                        logger.warn("    Failed download attempt {x+1}")
+                        logger.exception(e)
+                else:
+                    logger.warn(f"Download failed after 5 attempts, abandoning event {event.id}:")
+                    continue
 
-            try:
-                assert isinstance(video, bytes)
-                await self._upload_video(video, destination)
-            except RcloneException as e:
-                logger.warn("Failed to upload video")
-                logger.warn(e)
+                for x in range(5):
+                    try:
+                        await self._upload_video(video, destination)
+                        break
+                    except RcloneException as e:
+                        logger.warn("    Failed upload attempt {x+1}")
+                        logger.exception(e)
+                else:
+                    logger.warn(f"Upload failed after 5 attempts, abandoning event {event.id}:")
+                    continue
+            
+            except Exception as e:
+                logger.warn(f"Unexpected exception occured, abandoning event {event.id}:")
+                logger.exception(e)
+
+                
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path):
         """Upload video using rclone.
