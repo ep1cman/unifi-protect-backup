@@ -96,6 +96,32 @@ always take priority over environment variables):
 - `RCLONE_RETENTION`
 - `RCLONE_DESTINATION`
 
+## Docker Container
+You can run this tool as a container if you prefer with the following command.
+Remember to change the variable to make your setup.
+
+```
+docker run \
+  -e UFP_USERNAME='USERNAME' \
+  -e UFP_PASSWORD='PASSWORD' \
+  -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
+  -e UFP_SSL_VERIFY='false' \
+  -e RCLONE_DESTINATION='my_remote:/unifi_protect_backup' \
+  -v '/path/to/dir/containing/rclone.conf/on/host':'/root/.config/rclone/' \
+  ghcr.io/ep1cman/unifi-protect-backup
+```
+To create a rclone config file you can do the following:
+```
+$ docker run -it --rm ghcr.io/ep1cman/unifi-protect-backup /bin/sh
+/app # rclone config
+(Setup your rclone remote, see here for documentation: https://rclone.org/docs/#configure)
+/app # cat $(rclone config file | sed -n 2p)
+/app # exit
+```
+
+This should print out the contents of the newly configured `rclone.conf` file which you
+can now copy & paste into a file on your host system
+
 ## Credits
 
 - Heavily utilises [`pyunifiproect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
