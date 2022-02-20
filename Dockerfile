@@ -1,6 +1,6 @@
 # To build run:
 # $ poetry build
-# $ docker build -t unifi_protect_backup .
+# $ docker build -t ghcr.io/ep1cman/unifi-protect-backup .
 FROM python:3.9-alpine
 
 WORKDIR /app
