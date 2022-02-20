@@ -13,15 +13,27 @@ from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
 
 logger = logging.getLogger(__name__)
 
+
 class RcloneException(Exception):
+    """Exception class for when rclone does not exit with `0`."""
+
     def __init__(self, stdout, stderr, returncode):
+        """Exception class for when rclone does not exit with `0`.
+
+        Args:
+          stdout (str): What rclone output to stdout
+          stderr (str): What rclone output to stderr
+          returncode (str): The return code of the rclone process
+        """
         super().__init__()
-        self.stdout = stdout
-        self.stderr = stderr
-        self.returncode = returncode
+        self.stdout: str = stdout
+        self.stderr: str = stderr
+        self.returncode: int = returncode
 
     def __str__(self):
+        """Turns excpetion into a human readable form."""
         return f"Return Code: {self.returncode}\nStdout:\n{self.stdout}\nStderr:\n{self.stderr}"
+
 
 def add_logging_level(levelName: str, levelNum: int, methodName: Optional[str] = None) -> None:
     """Comprehensively adds a new logging level to the `logging` module and the currently configured logging class.
@@ -358,12 +370,10 @@ class UnifiProtectBackup:
                 else:
                     logger.warn(f"Upload failed after 5 attempts, abandoning event {event.id}:")
                     continue
-            
+
             except Exception as e:
                 logger.warn(f"Unexpected exception occured, abandoning event {event.id}:")
                 logger.exception(e)
-
-                
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path):
         """Upload video using rclone.
