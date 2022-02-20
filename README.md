@@ -6,7 +6,13 @@
 [![Build Status](https://github.com/ep1cman/unifi-protect-backup/actions/workflows/dev.yml/badge.svg)](https://github.com/ep1cman/unifi-protect-backup/actions/workflows/dev.yml)
 [![codecov](https://codecov.io/gh/ep1cman/unifi-protect-backup/branch/main/graphs/badge.svg)](https://codecov.io/github/ep1cman/unifi-protect-backup)
 
-A Python based tool for backing up Unifi Protect event clips as they occur.
+A Python based tool for backing up UniFi Protect event clips as they occur.
+
+The idea for this project came after realising that if something were to happen, e.g. a fire, or a burglary
+that meant I could no longer access my UDM, all the footage recorded by all my nice expensive UniFi cameras
+would have been rather pointless. With this tool, all motion and smart detection clips are immediately
+backed up to off-site storage thanks to [`rclone`](https://rclone.org/), and kept for the configured 
+retention period.
 
 * GitHub: <https://github.com/ep1cman/unifi-protect-backup>
 * PyPI: <https://pypi.org/project/unifi-protect-backup/>
@@ -92,7 +98,6 @@ always take priority over environment variables):
 
 ## Credits
 
-Heavily utilises [`pyunifiproect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
-
-
-This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter) and the [waynerv/cookiecutter-pypackage](https://github.com/waynerv/cookiecutter-pypackage) project template.
+- Heavily utilises [`pyunifiproect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
+- All the cloud functionality is provided by [`rclone`](https://rclone.org/)
+- This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter) and the [waynerv/cookiecutter-pypackage](https://github.com/waynerv/cookiecutter-pypackage) project template.
