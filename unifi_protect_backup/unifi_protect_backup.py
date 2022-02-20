@@ -13,6 +13,15 @@ from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
 
 logger = logging.getLogger(__name__)
 
+class RcloneException(Exception):
+    def __init__(self, stdout, stderr, returncode):
+        super().__init__()
+        self.stdout = stdout
+        self.stderr = stderr
+        self.returncode = returncode
+
+    def __str__(self):
+        return f"Return Code: {self.returncode}\nStdout:\n{self.stdout}\nStderr:\n{self.stderr}"
 
 def add_logging_level(levelName: str, levelNum: int, methodName: Optional[str] = None) -> None:
     """Comprehensively adds a new logging level to the `logging` module and the currently configured logging class.
@@ -252,7 +261,7 @@ class UnifiProtectBackup:
         """Check if rclone is installed and the specified remote is configured.
 
         Raises:
-            RuntimeError: If rclone is not installed or it failed to list remotes
+            RcloneException: If rclone is not installed or it failed to list remotes
             ValueError: The given rclone destination is for a remote that is not configured
 
         """
@@ -271,7 +280,7 @@ class UnifiProtectBackup:
         logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
         logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
         if proc.returncode != 0:
-            raise RuntimeError(f"Failed to check rclone remotes: \n{stderr.decode()}")
+            raise RcloneException(stdout.decode(), stderr.decode(), proc.returncode)
 
         # Check if the destination is for a configured remote
         for line in stdout.splitlines():
@@ -335,8 +344,9 @@ class UnifiProtectBackup:
             try:
                 assert isinstance(video, bytes)
                 await self._upload_video(video, destination)
-            except RuntimeError:
-                continue
+            except RcloneException as e:
+                logger.warn("Failed to upload video")
+                logger.warn(e)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path):
         """Upload video using rclone.
@@ -367,10 +377,7 @@ class UnifiProtectBackup:
             logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
             logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
         else:
-            logger.warn("Failed to download video")
-            logger.warn(f"stdout:\n{stdout.decode()}")
-            logger.warn(f"stderr:\n{stderr.decode()}")
-            raise RuntimeError(stderr.decode())
+            raise RcloneException(stdout.decode(), stderr.decode(), proc.returncode)
 
         logger.info("Backed up successfully!")
 
