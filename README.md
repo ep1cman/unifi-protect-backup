@@ -38,6 +38,10 @@ retention period.
 3. `pip install unifi-protect-backup`
 
 ## Usage
+
+:warning: **Potential Data Loss**: Be very careful when setting the `rclone-destination`, at midnight every day it will
+delete any files older than `retention`. It is best to give `unifi-protect-backup` its own directory.
+
 ```
 Usage: unifi-protect-backup [OPTIONS]
 
