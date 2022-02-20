@@ -340,8 +340,9 @@ class UnifiProtectBackup:
                         assert isinstance(video, bytes)
                         break
                     except AssertionError as e:
-                        logger.warn("    Failed download attempt {x+1}")
+                        logger.warn("    Failed download attempt {x+1}, retying in 1s")
                         logger.exception(e)
+                        await asyncio.sleep(1)
                 else:
                     logger.warn(f"Download failed after 5 attempts, abandoning event {event.id}:")
                     continue
@@ -351,8 +352,9 @@ class UnifiProtectBackup:
                         await self._upload_video(video, destination)
                         break
                     except RcloneException as e:
-                        logger.warn("    Failed upload attempt {x+1}")
+                        logger.warn("    Failed upload attempt {x+1}, retying in 1s")
                         logger.exception(e)
+                        await asyncio.sleep(1)
                 else:
                     logger.warn(f"Upload failed after 5 attempts, abandoning event {event.id}:")
                     continue
