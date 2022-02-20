@@ -61,6 +61,13 @@ jobs:
         run: >-
           ls -l
 
+      - name: build container
+        id: docker_build
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+
+      - name: log in to container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: create github release
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -71,13 +78,6 @@ jobs:
           files: dist/*.whl
           draft: false
           prerelease: false
-
-      - name: build container
-        id: docker_build
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
-
-      - name: log in to container registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: push container image
         run: |
@@ -94,7 +94,9 @@ jobs:
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker tag $IMAGE_NAME $IMAGE_ID:latest
           docker push $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:latest
 
 
       - name: publish to PyPI
