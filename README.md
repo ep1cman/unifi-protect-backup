@@ -11,7 +11,7 @@ A Python based tool for backing up UniFi Protect event clips as they occur.
 The idea for this project came after realising that if something were to happen, e.g. a fire, or a burglary
 that meant I could no longer access my UDM, all the footage recorded by all my nice expensive UniFi cameras
 would have been rather pointless. With this tool, all motion and smart detection clips are immediately
-backed up to off-site storage thanks to [`rclone`](https://rclone.org/), and kept for the configured 
+backed up to off-site storage thanks to [`rclone`](https://rclone.org/), and kept for the configured
 retention period.
 
 * GitHub: <https://github.com/ep1cman/unifi-protect-backup>
@@ -114,7 +114,8 @@ docker run \
   -v '/path/to/dir/containing/rclone.conf/on/host':'/root/.config/rclone/' \
   ghcr.io/ep1cman/unifi-protect-backup
 ```
-To create a rclone config file you can do the following:
+The container expects a `rclone.conf` file to be inside the configuration directory.
+If you do not already have a `rclone.conf` file you can create one as follows:
 ```
 $ docker run -it --rm ghcr.io/ep1cman/unifi-protect-backup /bin/sh
 /app # rclone config
@@ -122,7 +123,6 @@ $ docker run -it --rm ghcr.io/ep1cman/unifi-protect-backup /bin/sh
 /app # cat $(rclone config file | sed -n 2p)
 /app # exit
 ```
-
 This should print out the contents of the newly configured `rclone.conf` file which you
 can now copy & paste into a file on your host system
 
