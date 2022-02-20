@@ -2,13 +2,16 @@
 
 name: dev workflow
 
+env:
+  IMAGE_NAME: ${{ github.repository }}
+
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master, main ]
+    branches: [ master, main, dev ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ master, main, dev ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -48,3 +51,46 @@ jobs:
         with:
           fail_ci_if_error: true
           files: coverage.xml
+
+  dev_container:
+    name: Create dev container
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-versions: [3.9]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-versions }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry tox tox-gh-actions
+
+      - name: Build wheels and source tarball
+        run: >-
+          poetry build
+
+      - name: build container
+        id: docker_build
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+
+      - name: log in to container registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: push container image
+        run: |
+          IMAGE_ID=ghcr.io/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $IMAGE_NAME $IMAGE_ID:dev
+          docker push $IMAGE_ID:dev
