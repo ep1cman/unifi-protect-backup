@@ -30,7 +30,7 @@ from unifi_protect_backup import UnifiProtectBackup
     default='7d',
     envvar='RCLONE_RETENTION',
     help="How long should event clips be backed up for. Format as per the `--max-age` argument of "
-    "rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
+    "`rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
 )
 @click.option(
     '-v',
