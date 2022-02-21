@@ -234,6 +234,10 @@ class UnifiProtectBackup:
         # Start the pyunifiprotect connection by calling `update`
         logger.info("Connecting to Unifi Protect...")
         await self._protect.update()
+        logger.info("Found cameras:")
+        for camera in self._protect.bootstrap.cameras.values():
+            logger.info(f" - {camera.id}: {camera.name}")
+
         # Subscribe to the websocket
         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
 
