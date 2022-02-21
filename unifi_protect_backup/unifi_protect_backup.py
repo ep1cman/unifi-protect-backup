@@ -6,6 +6,7 @@ import shutil
 from typing import Callable, List, Optional
 
 import aiocron
+import aiohttp
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType, ModelType
@@ -372,7 +373,7 @@ class UnifiProtectBackup:
                         video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
                         assert isinstance(video, bytes)
                         break
-                    except AssertionError as e:
+                    except (AssertionError, aiohttp.client_exceptions.ClientPayloadError) as e:
                         logger.warn("    Failed download attempt {x+1}, retying in 1s")
                         logger.exception(e)
                         await asyncio.sleep(1)
