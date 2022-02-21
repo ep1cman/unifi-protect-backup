@@ -374,7 +374,7 @@ class UnifiProtectBackup:
                         assert isinstance(video, bytes)
                         break
                     except (AssertionError, aiohttp.client_exceptions.ClientPayloadError) as e:
-                        logger.warn("    Failed download attempt {x+1}, retying in 1s")
+                        logger.warn(f"    Failed download attempt {x+1}, retying in 1s")
                         logger.exception(e)
                         await asyncio.sleep(1)
                 else:
@@ -386,7 +386,7 @@ class UnifiProtectBackup:
                         await self._upload_video(video, destination)
                         break
                     except RcloneException as e:
-                        logger.warn("    Failed upload attempt {x+1}, retying in 1s")
+                        logger.warn(f"    Failed upload attempt {x+1}, retying in 1s")
                         logger.exception(e)
                         await asyncio.sleep(1)
                 else:
