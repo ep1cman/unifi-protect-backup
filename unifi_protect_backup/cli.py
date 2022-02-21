@@ -33,6 +33,14 @@ from unifi_protect_backup import UnifiProtectBackup
     "`rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
 )
 @click.option(
+    '--ignore-camera',
+    'ignore_cameras',
+    multiple=True,
+    envvar="IGNORE_CAMERAS",
+    help="IDs of cameras for which events should not be backed up. Use multiple times to ignore "
+    "multiple IDs. If being set as an environment variable the IDs should be separated by whitespace.",
+)
+@click.option(
     '-v',
     '--verbose',
     count=True,

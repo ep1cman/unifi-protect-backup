@@ -3,7 +3,7 @@ import asyncio
 import logging
 import pathlib
 import shutil
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 import aiocron
 from pyunifiprotect import ProtectApiClient
@@ -167,6 +167,7 @@ class UnifiProtectBackup:
         retention (str): How long should event clips be backed up for. Format as per the
                          `--max-age` argument of `rclone`
                          (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)
+        ignore_cameras (List[str]): List of camera IDs for which to not backup events
         verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         _download_queue (asyncio.Queue): Queue of events that need to be backed up
         _unsub (Callable): Unsubscribe from the websocket callback
@@ -180,6 +181,7 @@ class UnifiProtectBackup:
         verify_ssl: bool,
         rclone_destination: str,
         retention: str,
+        ignore_cameras: List[str],
         verbose: int,
         port: int = 443,
     ):
@@ -197,6 +199,7 @@ class UnifiProtectBackup:
             retention (str): How long should event clips be backed up for. Format as per the
                             `--max-age` argument of `rclone`
                             (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)
+            ignore_cameras (List[str]): List of camera IDs for which to not backup events
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         """
         setup_logging(verbose)
@@ -212,6 +215,7 @@ class UnifiProtectBackup:
             verify_ssl=verify_ssl,
             subscribed_models={ModelType.EVENT},
         )
+        self.ignore_cameras = ignore_cameras
         self._download_queue: asyncio.Queue = asyncio.Queue()
         self._unsub: Callable[[], None]
 
@@ -311,6 +315,8 @@ class UnifiProtectBackup:
         # We are only interested in updates that end motion/smartdetection event
         assert isinstance(msg.new_obj, Event)
         if msg.action != WSAction.UPDATE:
+            return
+        if msg.new_obj.camera_id in self.ignore_cameras:
             return
         if msg.new_obj.end is None:
             return

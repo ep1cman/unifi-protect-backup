@@ -17,6 +17,7 @@ ENV RCLONE_RETENTION=7d
 ENV RCLONE_DESTINATION=my_remote:/unifi_protect_backup
 ENV VERBOSITY="v"
 ENV TZ=UTC
+ENV IGNORE_CAMERAS=""
 
 VOLUME [ "/root/.config/rclone/" ]
 

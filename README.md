@@ -61,32 +61,39 @@ Options:
                                   `gdrive:/backups/unifi_protect`  [required]
   --retention TEXT                How long should event clips be backed up
                                   for. Format as per the `--max-age` argument
-                                  of rclone`
+                                  of `rclone`
                                   (https://rclone.org/filtering/#max-age-don-
                                   t-transfer-any-file-older-than-this)
+  --ignore-camera TEXT            IDs of cameras for which events should not
+                                  be backed up. Use multiple times to ignore
+                                  multiple IDs. If being set as an environment
+                                  variable the IDs should be separated by
+                                  whitespace.
   -v, --verbose                   How verbose the logging output should be.
 
-                                  None: Only log info messages created by
-                                  `unifi-protect-backup`, and all warnings
+                                      None: Only log info messages created by
+                                      `unifi-protect-backup`, and all warnings
 
-                                  -v: Only log info & debug messages created
-                                  by `unifi-protect-backup`, and all warnings
+                                      -v: Only log info & debug messages
+                                      created by `unifi-protect-backup`, and
+                                      all warnings
 
-                                  -vv: Log info & debug messages created by
-                                  `unifi-protect-backup`, command output, and
-                                  all warnings
+                                      -vv: Log info & debug messages created
+                                      by `unifi-protect-backup`, command
+                                      output, and all warnings
 
-                                  -vvv Log debug messages created by `unifi-
-                                  protect-backup`, command output, all info
-                                  messages, and all warnings
+                                      -vvv Log debug messages created by
+                                      `unifi-protect-backup`, command output,
+                                      all info messages, and all warnings
 
-                                  -vvvv: Log debug messages created by `unifi-
-                                  protect-backup` command output, all info
-                                  messages, all warnings, and websocket data
+                                      -vvvv: Log debug messages created by
+                                      `unifi-protect-backup` command output,
+                                      all info messages, all warnings, and
+                                      websocket data
 
-                                  -vvvvv: Log websocket data, command output,
-                                  all debug messages, all info messages and
-                                  all warnings  [x>=0]
+                                      -vvvvv: Log websocket data, command
+                                      output, all debug messages, all info
+                                      messages and all warnings  [x>=0]
   --help                          Show this message and exit.
 ```
 
@@ -99,6 +106,7 @@ always take priority over environment variables):
 - `UFP_SSL_VERIFY`
 - `RCLONE_RETENTION`
 - `RCLONE_DESTINATION`
+- `IGNORE_CAMERAS`
 
 ## Docker Container
 You can run this tool as a container if you prefer with the following command.
