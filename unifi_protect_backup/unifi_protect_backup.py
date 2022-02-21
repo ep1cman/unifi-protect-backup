@@ -3,7 +3,7 @@ import asyncio
 import logging
 import pathlib
 import shutil
-from typing import Callable, Dict, Optional
+from typing import Callable, Optional
 
 import aiocron
 from pyunifiprotect import ProtectApiClient
@@ -170,7 +170,6 @@ class UnifiProtectBackup:
         verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         _download_queue (asyncio.Queue): Queue of events that need to be backed up
         _unsub (Callable): Unsubscribe from the websocket callback
-        _camera_names (Dict[str, str]): A map of camera IDs -> camera names
     """
 
     def __init__(
@@ -215,7 +214,6 @@ class UnifiProtectBackup:
         )
         self._download_queue: asyncio.Queue = asyncio.Queue()
         self._unsub: Callable[[], None]
-        self._camera_names: Dict[str, str]
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -232,8 +230,6 @@ class UnifiProtectBackup:
         # Start the pyunifiprotect connection by calling `update`
         logger.info("Connecting to Unifi Protect...")
         await self._protect.update()
-        # Get a mapping of camera ids -> names
-        self._camera_names = {camera.id: camera.name for camera in self._protect.bootstrap.cameras.values()}
         # Subscribe to the websocket
         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
 
@@ -337,7 +333,7 @@ class UnifiProtectBackup:
 
             logger.info(f"Backing up event: {event.id}")
             logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
-            logger.debug(f"  Camera: {self._camera_names[event.camera_id]}")
+            logger.debug(f"  Camera: {self._protect.bootstrap.cameras[event.camera_id].name}")
             logger.debug(f"  Type: {event.type}")
             logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')}")
             logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
@@ -427,7 +423,7 @@ class UnifiProtectBackup:
         """
         path = pathlib.Path(self.rclone_destination)
         assert isinstance(event.camera_id, str)
-        path /= self._camera_names[event.camera_id]  # directory per camera
+        path /= self._protect.bootstrap.cameras[event.camera_id].name  # directory per camera
         path /= event.start.strftime("%Y-%m-%d")  # Directory per day
 
         file_name = f"{event.start.strftime('%Y-%m-%dT%H-%M-%S')} {event.type}"
