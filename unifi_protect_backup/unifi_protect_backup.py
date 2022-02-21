@@ -367,9 +367,9 @@ class UnifiProtectBackup:
 
             try:
                 # Download video
+                logger.debug("  Downloading video...")
                 for x in range(5):
                     try:
-                        logger.debug("  Downloading video...")
                         video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
                         assert isinstance(video, bytes)
                         break
@@ -381,6 +381,9 @@ class UnifiProtectBackup:
                     logger.warn(f"Download failed after 5 attempts, abandoning event {event.id}:")
                     continue
 
+                logger.debug("  Uploading video via rclone...")
+                logger.debug(f"    To: {destination}")
+                logger.debug(f"    Size: {human_readable_size(len(video))}")
                 for x in range(5):
                     try:
                         await self._upload_video(video, destination)
@@ -393,8 +396,10 @@ class UnifiProtectBackup:
                     logger.warn(f"Upload failed after 5 attempts, abandoning event {event.id}:")
                     continue
 
+                logger.info("Backed up successfully!")
+
             except Exception as e:
-                logger.warn(f"Unexpected exception occured, abandoning event {event.id}:")
+                logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
                 logger.exception(e)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path):
@@ -410,10 +415,6 @@ class UnifiProtectBackup:
         Raises:
             RuntimeError: If rclone returns a non-zero exit code
         """
-        logger.debug("  Uploading video via rclone...")
-        logger.debug(f"    To: {destination}")
-        logger.debug(f"    Size: {human_readable_size(len(video))}")
-
         cmd = f"rclone rcat -vv '{destination}'"
         proc = await asyncio.create_subprocess_shell(
             cmd,
@@ -427,8 +428,6 @@ class UnifiProtectBackup:
             logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
         else:
             raise RcloneException(stdout.decode(), stderr.decode(), proc.returncode)
-
-        logger.info("Backed up successfully!")
 
     def generate_file_path(self, event: Event) -> pathlib.Path:
         """Generates the rclone destination path for the provided event.
