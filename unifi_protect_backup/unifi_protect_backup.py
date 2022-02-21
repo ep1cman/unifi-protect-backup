@@ -204,6 +204,21 @@ class UnifiProtectBackup:
         """
         setup_logging(verbose)
 
+        logger.debug("Config:")
+        logger.debug(f"  {address=}")
+        logger.debug(f"  {port=}")
+        logger.debug(f"  {username=}")
+        if verbose < 5:
+            logger.debug("  password=REDACTED")
+        else:
+            logger.debug(f"  {password=}")
+
+        logger.debug(f"  {verify_ssl=}")
+        logger.debug(f"  {rclone_destination=}")
+        logger.debug(f"  {retention=}")
+        logger.debug(f"  {ignore_cameras=}")
+        logger.debug(f"  {verbose=}")
+
         self.rclone_destination = rclone_destination
         self.retention = retention
 
