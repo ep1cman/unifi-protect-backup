@@ -7,7 +7,7 @@ from typing import Callable, List, Optional
 
 import aiocron
 import aiohttp
-from pyunifiprotect import ProtectApiClient
+from pyunifiprotect import NvrError, ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType, ModelType
 from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
@@ -256,6 +256,8 @@ class UnifiProtectBackup:
         # Start the pyunifiprotect connection by calling `update`
         logger.info("Connecting to Unifi Protect...")
         await self._protect.update()
+
+        # Get a mapping of camera ids -> names
         logger.info("Found cameras:")
         for camera in self._protect.bootstrap.cameras.values():
             logger.info(f" - {camera.id}: {camera.name}")
@@ -360,18 +362,17 @@ class UnifiProtectBackup:
 
         """
         while True:
-            event = await self._download_queue.get()
-            destination = self.generate_file_path(event)
-
-            logger.info(f"Backing up event: {event.id}")
-            logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
-            logger.debug(f"  Camera: {self._protect.bootstrap.cameras[event.camera_id].name}")
-            logger.debug(f"  Type: {event.type}")
-            logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')}")
-            logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
-            logger.debug(f"  Duration: {event.end-event.start}")
-
             try:
+                event = await self._download_queue.get()
+
+                logger.info(f"Backing up event: {event.id}")
+                logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
+                logger.debug(f"  Camera: {await self._get_camera_name(event.camera_id)}")
+                logger.debug(f"  Type: {event.type}")
+                logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')}")
+                logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
+                logger.debug(f"  Duration: {event.end-event.start}")
+
                 # Download video
                 logger.debug("  Downloading video...")
                 for x in range(5):
@@ -386,6 +387,8 @@ class UnifiProtectBackup:
                 else:
                     logger.warn(f"Download failed after 5 attempts, abandoning event {event.id}:")
                     continue
+
+                destination = await self.generate_file_path(event)
 
                 logger.debug("  Uploading video via rclone...")
                 logger.debug(f"    To: {destination}")
@@ -436,7 +439,7 @@ class UnifiProtectBackup:
         else:
             raise RcloneException(stdout.decode(), stderr.decode(), proc.returncode)
 
-    def generate_file_path(self, event: Event) -> pathlib.Path:
+    async def generate_file_path(self, event: Event) -> pathlib.Path:
         """Generates the rclone destination path for the provided event.
 
         Generates paths in the following structure:
@@ -455,7 +458,7 @@ class UnifiProtectBackup:
         """
         path = pathlib.Path(self.rclone_destination)
         assert isinstance(event.camera_id, str)
-        path /= self._protect.bootstrap.cameras[event.camera_id].name  # directory per camera
+        path /= await self._get_camera_name(event.camera_id)  # directory per camera
         path /= event.start.strftime("%Y-%m-%d")  # Directory per day
 
         file_name = f"{event.start.strftime('%Y-%m-%dT%H-%M-%S')} {event.type}"
@@ -468,3 +471,20 @@ class UnifiProtectBackup:
         path /= file_name
 
         return path
+
+    async def _get_camera_name(self, id: str):
+        try:
+            return self._protect.bootstrap.cameras[id].name
+        except KeyError:
+            # Refresh cameras
+            logger.debug(f"Unknown camera id: '{id}', checking API")
+
+            try:
+                await self._protect.update(force=True)
+            except NvrError:
+                logger.debug(f"Unknown camera id: '{id}'")
+                raise
+
+            name = self._protect.bootstrap.cameras[id].name
+            logger.debug(f"Found camera - {id}: {name}")
+            return name
