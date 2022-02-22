@@ -55,6 +55,7 @@ jobs:
   dev_container:
     name: Create dev container
     runs-on: ubuntu-20.04
+    if: github.event_name != 'pull_request'
     strategy:
       matrix:
         python-versions: [3.9]
