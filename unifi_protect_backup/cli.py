@@ -33,6 +33,13 @@ from unifi_protect_backup import UnifiProtectBackup
     "`rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
 )
 @click.option(
+    '--rclone-args',
+    default='',
+    envvar='RCLONE_ARGS',
+    help="Optional extra arguments to pass to `rclone rcat` directly. Common usage for this would "
+    "be to set a bandwidth limit, for example.",
+)
+@click.option(
     '--ignore-camera',
     'ignore_cameras',
     multiple=True,
