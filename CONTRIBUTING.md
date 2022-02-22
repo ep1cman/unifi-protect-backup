@@ -59,7 +59,8 @@ Ready to contribute? Here's how to set up `unifi-protect-backup` for local devel
 4. Install dependencies and start your virtualenv:
 
     ```
-    $ poetry install -E test -E doc -E dev
+    $ poetry install -E test -E dev
+    $ poetry shell
     ```
 
 5. Create a branch for local development:
@@ -70,14 +71,21 @@ Ready to contribute? Here's how to set up `unifi-protect-backup` for local devel
 
     Now you can make your changes locally.
 
-6. When you're done making changes, check that your changes pass the
+6. To run `unifi-protect-backup` while developing you will need to either
+   be inside the `poetry shell` virtualenv or run it via poetry:
+
+   ```
+   $ poetry run unifi-protect-backup {args}
+   ```
+
+7. When you're done making changes, check that your changes pass the
    tests, including testing other Python versions, with tox:
 
     ```
     $ poetry run tox
     ```
 
-7. Commit your changes and push your branch to GitHub:
+8. Commit your changes and push your branch to GitHub:
 
     ```
     $ git add .
@@ -85,7 +93,7 @@ Ready to contribute? Here's how to set up `unifi-protect-backup` for local devel
     $ git push origin name-of-your-bugfix-or-feature
     ```
 
-8. Submit a pull request through the GitHub website.
+9. Submit a pull request through the GitHub website.
 
 ## Pull Request Guidelines
 
@@ -93,8 +101,8 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
 2. If the pull request adds functionality, the docs should be updated. Put
-   your new functionality into a function with a docstring, and add the
-   feature to the list in README.md.
+   your new functionality into a function with a docstring. If adding a CLI
+   option, you should update the "usage" in README.md.
 3. The pull request should work for Python 3.9. Check
    https://github.com/ep1cman/unifi-protect-backup/actions
    and make sure that the tests pass for all supported Python versions.
@@ -120,4 +128,5 @@ $ git push
 $ git push --tags
 ```
 
-GitHub Actions will then deploy to PyPI if tests pass.
+GitHub Actions will then deploy to PyPI, produce a GitHub release, and a container
+build if tests pass.
