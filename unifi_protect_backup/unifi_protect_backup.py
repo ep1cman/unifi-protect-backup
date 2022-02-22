@@ -168,6 +168,7 @@ class UnifiProtectBackup:
         retention (str): How long should event clips be backed up for. Format as per the
                          `--max-age` argument of `rclone`
                          (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)
+        rclone_args (str): Extra args passed directly to `rclone rcat`.
         ignore_cameras (List[str]): List of camera IDs for which to not backup events
         verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         _download_queue (asyncio.Queue): Queue of events that need to be backed up
@@ -182,6 +183,7 @@ class UnifiProtectBackup:
         verify_ssl: bool,
         rclone_destination: str,
         retention: str,
+        rclone_args: str,
         ignore_cameras: List[str],
         verbose: int,
         port: int = 443,
@@ -200,6 +202,8 @@ class UnifiProtectBackup:
             retention (str): How long should event clips be backed up for. Format as per the
                             `--max-age` argument of `rclone`
                             (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)
+            rclone_args (str): A bandwidth limit which is passed to the `--bwlimit` argument of
+                                   `rclone` (https://rclone.org/docs/#bwlimit-bandwidth-spec)
             ignore_cameras (List[str]): List of camera IDs for which to not backup events
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         """
@@ -217,11 +221,13 @@ class UnifiProtectBackup:
         logger.debug(f"  {verify_ssl=}")
         logger.debug(f"  {rclone_destination=}")
         logger.debug(f"  {retention=}")
+        logger.debug(f"  {rclone_args=}")
         logger.debug(f"  {ignore_cameras=}")
         logger.debug(f"  {verbose=}")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
+        self.rclone_args = rclone_args
 
         self._protect = ProtectApiClient(
             address,
@@ -386,7 +392,7 @@ class UnifiProtectBackup:
                 logger.debug(f"    Size: {human_readable_size(len(video))}")
                 for x in range(5):
                     try:
-                        await self._upload_video(video, destination)
+                        await self._upload_video(video, destination, self.rclone_args)
                         break
                     except RcloneException as e:
                         logger.warn(f"    Failed upload attempt {x+1}, retying in 1s")
@@ -402,7 +408,7 @@ class UnifiProtectBackup:
                 logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
                 logger.exception(e)
 
-    async def _upload_video(self, video: bytes, destination: pathlib.Path):
+    async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
         """Upload video using rclone.
 
         In order to avoid writing to disk, the video file data is piped directly
@@ -411,11 +417,12 @@ class UnifiProtectBackup:
         Args:
             video (bytes): The data to be written to the file
             destination (pathlib.Path): Where rclone should write the file
+            rclone_args (str): Optional extra arguments to pass to `rclone`
 
         Raises:
             RuntimeError: If rclone returns a non-zero exit code
         """
-        cmd = f"rclone rcat -vv '{destination}'"
+        cmd = f"rclone rcat -vv {rclone_args} '{destination}'"
         proc = await asyncio.create_subprocess_shell(
             cmd,
             stdin=asyncio.subprocess.PIPE,

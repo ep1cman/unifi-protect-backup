@@ -64,6 +64,15 @@ Options:
                                   of `rclone`
                                   (https://rclone.org/filtering/#max-age-don-
                                   t-transfer-any-file-older-than-this)
+  --rclone-args TEXT              Optional arguments which are directly passed
+                                  to `rclone rcat`. These can by used to set
+                                  parameters such as the bandwidth limit used
+                                  when pushing the files to the rclone
+                                  destination, e.g., '--bwlimit=500k'. Please
+                                  see the `rclone` documentation for the full
+                                  set of arguments it supports
+                                  (https://rclone.org/docs/). Please use
+                                  responsibly.
   --ignore-camera TEXT            IDs of cameras for which events should not
                                   be backed up. Use multiple times to ignore
                                   multiple IDs. If being set as an environment
@@ -106,6 +115,7 @@ always take priority over environment variables):
 - `UFP_SSL_VERIFY`
 - `RCLONE_RETENTION`
 - `RCLONE_DESTINATION`
+- `RCLONE_ARGS`
 - `IGNORE_CAMERAS`
 
 ## Docker Container
