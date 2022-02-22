@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2022-02-22
+### Added
+- New CLI argument for passing CLI arguments directly to `rclone`.
+
+### Fixed
+- A new camera getting added while running no longer crashes the application.
+- A timeout during download now correctly retries the download instead of
+  abandoning the event.
+
 ## [0.2.1] - 2022-02-21
 ### Fixed
 - Retry logging formatting
