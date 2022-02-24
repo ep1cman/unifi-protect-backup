@@ -298,9 +298,9 @@ class UnifiProtectBackup:
         # We need to catch websocket disconnect and trigger a reconnect.
         @aiocron.crontab("* * * * *")
         async def check_websocket_and_reconnect():
-            logger.debug("Checking the status of the websocket...")
+            logger.extra_debug("Checking the status of the websocket...")
             if self._protect.check_ws():
-                logger.debug("Websocket is connected.")
+                logger.extra_debug("Websocket is connected.")
             else:
                 logger.warn("Lost connection to Unifi Protect.")
 
