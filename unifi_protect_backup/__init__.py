@@ -2,6 +2,6 @@
 
 __author__ = """sebastian.goscik"""
 __email__ = 'sebastian@goscik.com'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 from .unifi_protect_backup import UnifiProtectBackup
