@@ -230,12 +230,18 @@ class UnifiProtectBackup:
         self.retention = retention
         self.rclone_args = rclone_args
 
+        self.address = address
+        self.port = port
+        self.username = username
+        self.password = password
+        self.verify_ssl = verify_ssl
+
         self._protect = ProtectApiClient(
-            address,
-            port,
-            username,
-            password,
-            verify_ssl=verify_ssl,
+            self.address,
+            self.port,
+            self.username,
+            self.password,
+            verify_ssl=self.verify_ssl,
             subscribed_models={ModelType.EVENT},
         )
         self.ignore_cameras = ignore_cameras
@@ -288,6 +294,59 @@ class UnifiProtectBackup:
                 logger.warn("Failed to purge old files")
                 logger.warn(f"stdout:\n{stdout.decode()}")
                 logger.warn(f"stderr:\n{stderr.decode()}")
+
+        # We need to catch websocket disconnect and trigger a reconnect.
+        @aiocron.crontab("* * * * *")
+        async def check_websocket_and_reconnect():
+            logger.debug("Checking the status of the websocket...")
+            if self._protect.check_ws():
+                logger.debug("Websocket is connected.")
+            else:
+                logger.warn("Lost connection to Unifi Protect.")
+
+                # Unsubscribe, close the session.
+                self._unsub()
+                await self._protect.close_session()
+
+                while True:
+                    logger.warn("Attempting reconnect...")
+
+                    try:
+                        # Start again from scratch. In principle if Unifi
+                        # Protect has not been restarted we should just be able
+                        # to call self._protect.update() to reconnect to the
+                        # websocket. However, if the server has been restarted a
+                        # call to self._protect.check_ws() returns true and some
+                        # seconds later pyunifiprotect detects the websocket as
+                        # disconnected again. Therefore, kill it all and try
+                        # again!
+                        replacement_protect = ProtectApiClient(
+                            self.address,
+                            self.port,
+                            self.username,
+                            self.password,
+                            verify_ssl=self.verify_ssl,
+                            subscribed_models={ModelType.EVENT},
+                        )
+                        # Start the pyunifiprotect connection by calling `update`
+                        await replacement_protect.update()
+                        if replacement_protect.check_ws():
+                            self._protect = replacement_protect
+                            self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
+                            break
+                        else:
+                            logger.warn("Unable to establish connection to Unifi Protect")
+                    except Exception as e:
+                        logger.warn("Unexpected exception occurred while trying to reconnect:")
+                        logger.exception(e)
+                    finally:
+                        # If we get here we need to close the replacement session again
+                        await replacement_protect.close_session()
+
+                        # Back off for a little while
+                        await asyncio.sleep(10)
+
+                logger.info("Re-established connection to Unifi Protect and to the websocket.")
 
         # Launches the main loop
         logger.info("Listening for events...")
