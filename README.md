@@ -129,12 +129,12 @@ docker run \
   -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
   -e UFP_SSL_VERIFY='false' \
   -e RCLONE_DESTINATION='my_remote:/unifi_protect_backup' \
-  -v '/path/to/rclone.conf':'/root/.config/rclone/rclone.conf' \
+  -v '/path/to/rclone.conf':'/config/rclone.conf' \
   ghcr.io/ep1cman/unifi-protect-backup
 ```
 If you do not already have a `rclone.conf` file you can create one as follows:
 ```
-$ docker run -it --rm -v $PWD:/root/.config/rclone/ ghcr.io/ep1cman/unifi-protect-backup rclone config
+$ docker run -it --rm -v $PWD:/config ghcr.io/ep1cman/unifi-protect-backup rclone config
 ```
 This will create a `rclone.conf` file in your current directory
 
