@@ -287,8 +287,8 @@ class UnifiProtectBackup:
             )
             stdout, stderr = await proc.communicate()
             if proc.returncode == 0:
-                logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
-                logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
+                logger.extra_debug(f"stdout:\n{stdout.decode()}")
+                logger.extra_debug(f"stderr:\n{stderr.decode()}")
                 logger.info("Successfully deleted old files")
             else:
                 logger.warn("Failed to purge old files")

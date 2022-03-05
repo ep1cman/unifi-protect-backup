@@ -4,10 +4,11 @@ import asyncio
 
 import click
 
-from unifi_protect_backup import UnifiProtectBackup
+from unifi_protect_backup import UnifiProtectBackup, __version__
 
 
 @click.command()
+@click.version_option(__version__)
 @click.option('--address', required=True, envvar='UFP_ADDRESS', help='Address of Unifi Protect instance')
 @click.option('--port', default=443, envvar='UFP_PORT', help='Port of Unifi Protect instance')
 @click.option('--username', required=True, envvar='UFP_USERNAME', help='Username to login to Unifi Protect instance')
