@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - 2022-02-24
+## [0.5.0] - 2022-03-06
+### Added
+- If `ffprobe` is available, the downloaded clips length is checked and logged
+### Fixed
+- A time delay has been added before downloading clips to try to resolve an issue where
+  downloaded clips were too short
+
+## [0.4.0] - 2022-03-05
 ### Added
 - A `--version` command line option to show the tools version
 ### Fixed
