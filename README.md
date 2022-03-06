@@ -36,6 +36,7 @@ retention period.
 1. Install `rclone`. Instructions for your platform can be found here: https://rclone.org/install/#quickstart
 2. Configure the `rclone` remote you want to backup to. Instructions can be found here: https://rclone.org/docs/#configure
 3. `pip install unifi-protect-backup`
+4. Optional: Install `ffprobe` so that `unifi-protect-backup` can check the length of the clips it downloads
 
 ## Usage
 

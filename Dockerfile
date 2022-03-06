@@ -4,7 +4,7 @@
 FROM python:3.9-alpine
 
 WORKDIR /app
-RUN apk add gcc musl-dev zlib-dev jpeg-dev rclone
+RUN apk add gcc musl-dev zlib-dev jpeg-dev rclone ffmpeg
 COPY dist/unifi-protect-backup-0.4.0.tar.gz sdist.tar.gz
 RUN pip install sdist.tar.gz
 
