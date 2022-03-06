@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 import pathlib
 import shutil
+import json
 from asyncio.exceptions import TimeoutError
 from typing import Callable, List, Optional
 
@@ -175,6 +176,7 @@ class UnifiProtectBackup:
         verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         _download_queue (asyncio.Queue): Queue of events that need to be backed up
         _unsub (Callable): Unsubscribe from the websocket callback
+        _has_ffprobe (bool): If ffprobe was found on the host
     """
 
     def __init__(
@@ -249,6 +251,8 @@ class UnifiProtectBackup:
         self._download_queue: asyncio.Queue = asyncio.Queue()
         self._unsub: Callable[[], None]
 
+        self._has_ffprobe = False
+
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
 
@@ -257,9 +261,15 @@ class UnifiProtectBackup:
         """
         logger.info("Starting...")
 
-        # Ensure rclone is installed and properly configured
+        # Ensure `rclone` is installed and properly configured
         logger.info("Checking rclone configuration...")
         await self._check_rclone()
+
+        # Check if `ffprobe` is available
+        ffprobe = shutil.which('ffprobe')
+        if ffprobe is not None:
+            logger.debug(f"ffprobe found: {ffprobe}")
+            self._has_ffprobe = True
 
         # Start the pyunifiprotect connection by calling `update`
         logger.info("Connecting to Unifi Protect...")
@@ -367,9 +377,9 @@ class UnifiProtectBackup:
 
         """
         rclone = shutil.which('rclone')
-        logger.debug(f"rclone found: {rclone}")
         if not rclone:
             raise RuntimeError("`rclone` is not installed on this system")
+        logger.debug(f"rclone found: {rclone}")
 
         cmd = "rclone listremotes -vv"
         proc = await asyncio.create_subprocess_shell(
@@ -465,6 +475,21 @@ class UnifiProtectBackup:
 
                 destination = await self.generate_file_path(event)
 
+                # Get the actual length of the downloaded video using ffprobe
+                if self._has_ffprobe:
+                    try:
+                        downloaded_duration = await self._get_video_length(video)
+                        msg = f"  Downloaded video length: {downloaded_duration:.3f}s" \
+                              f"({downloaded_duration - duration:+.3f}s)"
+                        if downloaded_duration < duration:
+                            logger.warning(msg)
+                        else:
+                            logger.debug(msg)
+                    except SubprocessException as e:
+                        logger.warn("    `ffprobe` failed")
+                        logger.exception(e)
+
+                # Upload video
                 logger.debug("  Uploading video via rclone...")
                 logger.debug(f"    To: {destination}")
                 logger.debug(f"    Size: {human_readable_size(len(video))}")
@@ -511,6 +536,25 @@ class UnifiProtectBackup:
         if proc.returncode == 0:
             logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
             logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
+        else:
+            raise SubprocessException(stdout.decode(), stderr.decode(), proc.returncode)
+
+    async def _get_video_length(self, video: bytes) -> float:
+        cmd = 'ffprobe -v quiet -show_streams -select_streams v:0 -of json -'
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate(video)
+        if proc.returncode == 0:
+            logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
+            logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
+
+            json_data = json.loads(stdout.decode())
+            return float(json_data['streams'][0]['duration'])
+
         else:
             raise SubprocessException(stdout.decode(), stderr.decode(), proc.returncode)
 
