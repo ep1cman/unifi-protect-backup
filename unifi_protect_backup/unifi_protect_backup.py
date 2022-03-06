@@ -1,5 +1,6 @@
 """Main module."""
 import asyncio
+from datetime import datetime, timedelta, timezone
 import logging
 import pathlib
 import shutil
@@ -429,9 +430,23 @@ class UnifiProtectBackup:
                 logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
                 logger.debug(f"  Camera: {await self._get_camera_name(event.camera_id)}")
                 logger.debug(f"  Type: {event.type}")
-                logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')}")
-                logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')}")
-                logger.debug(f"  Duration: {event.end-event.start}")
+                logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')} ({event.start.timestamp()})")
+                logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')} ({event.end.timestamp()})")
+                duration = (event.end - event.start).total_seconds()
+                logger.debug(f"  Duration: {duration}")
+
+                # Unifi protect does not return full video clips if the clip is requested too soon.
+                # There are two issues at play here:
+                #  - Protect will only cut a clip on an keyframe which happen every 5s
+                #  - Protect's pipeline needs a finite amount of time to make a clip available
+                # So we will wait 1.5x the keyframe interval to ensure that there is always ample video
+                # stored and Protect can return a full clip (which should be at least the length requested,
+                # but often longer)
+                time_since_event_ended = datetime.utcnow().replace(tzinfo=timezone.utc) - event.end
+                sleep_time = (timedelta(seconds=5 * 1.5) - time_since_event_ended).total_seconds()
+                if sleep_time > 0:
+                    logger.debug(f"  Sleeping ({sleep_time}s) to ensure clip is ready to download...")
+                    await asyncio.sleep(sleep_time)
 
                 # Download video
                 logger.debug("  Downloading video...")
