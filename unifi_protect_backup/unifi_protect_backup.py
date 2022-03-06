@@ -16,7 +16,7 @@ from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
 logger = logging.getLogger(__name__)
 
 
-class RcloneException(Exception):
+class SubprocessException(Exception):
     """Exception class for when rclone does not exit with `0`."""
 
     def __init__(self, stdout, stderr, returncode):
@@ -361,7 +361,7 @@ class UnifiProtectBackup:
         """Check if rclone is installed and the specified remote is configured.
 
         Raises:
-            RcloneException: If rclone is not installed or it failed to list remotes
+            SubprocessException: If rclone is not installed or it failed to list remotes
             ValueError: The given rclone destination is for a remote that is not configured
 
         """
@@ -380,7 +380,7 @@ class UnifiProtectBackup:
         logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
         logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
         if proc.returncode != 0:
-            raise RcloneException(stdout.decode(), stderr.decode(), proc.returncode)
+            raise SubprocessException(stdout.decode(), stderr.decode(), proc.returncode)
 
         # Check if the destination is for a configured remote
         for line in stdout.splitlines():
@@ -457,7 +457,7 @@ class UnifiProtectBackup:
                     try:
                         await self._upload_video(video, destination, self.rclone_args)
                         break
-                    except RcloneException as e:
+                    except SubprocessException as e:
                         logger.warn(f"    Failed upload attempt {x+1}, retying in 1s")
                         logger.exception(e)
                         await asyncio.sleep(1)
@@ -497,7 +497,7 @@ class UnifiProtectBackup:
             logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
             logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
         else:
-            raise RcloneException(stdout.decode(), stderr.decode(), proc.returncode)
+            raise SubprocessException(stdout.decode(), stderr.decode(), proc.returncode)
 
     async def generate_file_path(self, event: Event) -> pathlib.Path:
         """Generates the rclone destination path for the provided event.
