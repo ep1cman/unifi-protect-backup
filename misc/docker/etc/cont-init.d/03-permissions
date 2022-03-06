@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv /bin/sh
+
+chown abc:abc /data
+chown -R abc:abc /config

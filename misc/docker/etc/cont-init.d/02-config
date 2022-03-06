@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv /bin/sh
+
+# default config file
+[[ ! -f "/config/rclone.conf" ]] && \
+    echo "[cont-init.d] Copying default config"
+    cp \
+        /defaults/rclone.conf \
+        /config/rclone.conf
