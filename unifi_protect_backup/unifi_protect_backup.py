@@ -485,7 +485,7 @@ class UnifiProtectBackup:
         Raises:
             RuntimeError: If rclone returns a non-zero exit code
         """
-        cmd = f"rclone rcat -vv {rclone_args} '{destination}'"
+        cmd = f'rclone rcat -vv {rclone_args} "{destination}"'
         proc = await asyncio.create_subprocess_shell(
             cmd,
             stdin=asyncio.subprocess.PIPE,
