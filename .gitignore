@@ -113,5 +113,8 @@ ENV/
 # mkdocs build dir
 site/
 
+# Docker mounted volumes
+config/
+data/
 
 .envrc

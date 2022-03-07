@@ -1,0 +1,6 @@
+#!/usr/bin/with-contenv bash
+
+
+export RCLONE_CONFIG=/config/rclone/rclone.conf
+exec \
+    s6-setuidgid abc unifi-protect-backup -${VERBOSITY}
