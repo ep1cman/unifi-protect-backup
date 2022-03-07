@@ -46,7 +46,7 @@ ENV VERBOSITY="v"
 ENV TZ=UTC
 ENV IGNORE_CAMERAS=""
 
-COPY root/ /
+COPY docker_root/ /
 
 VOLUME [ "/config" ]
 VOLUME [ "/data" ]
