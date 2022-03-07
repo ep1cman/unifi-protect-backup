@@ -1,0 +1,14 @@
+#!/usr/bin/with-contenv bash
+
+# default config file
+[[ ! -f "/config/rclone/rclone.conf" ]] && \
+    mkdir -p /config/rclone && \
+    cp \
+        /defaults/rclone.conf \
+        /config/rclone/rclone.conf
+
+chown -R abc:abc \
+  /config
+
+chown -R abc:abc \
+  /data
