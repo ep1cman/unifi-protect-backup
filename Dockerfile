@@ -48,5 +48,5 @@ ENV IGNORE_CAMERAS=""
 
 COPY root/ /
 
-VOLUME [ "/app" ]
+VOLUME [ "/config" ]
 VOLUME [ "/data" ]
