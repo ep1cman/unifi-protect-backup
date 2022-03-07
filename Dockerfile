@@ -9,15 +9,15 @@ LABEL maintainer="ep1cman"
 WORKDIR /app
 
 RUN \
-  echo "**** install build packages ****" && \
-  apk add --no-cache --virtual=build-dependencies \
+    echo "**** install build packages ****" && \
+    apk add --no-cache --virtual=build-dependencies \
     shadow \
     gcc \
     musl-dev \
     jpeg-dev \
     zlib-dev && \
-  echo "**** install packages ****" && \
-  apk add --no-cache \
+    echo "**** install packages ****" && \
+    apk add --no-cache \
     rclone \
     py3-pip \
     python3-dev
@@ -26,11 +26,11 @@ RUN \
 RUN echo "**** install unifi-protect-backup ****"
 COPY dist/unifi-protect-backup-0.5.0.tar.gz sdist.tar.gz
 RUN \
-  pip install sdist.tar.gz && \
-  echo "**** cleanup ****" && \
-  apk del --purge \
+    pip install sdist.tar.gz && \
+    echo "**** cleanup ****" && \
+    apk del --purge \
     build-dependencies && \
-  rm -rf \
+    rm -rf \
     /tmp/* \
     /app/sdist.tar.gz
 
