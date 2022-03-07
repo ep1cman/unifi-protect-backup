@@ -19,6 +19,7 @@ RUN \
     echo "**** install packages ****" && \
     apk add --no-cache \
     rclone \
+    ffmpeg \
     py3-pip \
     python3-dev
 
