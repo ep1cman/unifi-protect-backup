@@ -1,10 +1,12 @@
 #!/usr/bin/with-contenv bash
 
+mkdir -p /config/rclone
+
 # For backwards compatibility
-[[ -f "/root/.config/rclone.conf" ]] && \
-    echo "DEPRECATED: Copying rclone conf from /root/.config/rclone.conf, please change your mount to /config/rclone.conf"
+[[ -f "/root/.config/rclone/rclone.conf" ]] && \
+    echo "DEPRECATED: Copying rclone conf from /root/.config/rclone/rclone.conf, please change your mount to /config/rclone.conf"
     cp \
-        /root/.config/rclone.conf
+        /root/.config/rclone/rclone.conf \
         /config/rclone/rclone.conf
 
 # default config file
