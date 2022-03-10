@@ -123,6 +123,31 @@ always take priority over environment variables):
 You can run this tool as a container if you prefer with the following command.
 Remember to change the variable to make your setup.
 
+
+### Backing up locally
+By default, if no rclone config is provided clips will be backed up to `/data`.
+
+```
+docker run \
+  -e UFP_USERNAME='USERNAME' \
+  -e UFP_PASSWORD='PASSWORD' \
+  -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
+  -e UFP_SSL_VERIFY='false' \
+  -v '/path/to/save/clips':'/data' \
+  ghcr.io/ep1cman/unifi-protect-backup
+```
+
+### Backing up to cloud storage
+In order to backup to cloud storage you need to provide a `rclone.conf` file.
+
+If you do not already have a `rclone.conf` file you can create one as follows:
+```
+$ docker run -it --rm -v $PWD:/root/.config/rclone rclone/rclone config
+```
+Follow the interactive configuration proceed, this will create a `rclone.conf` 
+file in your current directory.
+
+Finally start the container:
 ```
 docker run \
   -e UFP_USERNAME='USERNAME' \
@@ -130,14 +155,10 @@ docker run \
   -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
   -e UFP_SSL_VERIFY='false' \
   -e RCLONE_DESTINATION='my_remote:/unifi_protect_backup' \
-  -v '/path/to/rclone.conf':'/root/.config/rclone/rclone.conf' \
+  -v '/path/to/save/clips':'/data' \
+  -v `/path/to/rclone.conf':'/config/rclone.conf'
   ghcr.io/ep1cman/unifi-protect-backup
 ```
-If you do not already have a `rclone.conf` file you can create one as follows:
-```
-$ docker run -it --rm -v $PWD:/root/.config/rclone/ ghcr.io/ep1cman/unifi-protect-backup rclone config
-```
-This will create a `rclone.conf` file in your current directory
 
 ## Credits
 
