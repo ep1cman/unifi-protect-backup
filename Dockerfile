@@ -25,7 +25,7 @@ RUN \
 
 # Install unifi-protect-backup
 RUN echo "**** install unifi-protect-backup ****"
-COPY dist/unifi-protect-backup-0.5.1.tar.gz sdist.tar.gz
+COPY dist/unifi-protect-backup-0.5.2.tar.gz sdist.tar.gz
 RUN \
     pip install sdist.tar.gz && \
     echo "**** cleanup ****" && \
