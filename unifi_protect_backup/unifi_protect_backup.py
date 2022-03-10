@@ -289,8 +289,8 @@ class UnifiProtectBackup:
         @aiocron.crontab("0 0 * * *")
         async def rclone_purge_old():
             logger.info("Deleting old files...")
-            cmd = f"rclone delete -vv --min-age {self.retention} '{self.rclone_destination}'"
-            cmd += f" && rclone rmdirs -vv --leave-root '{self.rclone_destination}'"
+            cmd = f'rclone delete -vv --min-age {self.retention} "{self.rclone_destination}"'
+            cmd += f' && rclone rmdirs -vv --leave-root "{self.rclone_destination}"'
             proc = await asyncio.create_subprocess_shell(
                 cmd,
                 stdout=asyncio.subprocess.PIPE,
