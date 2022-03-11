@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.2] - 2022-03-07
+## [0.5.3] - 2022-03-11
+### Fixed
+- Timestamps in filenames and logging now show time in the timezone of the NVR not UTC
+
+## [0.5.2] - 2022-03-10
 ### Fixed
 - rclone delete command now works as expected on windows when spaces are in the file path
 - Dockerfile now allows setting of user and group to run as, as well as a default config
