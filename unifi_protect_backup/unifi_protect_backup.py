@@ -175,6 +175,7 @@ class UnifiProtectBackup:
         rclone_args (str): Extra args passed directly to `rclone rcat`.
         ignore_cameras (List[str]): List of camera IDs for which to not backup events
         verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
+        detection_types(List[str]): List of which detection types to backup.
         _download_queue (asyncio.Queue): Queue of events that need to be backed up
         _unsub (Callable): Unsubscribe from the websocket callback
         _has_ffprobe (bool): If ffprobe was found on the host
@@ -189,6 +190,7 @@ class UnifiProtectBackup:
         rclone_destination: str,
         retention: str,
         rclone_args: str,
+        detection_types: List[str],
         ignore_cameras: List[str],
         verbose: int,
         port: int = 443,
@@ -229,6 +231,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {rclone_args=}")
         logger.debug(f"  {ignore_cameras=}")
         logger.debug(f"  {verbose=}")
+        logger.debug(f"  {detection_types=}")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
@@ -251,6 +254,7 @@ class UnifiProtectBackup:
         self.ignore_cameras = ignore_cameras
         self._download_queue: asyncio.Queue = asyncio.Queue()
         self._unsub: Callable[[], None]
+        self.detection_types = detection_types
 
         self._has_ffprobe = False
 
@@ -422,6 +426,15 @@ class UnifiProtectBackup:
             return
         if msg.new_obj.type not in {EventType.MOTION, EventType.SMART_DETECT}:
             return
+        if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
+            logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")
+            return
+        elif msg.new_obj.type is EventType.SMART_DETECT:
+            for event_smart_detection_type in msg.new_obj.smart_detect_types:
+                if event_smart_detection_type not in self.detection_types:
+                    logger.extra_debug(f"Skipping unwanted {event_smart_detection_type} detection event: {msg.new_obj.id}")
+                    return
+
         self._download_queue.put_nowait(msg.new_obj)
         logger.debug(f"Adding event {msg.new_obj.id} to queue (Current queue={self._download_queue.qsize()})")
 
@@ -445,7 +458,12 @@ class UnifiProtectBackup:
                 logger.info(f"Backing up event: {event.id}")
                 logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
                 logger.debug(f"  Camera: {await self._get_camera_name(event.camera_id)}")
-                logger.debug(f"  Type: {event.type}")
+                if event.type == EventType.MOTION:
+                    logger.debug(f"  Type: {event.type}")
+                elif event.type == EventType.SMART_DETECT:
+                    logger.debug(f"  Type: {event.type} ({', '.join(event.smart_detect_types)})")
+                else:
+                    ValueError(f"Unexpected event type: `{event.type}")
                 logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')} ({event.start.timestamp()})")
                 logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')} ({event.end.timestamp()})")
                 duration = (event.end - event.start).total_seconds()
