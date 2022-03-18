@@ -43,6 +43,7 @@ pyunifiprotect = "^3.2.1"
 aiocron = "^1.8"
 ipdb = {version = "^0.13.9", optional = true}
 types-pytz = {version = "^2021.3.5", optional = true}
+types-cryptography = {version = "^3.3.18", optional = true}
 
 [tool.poetry.extras]
 test = [
@@ -52,10 +53,12 @@ test = [
     "mypy",
     "flake8",
     "flake8-docstrings",
-    "pytest-cov"
+    "pytest-cov",
+    "types-pytz",
+    "types-cryptography"
     ]
 
-dev = ["tox", "pre-commit", "virtualenv", "pip", "twine", "toml", "bump2version", "tox-asdf", "ipdb", "types-pytz"]
+dev = ["tox", "pre-commit", "virtualenv", "pip", "twine", "toml", "bump2version", "tox-asdf", "ipdb"]
 
 [tool.poetry.scripts]
 unifi-protect-backup = 'unifi_protect_backup.cli:main'
