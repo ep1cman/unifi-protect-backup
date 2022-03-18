@@ -61,7 +61,8 @@ def _parse_detection_types(ctx, param, value):
     envvar='DETECTION_TYPES',
     default=','.join(DETECTION_TYPES),
     show_default=True,
-    help=f"A comma separated list of which types of detections to backup. Valid options are: {', '.join([f'`{t}`' for t in DETECTION_TYPES])}",
+    help="A comma separated list of which types of detections to backup. "
+    f"Valid options are: {', '.join([f'`{t}`' for t in DETECTION_TYPES])}",
     callback=_parse_detection_types,
 )
 @click.option(
