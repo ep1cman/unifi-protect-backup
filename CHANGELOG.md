@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2022-03-18
+### Added
+- Support for doorbell ring events
+- `detection_types` parameter to limit which kinds of events are backed up
+### Fixed
+- Actually fixed timestamps this time.
+
 ## [0.5.3] - 2022-03-11
 ### Fixed
 - Timestamps in filenames and logging now show time in the timezone of the NVR not UTC
