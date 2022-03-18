@@ -1,11 +1,11 @@
 """Main module."""
 import asyncio
-from datetime import datetime, timedelta, timezone
+import json
 import logging
 import pathlib
 import shutil
-import json
 from asyncio.exceptions import TimeoutError
+from datetime import datetime, timedelta, timezone
 from typing import Callable, List, Optional
 
 import aiocron
@@ -211,7 +211,8 @@ class UnifiProtectBackup:
                             (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)
             rclone_args (str): A bandwidth limit which is passed to the `--bwlimit` argument of
                                    `rclone` (https://rclone.org/docs/#bwlimit-bandwidth-spec)
-            ignore_cameras (List[str]): List of camera IDs for which to not backup events
+            detection_types (List[str]): List of which detection types to backup.
+            ignore_cameras (List[str]): List of camera IDs for which to not backup events.
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         """
         setup_logging(verbose)
@@ -425,15 +426,17 @@ class UnifiProtectBackup:
         if msg.new_obj.end is None:
             return
         if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
-            logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")
+            logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")  # type: ignore
             return
         if msg.new_obj.type is EventType.RING and "ring" not in self.detection_types:
-            logger.extra_debug(f"Skipping unwanted ring event: {msg.new_obj.id}")
+            logger.extra_debug(f"Skipping unwanted ring event: {msg.new_obj.id}")  # type: ignore
             return
         elif msg.new_obj.type is EventType.SMART_DETECT:
             for event_smart_detection_type in msg.new_obj.smart_detect_types:
                 if event_smart_detection_type not in self.detection_types:
-                    logger.extra_debug(f"Skipping unwanted {event_smart_detection_type} detection event: {msg.new_obj.id}")
+                    logger.extra_debug(  # type: ignore
+                        f"Skipping unwanted {event_smart_detection_type} detection event: {msg.new_obj.id}"
+                    )
                     return
 
         self._download_queue.put_nowait(msg.new_obj)
@@ -502,8 +505,10 @@ class UnifiProtectBackup:
                 if self._has_ffprobe:
                     try:
                         downloaded_duration = await self._get_video_length(video)
-                        msg = f"  Downloaded video length: {downloaded_duration:.3f}s" \
-                              f"({downloaded_duration - duration:+.3f}s)"
+                        msg = (
+                            f"  Downloaded video length: {downloaded_duration:.3f}s"
+                            f"({downloaded_duration - duration:+.3f}s)"
+                        )
                         if downloaded_duration < duration:
                             logger.warning(msg)
                         else:
