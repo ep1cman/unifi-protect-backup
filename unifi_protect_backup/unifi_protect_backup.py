@@ -439,8 +439,8 @@ class UnifiProtectBackup:
 
                 # Fix timezones since pyunifiprotect sets all timestamps to UTC. Instead localize them to
                 # the timezone of the unifi protect NVR.
-                event.start.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
-                event.end.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
+                event.start = event.start.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
+                event.end = event.end.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
 
                 logger.info(f"Backing up event: {event.id}")
                 logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
