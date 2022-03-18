@@ -74,8 +74,8 @@ Options:
                                   be to set a bandwidth limit, for example.
   --detection-types TEXT          A comma separated list of which types of
                                   detections to backup. Valid options are:
-                                  `motion`, `person`, `vehicle`  [default:
-                                  motion,person,vehicle]
+                                  `motion`, `person`, `vehicle`, `ring`
+                                  [default: motion,person,vehicle,ring]
   --ignore-camera TEXT            IDs of cameras for which events should not
                                   be backed up. Use multiple times to ignore
                                   multiple IDs. If being set as an environment
