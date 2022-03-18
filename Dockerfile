@@ -8,26 +8,24 @@ LABEL maintainer="ep1cman"
 
 WORKDIR /app
 
+COPY dist/unifi-protect-backup-0.6.0.tar.gz sdist.tar.gz
+
 RUN \
     echo "**** install build packages ****" && \
     apk add --no-cache --virtual=build-dependencies \
-    shadow \
     gcc \
     musl-dev \
     jpeg-dev \
-    zlib-dev && \
+    zlib-dev \
+    python3-dev && \
     echo "**** install packages ****" && \
     apk add --no-cache \
     rclone \
     ffmpeg \
     py3-pip \
-    python3-dev
-
-# Install unifi-protect-backup
-RUN echo "**** install unifi-protect-backup ****"
-COPY dist/unifi-protect-backup-0.6.0.tar.gz sdist.tar.gz
-RUN \
-    pip install sdist.tar.gz && \
+    python3 && \
+    echo "**** install unifi-protect-backup ****" && \
+    pip install --no-cache-dir sdist.tar.gz && \
     echo "**** cleanup ****" && \
     apk del --purge \
     build-dependencies && \
