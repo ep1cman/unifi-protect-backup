@@ -6,7 +6,7 @@ import click
 
 from unifi_protect_backup import UnifiProtectBackup, __version__
 
-DETECTION_TYPES = ["motion", "person", "vehicle"]
+DETECTION_TYPES = ["motion", "person", "vehicle", "ring"]
 
 
 def _parse_detection_types(ctx, param, value):

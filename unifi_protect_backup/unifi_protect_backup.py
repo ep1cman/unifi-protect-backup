@@ -424,10 +424,11 @@ class UnifiProtectBackup:
             return
         if msg.new_obj.end is None:
             return
-        if msg.new_obj.type not in {EventType.MOTION, EventType.SMART_DETECT}:
-            return
         if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")
+            return
+        if msg.new_obj.type is EventType.RING and "ring" not in self.detection_types:
+            logger.extra_debug(f"Skipping unwanted ring event: {msg.new_obj.id}")
             return
         elif msg.new_obj.type is EventType.SMART_DETECT:
             for event_smart_detection_type in msg.new_obj.smart_detect_types:
@@ -458,12 +459,10 @@ class UnifiProtectBackup:
                 logger.info(f"Backing up event: {event.id}")
                 logger.debug(f"Remaining Queue: {self._download_queue.qsize()}")
                 logger.debug(f"  Camera: {await self._get_camera_name(event.camera_id)}")
-                if event.type == EventType.MOTION:
-                    logger.debug(f"  Type: {event.type}")
-                elif event.type == EventType.SMART_DETECT:
+                if event.type == EventType.SMART_DETECT:
                     logger.debug(f"  Type: {event.type} ({', '.join(event.smart_detect_types)})")
                 else:
-                    ValueError(f"Unexpected event type: `{event.type}")
+                    logger.debug(f"  Type: {event.type}")
                 logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')} ({event.start.timestamp()})")
                 logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')} ({event.end.timestamp()})")
                 duration = (event.end - event.start).total_seconds()
