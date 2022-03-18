@@ -6,16 +6,31 @@ import click
 
 from unifi_protect_backup import UnifiProtectBackup, __version__
 
+DETECTION_TYPES = ["motion", "person", "vehicle"]
+
+
+def _parse_detection_types(ctx, param, value):
+    # split columns by ',' and remove whitespace
+    types = [t.strip() for t in value.split(',')]
+
+    # validate passed columns
+    for t in types:
+        if t not in DETECTION_TYPES:
+            raise click.BadOptionUsage("detection-types", f"`{t}` is not an available detection type.", ctx)
+
+    return types
+
 
 @click.command()
 @click.version_option(__version__)
 @click.option('--address', required=True, envvar='UFP_ADDRESS', help='Address of Unifi Protect instance')
-@click.option('--port', default=443, envvar='UFP_PORT', help='Port of Unifi Protect instance')
+@click.option('--port', default=443, envvar='UFP_PORT', show_default=True, help='Port of Unifi Protect instance')
 @click.option('--username', required=True, envvar='UFP_USERNAME', help='Username to login to Unifi Protect instance')
 @click.option('--password', required=True, envvar='UFP_PASSWORD', help='Password for Unifi Protect user')
 @click.option(
     '--verify-ssl/--no-verify-ssl',
     default=True,
+    show_default=True,
     envvar='UFP_SSL_VERIFY',
     help="Set if you do not have a valid HTTPS Certificate for your instance",
 )
@@ -29,6 +44,7 @@ from unifi_protect_backup import UnifiProtectBackup, __version__
 @click.option(
     '--retention',
     default='7d',
+    show_default=True,
     envvar='RCLONE_RETENTION',
     help="How long should event clips be backed up for. Format as per the `--max-age` argument of "
     "`rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
@@ -39,6 +55,14 @@ from unifi_protect_backup import UnifiProtectBackup, __version__
     envvar='RCLONE_ARGS',
     help="Optional extra arguments to pass to `rclone rcat` directly. Common usage for this would "
     "be to set a bandwidth limit, for example.",
+)
+@click.option(
+    '--detection-types',
+    envvar='DETECTION_TYPES',
+    default=','.join(DETECTION_TYPES),
+    show_default=True,
+    help=f"A comma separated list of which types of detections to backup. Valid options are: {', '.join([f'`{t}`' for t in DETECTION_TYPES])}",
+    callback=_parse_detection_types,
 )
 @click.option(
     '--ignore-camera',

@@ -49,14 +49,17 @@ Usage: unifi-protect-backup [OPTIONS]
   A Python based tool for backing up Unifi Protect event clips as they occur.
 
 Options:
+  --version                       Show the version and exit.
   --address TEXT                  Address of Unifi Protect instance
                                   [required]
-  --port INTEGER                  Port of Unifi Protect instance
+  --port INTEGER                  Port of Unifi Protect instance  [default:
+                                  443]
   --username TEXT                 Username to login to Unifi Protect instance
                                   [required]
   --password TEXT                 Password for Unifi Protect user  [required]
   --verify-ssl / --no-verify-ssl  Set if you do not have a valid HTTPS
-                                  Certificate for your instance
+                                  Certificate for your instance  [default:
+                                  verify-ssl]
   --rclone-destination TEXT       `rclone` destination path in the format
                                   {rclone remote}:{path on remote}. E.g.
                                   `gdrive:/backups/unifi_protect`  [required]
@@ -65,15 +68,14 @@ Options:
                                   of `rclone`
                                   (https://rclone.org/filtering/#max-age-don-
                                   t-transfer-any-file-older-than-this)
-  --rclone-args TEXT              Optional arguments which are directly passed
-                                  to `rclone rcat`. These can by used to set
-                                  parameters such as the bandwidth limit used
-                                  when pushing the files to the rclone
-                                  destination, e.g., '--bwlimit=500k'. Please
-                                  see the `rclone` documentation for the full
-                                  set of arguments it supports
-                                  (https://rclone.org/docs/). Please use
-                                  responsibly.
+                                  [default: 7d]
+  --rclone-args TEXT              Optional extra arguments to pass to `rclone
+                                  rcat` directly. Common usage for this would
+                                  be to set a bandwidth limit, for example.
+  --detection-types TEXT          A comma separated list of which types of
+                                  detections to backup. Valid options are:
+                                  `motion`, `person`, `vehicle`  [default:
+                                  motion,person,vehicle]
   --ignore-camera TEXT            IDs of cameras for which events should not
                                   be backed up. Use multiple times to ignore
                                   multiple IDs. If being set as an environment
@@ -118,6 +120,7 @@ always take priority over environment variables):
 - `RCLONE_DESTINATION`
 - `RCLONE_ARGS`
 - `IGNORE_CAMERAS`
+- `DETECTION_TYPES`
 
 ## Docker Container
 You can run this tool as a container if you prefer with the following command.
@@ -144,7 +147,7 @@ If you do not already have a `rclone.conf` file you can create one as follows:
 ```
 $ docker run -it --rm -v $PWD:/root/.config/rclone rclone/rclone config
 ```
-Follow the interactive configuration proceed, this will create a `rclone.conf` 
+Follow the interactive configuration proceed, this will create a `rclone.conf`
 file in your current directory.
 
 Finally start the container:
