@@ -431,6 +431,8 @@ class UnifiProtectBackup:
             return
         if msg.new_obj.end is None:
             return
+        if msg.new_obj.type not in [EventType.MOTION, EventType.SMART_DETECT, EventType.RING]:
+            return
         if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")  # type: ignore
             return
