@@ -28,7 +28,7 @@ retention period.
 
 ## Requirements
 - Python 3.9+
-- Unifi Protect version 1.20 or higher (as per [`pyunifiproect`](https://github.com/briis/pyunifiprotect))
+- Unifi Protect version 1.20 or higher (as per [`pyunifiprotect`](https://github.com/briis/pyunifiprotect))
 - `rclone` installed with at least one remote configured.
 
 ## Installation
@@ -144,7 +144,7 @@ The following fields are provided to the format string:
   - *detection_type:* A nicely formatted list of the event detection type and the smart detection types (if any)
   - *camera_name:* The name of the camera that generated this event
 
-You can optionally format the `event.start`/`event.end` timestamps as per the [`strftime` format](https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior) by appening it after a `:` e.g to get just the date without the time: `{event.start:%Y-%m-%d}`
+You can optionally format the `event.start`/`event.end` timestamps as per the [`strftime` format](https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior) by appending it after a `:` e.g to get just the date without the time: `{event.start:%Y-%m-%d}`
 
 
 ## Docker Container
@@ -190,6 +190,6 @@ docker run \
 
 ## Credits
 
-- Heavily utilises [`pyunifiproect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
+- Heavily utilises [`pyunifiprotect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
 - All the cloud functionality is provided by [`rclone`](https://rclone.org/)
 - This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter) and the [waynerv/cookiecutter-pypackage](https://github.com/waynerv/cookiecutter-pypackage) project template.
