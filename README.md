@@ -81,6 +81,12 @@ Options:
                                   multiple IDs. If being set as an environment
                                   variable the IDs should be separated by
                                   whitespace.
+  --file-structure-format TEXT    A Python format string used to generate the
+                                  file structure/name on the rclone remote.For
+                                  details of the fields available, see the
+                                  projects `README.md` file.  [default: {camer
+                                  a_name}/{event.start:%Y-%m-%d}/{event.end:%Y
+                                  -%m-%dT%H-%M-%S} {detection_type}.mp4]
   -v, --verbose                   How verbose the logging output should be.
 
                                       None: Only log info messages created by
@@ -121,6 +127,25 @@ always take priority over environment variables):
 - `RCLONE_ARGS`
 - `IGNORE_CAMERAS`
 - `DETECTION_TYPES`
+- `FILE_STRUCTURE_FORMAT`
+
+## File path formatting
+
+By default, the application will save clips in the following structure on the provided rclone remote:
+```
+{camera_name}/{event.start:%Y-%m-%d}/{event.end:%Y-%m-%dT%H-%M-%S} {detection_type}.mp4
+```
+If you wish for the clips to be structured differently you can do this using the `--file-structure-format`
+option. It uses standard [python format string syntax](https://docs.python.org/3/library/string.html#formatstrings).
+
+The following fields are provided to the format string:
+  - *event:* The `Event` object as per https://github.com/briis/pyunifiprotect/blob/master/pyunifiprotect/data/nvr.py
+  - *duration_seconds:* The duration of the event in seconds
+  - *detection_type:* A nicely formatted list of the event detection type and the smart detection types (if any)
+  - *camera_name:* The name of the camera that generated this event
+
+You can optionally format the `event.start`/`event.end` timestamps as per the [`strftime` format](https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior) by appening it after a `:` e.g to get just the date without the time: `{event.start:%Y-%m-%d}`
+
 
 ## Docker Container
 You can run this tool as a container if you prefer with the following command.

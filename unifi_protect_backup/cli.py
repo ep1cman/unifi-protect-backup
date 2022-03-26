@@ -74,6 +74,14 @@ def _parse_detection_types(ctx, param, value):
     "multiple IDs. If being set as an environment variable the IDs should be separated by whitespace.",
 )
 @click.option(
+    '--file-structure-format',
+    envvar='FILE_STRUCTURE_FORMAT',
+    default="{camera_name}/{event.start:%Y-%m-%d}/{event.end:%Y-%m-%dT%H-%M-%S} {detection_type}.mp4",
+    show_default=True,
+    help="A Python format string used to generate the file structure/name on the rclone remote."
+    "For details of the fields available, see the projects `README.md` file.",
+)
+@click.option(
     '-v',
     '--verbose',
     count=True,

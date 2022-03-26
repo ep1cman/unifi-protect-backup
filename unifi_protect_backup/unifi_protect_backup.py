@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import pathlib
+import re
 import shutil
 from asyncio.exceptions import TimeoutError
 from datetime import datetime, timedelta, timezone
@@ -175,7 +176,8 @@ class UnifiProtectBackup:
         rclone_args (str): Extra args passed directly to `rclone rcat`.
         ignore_cameras (List[str]): List of camera IDs for which to not backup events
         verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
-        detection_types(List[str]): List of which detection types to backup.
+        detection_types (List[str]): List of which detection types to backup.
+        file_structure_format (str): A Python format string for output file path
         _download_queue (asyncio.Queue): Queue of events that need to be backed up
         _unsub (Callable): Unsubscribe from the websocket callback
         _has_ffprobe (bool): If ffprobe was found on the host
@@ -192,6 +194,7 @@ class UnifiProtectBackup:
         rclone_args: str,
         detection_types: List[str],
         ignore_cameras: List[str],
+        file_structure_format: str,
         verbose: int,
         port: int = 443,
     ):
@@ -213,6 +216,7 @@ class UnifiProtectBackup:
                                    `rclone` (https://rclone.org/docs/#bwlimit-bandwidth-spec)
             detection_types (List[str]): List of which detection types to backup.
             ignore_cameras (List[str]): List of camera IDs for which to not backup events.
+            file_structure_format (str): A Python format string for output file path.
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
         """
         setup_logging(verbose)
@@ -233,10 +237,12 @@ class UnifiProtectBackup:
         logger.debug(f"  {ignore_cameras=}")
         logger.debug(f"  {verbose=}")
         logger.debug(f"  {detection_types=}")
+        logger.debug(f"  {file_structure_format=}")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
         self.rclone_args = rclone_args
+        self.file_structure_format = file_structure_format
 
         self.address = address
         self.port = port
@@ -589,12 +595,15 @@ class UnifiProtectBackup:
     async def generate_file_path(self, event: Event) -> pathlib.Path:
         """Generates the rclone destination path for the provided event.
 
-        Generates paths in the following structure:
-        ::
-          rclone_destination
-          |- Camera Name
-             |- {Date}
-                 |- {start timestamp} {event type} ({detections}).mp4
+        Generates rclone destination path for the given even based upon the format string
+        in `self.file_structure_format`.
+
+        Provides the following fields to the format string:
+          event: The `Event` object as per
+                 https://github.com/briis/pyunifiprotect/blob/master/pyunifiprotect/data/nvr.py
+          duration_seconds: The duration of the event in seconds
+          detection_type: A nicely formatted list of the event detection type and the smart detection types (if any)
+          camera_name: The name of the camera that generated this event
 
         Args:
             event: The event for which to create an output path
@@ -603,21 +612,23 @@ class UnifiProtectBackup:
             pathlib.Path: The rclone path the event should be backed up to
 
         """
-        path = pathlib.Path(self.rclone_destination)
         assert isinstance(event.camera_id, str)
-        path /= await self._get_camera_name(event.camera_id)  # directory per camera
-        path /= event.start.strftime("%Y-%m-%d")  # Directory per day
+        assert isinstance(event.start, datetime)
+        assert isinstance(event.end, datetime)
 
-        file_name = f"{event.start.strftime('%Y-%m-%dT%H-%M-%S')} {event.type}"
+        format_context = {
+            "event": event,
+            "duration_seconds": (event.end - event.start).total_seconds(),
+            "detection_type": f"{event.type} ({' '.join(event.smart_detect_types)})"
+            if event.smart_detect_types
+            else f"{event.type}",
+            "camera_name": await self._get_camera_name(event.camera_id),
+        }
 
-        if event.smart_detect_types:
-            detections = " ".join(event.smart_detect_types)
-            file_name += f" ({detections})"
-        file_name += ".mp4"
+        file_path = self.file_structure_format.format(**format_context)
+        file_path = re.sub(r'[^\w\-_\.\(\)/ ]', '', file_path)  # Sanitize any invalid chars
 
-        path /= file_name
-
-        return path
+        return pathlib.Path(f"{self.rclone_destination}/{file_path}")
 
     async def _get_camera_name(self, id: str):
         try:
