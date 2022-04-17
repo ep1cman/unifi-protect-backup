@@ -38,6 +38,19 @@ retention period.
 3. `pip install unifi-protect-backup`
 4. Optional: Install `ffprobe` so that `unifi-protect-backup` can check the length of the clips it downloads
 
+
+### Account Setup
+In order to connect to your unifi protect instance, you will first need to setup a local admin account:
+
+* Login to your *Local Portal* on your UniFiOS device, and click on *Users*
+* In the upper right corner, click on *Add User*
+* Click *Add Admin*, and fill out the form. Specific Fields to pay attention to:
+  * Role: Must be *Limited Admin*
+  * Account Type: *Local Access Only*
+  * CONTROLLER PERMISSIONS - Under UniFi Protect, select Administrators.
+* Click *Add* in at the bottom Right.
+
+
 ## Usage
 
 :warning: **Potential Data Loss**: Be very careful when setting the `rclone-destination`, at midnight every day it will
