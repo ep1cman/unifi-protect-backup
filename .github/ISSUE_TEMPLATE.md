@@ -1,6 +1,8 @@
 * Unifi Protect Backup version:
+* Unifi Protect version:
 * Python version:
 * Operating System:
+* Are you using a docker container or native?:
 
 ### Description
 
