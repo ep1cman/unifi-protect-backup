@@ -43,12 +43,13 @@ retention period.
 In order to connect to your unifi protect instance, you will first need to setup a local admin account:
 
 * Login to your *Local Portal* on your UniFiOS device, and click on *Users*
-* In the upper right corner, click on *Add User*
-* Click *Add Admin*, and fill out the form. Specific Fields to pay attention to:
-  * Role: Must be *Limited Admin*
+* Open the `Roles` tab and click `Add Role` in the top right.
+* Give the role a name like `unifi protect backup` and give it `Full Management` permissions for the unifi protect app.
+* Now switch to the `User` tab and click `Add User` in the top right, and fill out the form. Specific Fields to pay attention to:
+  * Role: Must be the role created in the last step
   * Account Type: *Local Access Only*
-  * CONTROLLER PERMISSIONS - Under UniFi Protect, select Administrators.
 * Click *Add* in at the bottom Right.
+* Select the newly created user in the list, and navigate to the `Assignments` tab in the left-hand pane, and ensure all cameras are ticked.
 
 
 ## Usage
