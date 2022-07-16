@@ -861,7 +861,7 @@ tzdata = {version = "*", markers = "python_version >= \"3.6\""}
 
 [[package]]
 name = "pyunifiprotect"
-version = "3.9.0"
+version = "3.9.2"
 description = "Unofficial UniFi Protect Python API and CLI"
 category = "main"
 optional = false
@@ -1920,10 +1920,7 @@ pytz-deprecation-shim = [
     {file = "pytz_deprecation_shim-0.1.0.post0-py2.py3-none-any.whl", hash = "sha256:8314c9692a636c8eb3bda879b9f119e350e93223ae83e70e80c31675a0fdc1a6"},
     {file = "pytz_deprecation_shim-0.1.0.post0.tar.gz", hash = "sha256:af097bae1b616dde5c5744441e2ddc69e74dfdcb0c263129610d85b87445a59d"},
 ]
-pyunifiprotect = [
-    {file = "pyunifiprotect-3.9.0-py3-none-any.whl", hash = "sha256:b5629fe197899d6ddba6e0ff20db548f71c66207720439c489e6b2e1b4b34325"},
-    {file = "pyunifiprotect-3.9.0.tar.gz", hash = "sha256:a4e7beea33008207adaeb70104c68315ee35e22c32e8fc01b9bc128eef3f453c"},
-]
+pyunifiprotect = []
 pywin32-ctypes = [
     {file = "pywin32-ctypes-0.2.0.tar.gz", hash = "sha256:24ffc3b341d457d48e8922352130cf2644024a4ff09762a2261fd34c36ee5942"},
     {file = "pywin32_ctypes-0.2.0-py2.py3-none-any.whl", hash = "sha256:9dc2d991b3479cc2df15930958b674a48a227d5361d413827a4cfd0b5876fc98"},
