@@ -1,7 +1,7 @@
 [tool]
 [tool.poetry]
 name = "unifi-protect-backup"
-version = "0.8.0"
+version = "0.7.2"
 homepage = "https://github.com/ep1cman/unifi-protect-backup"
 description = "Python tool to backup unifi event clips in realtime."
 authors = ["sebastian.goscik <sebastian@goscik.com>"]
