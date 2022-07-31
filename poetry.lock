@@ -556,6 +556,14 @@ optional = true
 python-versions = "*"
 
 [[package]]
+name = "orjson"
+version = "3.7.10"
+description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -861,7 +869,7 @@ tzdata = {version = "*", markers = "python_version >= \"3.6\""}
 
 [[package]]
 name = "pyunifiprotect"
-version = "3.9.2"
+version = "4.0.11"
 description = "Unofficial UniFi Protect Python API and CLI"
 category = "main"
 optional = false
@@ -871,6 +879,7 @@ python-versions = "*"
 aiofiles = "*"
 aiohttp = "*"
 aioshutil = "*"
+orjson = "*"
 packaging = "*"
 pillow = "*"
 pydantic = "!=1.9.1"
@@ -1241,7 +1250,7 @@ test = ["pytest", "black", "isort", "mypy", "flake8", "flake8-docstrings", "pyte
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9.0,<4.0"
-content-hash = "7e206e8e7606eef53e11c90568cc20e1fd857fab1fc6bc6782f265ee429a73e9"
+content-hash = "8a8ba8afef1dae213be16fa56b914cd35f56c70d034203c73f068dc7d1ae2268"
 
 [metadata.files]
 aiocron = [
@@ -1743,6 +1752,7 @@ nodeenv = [
     {file = "nodeenv-1.6.0-py2.py3-none-any.whl", hash = "sha256:621e6b7076565ddcacd2db0294c0381e01fd28945ab36bcf00f41c5daf63bef7"},
     {file = "nodeenv-1.6.0.tar.gz", hash = "sha256:3ef13ff90291ba2a4a7a4ff9a979b63ffdd00a464dbe04acf0ea6471517a4c2b"},
 ]
+orjson = []
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
