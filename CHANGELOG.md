@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2022-07-31
+### Fixed
+- Updated to the 4.0.0 version of pyunifiprotect
+- Added rust to the container, and bumped it to alpine 3.16
+
 ## [0.7.2] - 2022-07-17
 ### Fixed
 - Updated to the latest version of pyunifiprotect to fix issues introduced in unifi protect 2.1.1
