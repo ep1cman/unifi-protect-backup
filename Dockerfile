@@ -2,7 +2,7 @@
 # $ poetry build
 # $ docker build -t ghcr.io/ep1cman/unifi-protect-backup .
 
-FROM ghcr.io/linuxserver/baseimage-alpine:3.15
+FROM ghcr.io/linuxserver/baseimage-alpine:3.16
 
 LABEL maintainer="ep1cman"
 
@@ -17,7 +17,8 @@ RUN \
     musl-dev \
     jpeg-dev \
     zlib-dev \
-    python3-dev && \
+    python3-dev \
+    cargo && \
     echo "**** install packages ****" && \
     apk add --no-cache \
     rclone \
