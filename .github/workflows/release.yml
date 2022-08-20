@@ -12,19 +12,12 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-env:
-  IMAGE_NAME: ${{ github.repository }}
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "release"
   release:
     name: Create Release
     runs-on: ubuntu-20.04
-
-    strategy:
-      matrix:
-        python-versions: [3.9]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -46,7 +39,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-versions }}
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
@@ -61,12 +54,26 @@ jobs:
         run: >-
           ls -l
 
-      - name: build container
-        id: docker_build
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
 
-      - name: log in to container registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+     
+      - name: Log in to container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push dev
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ steps.tag_name.outputs.current_version }}, ghcr.io/${{ github.repository }}:latest
 
       - name: create github release
         id: create_release
@@ -78,26 +85,6 @@ jobs:
           files: dist/*.whl
           draft: false
           prerelease: false
-
-      - name: push container image
-        run: |
-          IMAGE_ID=ghcr.io/$IMAGE_NAME
-
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker tag $IMAGE_NAME $IMAGE_ID:latest
-          docker push $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:latest
-
 
       - name: publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
