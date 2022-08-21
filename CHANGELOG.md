@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.4] - 2022-08-21
+No functional changes in this version. This is just to trigger the release CI.
+### Added
+- Arm docker container
+- rclone debugging instructions when using docker
+
+### Fixed
+- Documentation error in rclone config path of docker container.
+
 ## [0.7.3] - 2022-07-31
 ### Fixed
 - Updated to the 4.0.0 version of pyunifiprotect
