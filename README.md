@@ -184,12 +184,12 @@ In order to backup to cloud storage you need to provide a `rclone.conf` file.
 
 If you do not already have a `rclone.conf` file you can create one as follows:
 ```
-$ docker run -it --rm -v $PWD:/root/.config/rclone rclone/rclone config
+$ docker run -it --rm -v $PWD:/root/.config/rclone --entrypoint rclone ghcr.io/ep1cman/unifi-protect-backup config
 ```
 Follow the interactive configuration proceed, this will create a `rclone.conf`
 file in your current directory.
 
-Finally start the container:
+Finally, start the container:
 ```
 docker run \
   -e UFP_USERNAME='USERNAME' \
