@@ -202,6 +202,31 @@ docker run \
   ghcr.io/ep1cman/unifi-protect-backup
 ```
 
+## Debugging
+
+If you need to debug your rclone setup, you can invoke rclone directly like so:
+
+```
+docker run \
+    --rm \
+    -v /path/to/rclone.conf:/config/rclone/rclone.conf \
+    -e RCLONE_CONFIG='/config/rclone/rclone.conf' \
+    --entrypoint rclone \
+    ghcr.io/ep1cman/unifi-protect-backup \
+    {rclone subcommand as per: https://rclone.org/docs/#subcommands}
+```
+
+For example to check that your config file is being read properly and list the configured remotes:
+```
+docker run \
+    --rm \
+    -v /path/to/rclone.conf:/config/rclone/rclone.conf \
+    -e RCLONE_CONFIG='/config/rclone/rclone.conf' \
+    --entrypoint rclone \
+    ghcr.io/ep1cman/unifi-protect-backup \
+    listremotes
+```
+
 ## Credits
 
 - Heavily utilises [`pyunifiprotect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
