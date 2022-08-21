@@ -198,7 +198,7 @@ docker run \
   -e UFP_SSL_VERIFY='false' \
   -e RCLONE_DESTINATION='my_remote:/unifi_protect_backup' \
   -v '/path/to/save/clips':'/data' \
-  -v `/path/to/rclone.conf':'/config/rclone.conf'
+  -v `/path/to/rclone.conf':'/config/rclone/rclone.conf'
   ghcr.io/ep1cman/unifi-protect-backup
 ```
 
