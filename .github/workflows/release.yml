@@ -52,7 +52,7 @@ jobs:
 
       - name: show temporary files
         run: >-
-          ls -l
+          ls -lR
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
