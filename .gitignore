@@ -118,3 +118,5 @@ config/
 data/
 
 .envrc
+clips/
+*.sqlite

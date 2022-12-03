@@ -1,0 +1,83 @@
+import asyncio
+import logging
+from datetime import datetime
+from typing import List
+
+import aiosqlite
+from dateutil.relativedelta import relativedelta
+
+from pyunifiprotect import ProtectApiClient
+from pyunifiprotect.data.types import EventType
+
+logger = logging.getLogger(__name__)
+
+
+class MissingEventChecker:
+    """Periodically checks if any unifi protect events exist within the retention period that are not backed up"""
+
+    def __init__(
+        self,
+        protect: ProtectApiClient,
+        db: aiosqlite.Connection,
+        event_queue: asyncio.Queue,
+        retention: relativedelta,
+        detection_types: List[str],
+        ignore_cameras: List[str],
+        interval: int = 60 * 5,
+    ) -> None:
+        self._protect: ProtectApiClient = protect
+        self._db: aiosqlite.Connection = db
+        self._event_queue: asyncio.Queue = event_queue
+        self.retention: relativedelta = retention
+        self.detection_types: List[str] = detection_types
+        self.ignore_cameras: List[str] = ignore_cameras
+        self.interval: int = interval
+
+    async def start(self):
+        """main loop"""
+        logger.info("Starting Missing Event Checker")
+        while True:
+            try:
+                logger.extra_debug("Running check for missing events...")
+                # Get list of events that need to be backed up from unifi protect
+                unifi_events = await self._protect.get_events(
+                    start=datetime.now() - self.retention,
+                    end=datetime.now(),
+                    types=[EventType.MOTION, EventType.SMART_DETECT, EventType.RING],
+                )
+                unifi_events = {event.id: event for event in unifi_events}
+
+                # Get list of events that have been backed up from the database
+
+                # events(id, type, camera_id, start, end)
+                async with self._db.execute("SELECT * FROM events") as cursor:
+                    rows = await cursor.fetchall()
+                    db_event_ids = {row[0] for row in rows}
+
+                # Prevent re-adding events currently in the download queue
+                downloading_event_ids = {event.id for event in self._event_queue._queue}
+
+                missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids)
+
+                for event_id in missing_event_ids:
+                    event = unifi_events[event_id]
+                    if event.start is None or event.end is None:
+                        continue  # This event is still on-going
+                    if event.type is EventType.MOTION and "motion" not in self.detection_types:
+                        continue
+                    if event.type is EventType.RING and "ring" not in self.detection_types:
+                        continue
+                    elif event.type is EventType.SMART_DETECT:
+                        for event_smart_detection_type in event.smart_detect_types:
+                            if event_smart_detection_type not in self.detection_types:
+                                continue
+                    else:
+                        logger.warning(
+                            f" Adding missing event to backup queue: {event.id} ({event.type}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
+                        )
+                        await self._event_queue.put(event)
+            except Exception as e:
+                logger.warn(f"Unexpected exception occurred during missing event check:")
+                logger.exception(e)
+
+            await asyncio.sleep(self.interval)
