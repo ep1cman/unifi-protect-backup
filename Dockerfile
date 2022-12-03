@@ -45,6 +45,7 @@ ENV RCLONE_DESTINATION=local:/data
 ENV VERBOSITY="v"
 ENV TZ=UTC
 ENV IGNORE_CAMERAS=""
+ENV SQLITE_PATH=/config/database/events.sqlite
 
 COPY docker_root/ /
 
