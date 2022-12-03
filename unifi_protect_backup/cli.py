@@ -3,8 +3,10 @@
 import asyncio
 
 import click
+from aiorun import run
 
-from unifi_protect_backup import UnifiProtectBackup, __version__
+from unifi_protect_backup import __version__
+from unifi_protect_backup.unifi_protect_backup import UnifiProtectBackup
 
 DETECTION_TYPES = ["motion", "person", "vehicle", "ring"]
 
@@ -102,11 +104,17 @@ all warnings, and websocket data
     -vvvvv: Log websocket data, command output, all debug messages, all info messages and all warnings
 """,
 )
+@click.option(
+    '--sqlite_path',
+    default='events.sqlite',
+    envvar='SQLITE_PATH',
+    help="Path to the SQLite database to use/create",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     loop = asyncio.get_event_loop()
     event_listener = UnifiProtectBackup(**kwargs)
-    loop.run_until_complete(event_listener.start())
+    run(event_listener.start())
 
 
 if __name__ == "__main__":

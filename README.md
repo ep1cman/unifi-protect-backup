@@ -23,8 +23,9 @@ retention period.
 ## Features
 
 - Listens to events in real-time via the Unifi Protect websocket API
+- Ensures any previous and/or missed events within the retention period are also backed up
 - Supports uploading to a [wide range of storage systems using `rclone`](https://rclone.org/overview/)
-- Performs nightly pruning of old clips
+- Automatic pruning of old clips
 
 ## Requirements
 - Python 3.9+
@@ -53,9 +54,6 @@ In order to connect to your unifi protect instance, you will first need to setup
 
 
 ## Usage
-
-:warning: **Potential Data Loss**: Be very careful when setting the `rclone-destination`, at midnight every day it will
-delete any files older than `retention`. It is best to give `unifi-protect-backup` its own directory.
 
 ```
 Usage: unifi-protect-backup [OPTIONS]
@@ -102,30 +100,31 @@ Options:
                                   a_name}/{event.start:%Y-%m-%d}/{event.end:%Y
                                   -%m-%dT%H-%M-%S} {detection_type}.mp4]
   -v, --verbose                   How verbose the logging output should be.
-
+                                  
                                       None: Only log info messages created by
                                       `unifi-protect-backup`, and all warnings
-
+                                  
                                       -v: Only log info & debug messages
                                       created by `unifi-protect-backup`, and
                                       all warnings
-
+                                  
                                       -vv: Log info & debug messages created
                                       by `unifi-protect-backup`, command
                                       output, and all warnings
-
+                                  
                                       -vvv Log debug messages created by
                                       `unifi-protect-backup`, command output,
                                       all info messages, and all warnings
-
+                                  
                                       -vvvv: Log debug messages created by
                                       `unifi-protect-backup` command output,
                                       all info messages, all warnings, and
                                       websocket data
-
+                                  
                                       -vvvvv: Log websocket data, command
                                       output, all debug messages, all info
                                       messages and all warnings  [x>=0]
+  --sqlite_path TEXT              Path to the SQLite database to use/create
   --help                          Show this message and exit.
 ```
 
@@ -142,6 +141,7 @@ always take priority over environment variables):
 - `IGNORE_CAMERAS`
 - `DETECTION_TYPES`
 - `FILE_STRUCTURE_FORMAT`
+- `SQLITE_PATH`
 
 ## File path formatting
 

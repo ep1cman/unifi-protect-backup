@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2022-12-03
+Major internal refactoring. Each task is now its own class and asyncio task.
+
+### Added
+- A database of backed up events and where they are stored
+- A periodic check for missed events
+  - This will also ensure past events before the tool was used are backed up, up until the retention period
+
+### Fixed
+- Pruning is no longer done based on file timestamps, the database is used instead. The tool will no longer delete files it didn't create.
+- Pruning now runs much more frequently (every minute) so retention periods of less than a day are now possible.
+
+
 ## [0.7.4] - 2022-08-21
 No functional changes in this version. This is just to trigger the release CI.
 ### Added
