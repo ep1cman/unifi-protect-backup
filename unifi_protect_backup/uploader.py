@@ -8,7 +8,7 @@ import aiosqlite
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect import ProtectApiClient
 
-from unifi_protect_backup.utils import get_camera_name, SubprocessException, VideoQueue
+from unifi_protect_backup.utils import get_camera_name, SubprocessException, VideoQueue, run_command
 
 logger = logging.getLogger(__name__)
 
@@ -74,19 +74,9 @@ class VideoUploader:
         Raises:
             RuntimeError: If rclone returns a non-zero exit code
         """
-        cmd = f'rclone rcat -vv {rclone_args} "{destination}"'
-        proc = await asyncio.create_subprocess_shell(
-            cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await proc.communicate(video)
-        if proc.returncode == 0:
-            logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
-            logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
-        else:
-            raise SubprocessException(stdout.decode(), stderr.decode(), proc.returncode)
+        returncode, stdout, stderr = await run_command(f'rclone rcat -vv {rclone_args} "{destination}"', video)
+        if returncode != 0:
+            logger.warn(f" Failed to upload file: '{destination}'")
 
     async def _update_database(self, event: Event, destination: str):
         """

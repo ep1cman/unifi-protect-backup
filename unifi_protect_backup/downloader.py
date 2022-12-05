@@ -10,30 +10,28 @@ from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType
 
-from unifi_protect_backup.utils import SubprocessException, VideoQueue, get_camera_name, human_readable_size
+from unifi_protect_backup.utils import (
+    SubprocessException,
+    VideoQueue,
+    get_camera_name,
+    human_readable_size,
+    run_command,
+)
 
 logger = logging.getLogger(__name__)
 
 
 async def get_video_length(video: bytes) -> float:
     """Uses ffprobe to get the length of the video file passed in as a byte stream"""
-    cmd = 'ffprobe -v quiet -show_streams -select_streams v:0 -of json -'
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdin=asyncio.subprocess.PIPE,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+    returncode, stdout, stderr = await run_command(
+        'ffprobe -v quiet -show_streams -select_streams v:0 -of json -', video
     )
-    stdout, stderr = await proc.communicate(video)
-    if proc.returncode == 0:
-        logger.extra_debug(f"stdout:\n{stdout.decode()}")  # type: ignore
-        logger.extra_debug(f"stderr:\n{stderr.decode()}")  # type: ignore
 
-        json_data = json.loads(stdout.decode())
-        return float(json_data['streams'][0]['duration'])
+    if returncode != 0:
+        raise SubprocessException(stdout, stderr, returncode)
 
-    else:
-        raise SubprocessException(stdout.decode(), stderr.decode(), proc.returncode)
+    json_data = json.loads(stdout)
+    return float(json_data['streams'][0]['duration'])
 
 
 class VideoDownloader:
@@ -139,4 +137,3 @@ class VideoDownloader:
                 logger.debug(msg)
         except SubprocessException as e:
             logger.warn("    `ffprobe` failed")
-            logger.exception(e)
