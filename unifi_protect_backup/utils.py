@@ -86,16 +86,17 @@ def parse_rclone_retention(retention: str) -> relativedelta:
     )
 
 
-async def run_command(cmd: str):
+async def run_command(cmd: str, data=None):
     """
     Runs the given command returning the exit code, stdout and stderr
     """
     proc = await asyncio.create_subprocess_shell(
         cmd,
+        stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, stderr = await proc.communicate()
+    stdout, stderr = await proc.communicate(data)
     stdout = stdout.decode()
     stdout_indented = '\t' + stdout.replace('\n', '\n\t').strip()
     stderr = stderr.decode()
