@@ -49,5 +49,7 @@ ENV SQLITE_PATH=/config/database/events.sqlite
 
 COPY docker_root/ /
 
+RUN mkdir -p /config/database /config/rclone
+
 VOLUME [ "/config" ]
 VOLUME [ "/data" ]
