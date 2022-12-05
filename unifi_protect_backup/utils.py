@@ -96,16 +96,18 @@ async def run_command(cmd: str):
         stderr=asyncio.subprocess.PIPE,
     )
     stdout, stderr = await proc.communicate()
-    stdout = stdout.decode().replace('\n', '\n\t').strip()
-    stderr = stderr.decode().replace('\n', '\n\t').strip()
+    stdout = stdout.decode()
+    stdout_indented = '\t' + stdout.replace('\n', '\n\t').strip()
+    stderr = stderr.decode()
+    stderr_indented = '\t' + stderr.replace('\n', '\n\t').strip()
 
     if proc.returncode != 0:
         logger.warn(f"Failed to run: '{cmd}")
-        logger.warn(f"stdout:\n{stdout}")
-        logger.warn(f"stderr:\n{stderr}")
+        logger.warn(f"stdout:\n{stdout_indented}")
+        logger.warn(f"stderr:\n{stderr_indented}")
     else:
-        logger.extra_debug(f"stdout:\n{stdout}")
-        logger.extra_debug(f"stderr:\n{stderr}")
+        logger.extra_debug(f"stdout:\n{stdout_indented}")
+        logger.extra_debug(f"stderr:\n{stderr_indented}")
 
     return proc.returncode, stdout, stderr
 
