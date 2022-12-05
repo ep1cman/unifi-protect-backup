@@ -165,6 +165,9 @@ You can optionally format the `event.start`/`event.end` timestamps as per the [`
 You can run this tool as a container if you prefer with the following command.
 Remember to change the variable to make your setup.
 
+> **Note**
+> As of version 0.8.0, the event database needs to be persisted for the tool to function properly
+> please see the updated commands below
 
 ### Backing up locally
 By default, if no rclone config is provided clips will be backed up to `/data`.
