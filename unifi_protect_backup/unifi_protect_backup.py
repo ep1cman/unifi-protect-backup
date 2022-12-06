@@ -77,7 +77,7 @@ def add_logging_level(levelName: str, levelNum: int, methodName: Optional[str] =
     setattr(logging, methodName, logToRoot)
 
 
-def setup_logging(verbosity: int) -> None:
+def setup_logging(verbosity: int, color_logging: bool = False) -> None:
     """Configures loggers to provided the desired level of verbosity.
 
     Verbosity 0: Only log info messages created by `unifi-protect-backup`, and all warnings
@@ -93,6 +93,7 @@ def setup_logging(verbosity: int) -> None:
 
     Args:
         verbosity (int): The desired level of verbosity
+        color_logging (bool): If colors should be used in the log (default=False)
 
     """
     add_logging_level(
@@ -132,9 +133,11 @@ def setup_logging(verbosity: int) -> None:
                 color = '\x1b[35;1m'  # MAGENTA
             else:
                 color = '\x1b[0m'
-            # add colored *** in the beginning of the message
 
-            args[0].levelname = f"{color}{args[0].levelname:^11s}\x1b[0m"
+            if color_logging:
+                args[0].levelname = f"{color}{args[0].levelname:^11s}\x1b[0m"
+            else:
+                args[0].levelname = f"{args[0].levelname:^11s}"
 
             return fn(*args)
 
@@ -196,6 +199,7 @@ class UnifiProtectBackup:
         file_structure_format: str,
         verbose: int,
         sqlite_path: str = "events.sqlite",
+        color_logging=False,
         port: int = 443,
     ):
         """Will configure logging settings and the Unifi Protect API (but not actually connect).
@@ -220,7 +224,7 @@ class UnifiProtectBackup:
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
             sqlite_path (str): Path where to find/create sqlite database
         """
-        setup_logging(verbose)
+        setup_logging(verbose, color_logging)
 
         logger.debug("Config:")
         logger.debug(f"  {address=}")

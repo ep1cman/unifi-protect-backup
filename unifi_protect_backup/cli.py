@@ -110,6 +110,13 @@ all warnings, and websocket data
     envvar='SQLITE_PATH',
     help="Path to the SQLite database to use/create",
 )
+@click.option(
+    '--color-logging/--plain-logging',
+    default=False,
+    show_default=True,
+    envvar='COLOR_LOGGING',
+    help="Set if you want to use color in logging output",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     loop = asyncio.get_event_loop()

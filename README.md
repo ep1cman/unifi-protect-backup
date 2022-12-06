@@ -125,6 +125,9 @@ Options:
                                       output, all debug messages, all info
                                       messages and all warnings  [x>=0]
   --sqlite_path TEXT              Path to the SQLite database to use/create
+  --color-logging / --plain-logging
+                                  Set if you want to use color in logging
+                                  output  [default: plain-logging]
   --help                          Show this message and exit.
 ```
 
