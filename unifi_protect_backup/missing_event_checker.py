@@ -85,9 +85,14 @@ class MissingEventChecker:
 
                 for event_id in wanted_event_ids:
                     event = unifi_events[event_id]
-                    missing_logger(
-                        f" Adding missing event to backup queue: {event.id} ({event.type}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
-                    )
+                    if event.type != EventType.SMART_DETECT:
+                        missing_logger(
+                            f" Adding missing event to backup queue: {event.id} ({event.type}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
+                        )
+                    else:
+                        missing_logger(
+                            f" Adding missing event to backup queue: {event.id} ({', '.join(event.smart_detect_types)}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
+                        )
                     await self._event_queue.put(event)
 
             except Exception as e:
