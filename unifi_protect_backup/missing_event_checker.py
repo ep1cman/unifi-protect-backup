@@ -58,24 +58,38 @@ class MissingEventChecker:
                 downloading_event_ids = {event.id for event in self._event_queue._queue}
 
                 missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids)
+                logger.debug(f" Total undownloaded events: {len(missing_event_ids)}")
 
-                for event_id in missing_event_ids:
+                def wanted_event_type(event_id):
                     event = unifi_events[event_id]
                     if event.start is None or event.end is None:
-                        continue  # This event is still on-going
+                        return False  # This event is still on-going
                     if event.type is EventType.MOTION and "motion" not in self.detection_types:
-                        continue
+                        return False
                     if event.type is EventType.RING and "ring" not in self.detection_types:
-                        continue
+                        return False
                     elif event.type is EventType.SMART_DETECT:
                         for event_smart_detection_type in event.smart_detect_types:
                             if event_smart_detection_type not in self.detection_types:
-                                continue
-                    else:
-                        logger.warning(
-                            f" Adding missing event to backup queue: {event.id} ({event.type}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
-                        )
-                        await self._event_queue.put(event)
+                                return False
+                    return True
+
+                wanted_event_ids = set(filter(wanted_event_type, missing_event_ids))
+                logger.debug(f" Undownloaded events of wanted types: {len(wanted_event_ids)}")
+
+                if len(wanted_event_ids) > 20:
+                    logger.warning(f" Adding {len(wanted_event_ids)} missing events to backup queue")
+                    missing_logger = logger.extra_debug
+                else:
+                    missing_logger = logger.warning
+
+                for event_id in wanted_event_ids:
+                    event = unifi_events[event_id]
+                    missing_logger(
+                        f" Adding missing event to backup queue: {event.id} ({event.type}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
+                    )
+                    await self._event_queue.put(event)
+
             except Exception as e:
                 logger.warn(f"Unexpected exception occurred during missing event check:")
                 logger.exception(e)
