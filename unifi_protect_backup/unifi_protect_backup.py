@@ -1,5 +1,6 @@
 """Main module."""
 import asyncio
+from datetime import datetime, timezone
 import logging
 import os
 import shutil
@@ -288,6 +289,10 @@ class UnifiProtectBackup:
             logger.info("Found cameras:")
             for camera in self._protect.bootstrap.cameras.values():
                 logger.info(f" - {camera.id}: {camera.name}")
+
+            # Print timezone info for debugging
+            logger.debug(f'NVR TZ: {self._protect.bootstrap.nvr.timezone}')
+            logger.debug(f'Local TZ: {datetime.now(timezone.utc).astimezone().tzinfo}')
 
             tasks = []
 
