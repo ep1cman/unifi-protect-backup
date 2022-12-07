@@ -119,7 +119,6 @@ all warnings, and websocket data
 )
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
-    loop = asyncio.get_event_loop()
     event_listener = UnifiProtectBackup(**kwargs)
     run(event_listener.start())
 
