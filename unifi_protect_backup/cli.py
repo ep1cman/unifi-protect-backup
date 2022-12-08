@@ -121,6 +121,7 @@ all warnings, and websocket data
 @click.option(
     '--download-buffer-size',
     default='512MiB',
+    show_default=True,
     envvar='DOWNLOAD_BUFFER_SIZE',
     help='How big the download buffer should be (you can use suffixes like "B", "KiB", "MiB", "GiB")',
     callback=lambda ctx, param, value: human_readable_to_float(value),
