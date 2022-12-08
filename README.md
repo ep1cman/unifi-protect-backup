@@ -128,6 +128,9 @@ Options:
   --color-logging / --plain-logging
                                   Set if you want to use color in logging
                                   output  [default: plain-logging]
+  --download-buffer-size TEXT     How big the download buffer should be (you
+                                  can use suffixes like "B", "KiB", "MiB",
+                                  "GiB")  [default: 512MiB]
   --help                          Show this message and exit.
 ```
 
@@ -145,6 +148,8 @@ always take priority over environment variables):
 - `DETECTION_TYPES`
 - `FILE_STRUCTURE_FORMAT`
 - `SQLITE_PATH`
+- `DOWNLOAD_BUFFER_SIZE`
+- `COLOR_LOGGING`
 
 ## File path formatting
 
