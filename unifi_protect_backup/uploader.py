@@ -8,9 +8,10 @@ import aiosqlite
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect import ProtectApiClient
 
-from unifi_protect_backup.utils import get_camera_name, SubprocessException, VideoQueue, run_command
+from unifi_protect_backup.utils import get_camera_name, VideoQueue, run_command, setup_event_logger
 
 logger = logging.getLogger(__name__)
+setup_event_logger(logger)
 
 
 class VideoUploader:
@@ -34,6 +35,7 @@ class VideoUploader:
         self._rclone_args: str = rclone_args
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
+        self.logger = logging.LoggerAdapter(logger, {'event': ''})
 
     async def start(self):
         """Main loop
@@ -41,24 +43,26 @@ class VideoUploader:
         Runs forever looking for video data in the video queue and then uploads it using rclone, finally it updates the database
         """
 
-        logger.info("Starting Uploader")
+        self.logger.info("Starting Uploader")
         while True:
             try:
                 event, video = await self._video_queue.get()
-                logger.info(f"Uploading event: {event.id}")
-                logger.debug(f" Remaining Upload Queue: {self._video_queue.qsize_files()}")
+                self.logger = logging.LoggerAdapter(logger, {'event': f' [{event.id}]'})
+
+                self.logger.info(f"Uploading event: {event.id}")
+                self.logger.debug(f" Remaining Upload Queue: {self._video_queue.qsize_files()}")
 
                 destination = await self._generate_file_path(event)
-                logger.debug(f" Destination: {destination}")
+                self.logger.debug(f" Destination: {destination}")
 
                 await self._upload_video(video, destination, self._rclone_args)
                 await self._update_database(event, destination)
 
-                logger.debug(f"Uploaded")
+                self.logger.debug(f"Uploaded")
 
             except Exception as e:
-                logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
-                logger.exception(e)
+                self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
+                self.logger.exception(e)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
         """Upload video using rclone.
@@ -76,7 +80,7 @@ class VideoUploader:
         """
         returncode, stdout, stderr = await run_command(f'rclone rcat -vv {rclone_args} "{destination}"', video)
         if returncode != 0:
-            logger.warn(f" Failed to upload file: '{destination}'")
+            self.logger.warn(f" Failed to upload file: '{destination}'")
 
     async def _update_database(self, event: Event, destination: str):
         """

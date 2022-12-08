@@ -7,164 +7,18 @@ import shutil
 from cmath import log
 from pprint import pprint
 from time import sleep
-from typing import Callable, List, Optional
+from typing import Callable, List
 
 import aiosqlite
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.types import ModelType
 
 from unifi_protect_backup import EventListener, MissingEventChecker, Purge, VideoDownloader, VideoUploader
-from unifi_protect_backup.utils import SubprocessException, parse_rclone_retention, run_command
+from unifi_protect_backup.utils import SubprocessException, parse_rclone_retention, run_command, setup_logging
 
 logger = logging.getLogger(__name__)
 
 # TODO: https://github.com/cjrh/aiorun#id6 (smart shield)
-
-
-def add_logging_level(levelName: str, levelNum: int, methodName: Optional[str] = None) -> None:
-    """Comprehensively adds a new logging level to the `logging` module and the currently configured logging class.
-
-    `levelName` becomes an attribute of the `logging` module with the value
-    `levelNum`. `methodName` becomes a convenience method for both `logging`
-    itself and the class returned by `logging.getLoggerClass()` (usually just
-    `logging.Logger`).
-
-    To avoid accidental clobbering of existing attributes, this method will
-    raise an `AttributeError` if the level name is already an attribute of the
-    `logging` module or if the method name is already present
-
-    Credit: https://stackoverflow.com/a/35804945
-
-    Args:
-        levelName (str): The name of the new logging level (in all caps).
-        levelNum (int): The priority value of the logging level, lower=more verbose.
-        methodName (str): The name of the method used to log using this.
-                          If `methodName` is not specified, `levelName.lower()` is used.
-
-    Example:
-    ::
-        >>> add_logging_level('TRACE', logging.DEBUG - 5)
-        >>> logging.getLogger(__name__).setLevel("TRACE")
-        >>> logging.getLogger(__name__).trace('that worked')
-        >>> logging.trace('so did this')
-        >>> logging.TRACE
-        5
-
-    """
-    if not methodName:
-        methodName = levelName.lower()
-
-    if hasattr(logging, levelName):
-        raise AttributeError('{} already defined in logging module'.format(levelName))
-    if hasattr(logging, methodName):
-        raise AttributeError('{} already defined in logging module'.format(methodName))
-    if hasattr(logging.getLoggerClass(), methodName):
-        raise AttributeError('{} already defined in logger class'.format(methodName))
-
-    # This method was inspired by the answers to Stack Overflow post
-    # http://stackoverflow.com/q/2183233/2988730, especially
-    # http://stackoverflow.com/a/13638084/2988730
-    def logForLevel(self, message, *args, **kwargs):
-        if self.isEnabledFor(levelNum):
-            self._log(levelNum, message, args, **kwargs)
-
-    def logToRoot(message, *args, **kwargs):
-        logging.log(levelNum, message, *args, **kwargs)
-
-    logging.addLevelName(levelNum, levelName)
-    setattr(logging, levelName, levelNum)
-    setattr(logging.getLoggerClass(), methodName, logForLevel)
-    setattr(logging, methodName, logToRoot)
-
-
-def setup_logging(verbosity: int, color_logging: bool = False) -> None:
-    """Configures loggers to provided the desired level of verbosity.
-
-    Verbosity 0: Only log info messages created by `unifi-protect-backup`, and all warnings
-    verbosity 1: Only log info & debug messages created by `unifi-protect-backup`, and all warnings
-    verbosity 2: Log info & debug messages created by `unifi-protect-backup`, command output, and
-                 all warnings
-    Verbosity 3: Log debug messages created by `unifi-protect-backup`, command output, all info
-                 messages, and all warnings
-    Verbosity 4: Log debug messages created by `unifi-protect-backup` command output, all info
-                 messages, all warnings, and websocket data
-    Verbosity 5: Log websocket data, command output, all debug messages, all info messages and all
-                 warnings
-
-    Args:
-        verbosity (int): The desired level of verbosity
-        color_logging (bool): If colors should be used in the log (default=False)
-
-    """
-    add_logging_level(
-        'EXTRA_DEBUG',
-        logging.DEBUG - 1,
-    )
-    add_logging_level(
-        'WEBSOCKET_DATA',
-        logging.DEBUG - 2,
-    )
-
-    format = "{asctime} [{levelname:^11s}] {name:<42} :\t{message}"
-    date_format = "%Y-%m-%d %H:%M:%S"
-    style = '{'
-
-    logger = logging.getLogger("unifi_protect_backup")
-
-    sh = logging.StreamHandler()
-    formatter = logging.Formatter(format, date_format, style)
-    sh.setFormatter(formatter)
-
-    def decorate_emit(fn):
-        # add methods we need to the class
-        def new(*args):
-            levelno = args[0].levelno
-            if levelno >= logging.CRITICAL:
-                color = '\x1b[31;1m'  # RED
-            elif levelno >= logging.ERROR:
-                color = '\x1b[31;1m'  # RED
-            elif levelno >= logging.WARNING:
-                color = '\x1b[33;1m'  # YELLOW
-            elif levelno >= logging.INFO:
-                color = '\x1b[32;1m'  # GREEN
-            elif levelno >= logging.DEBUG:
-                color = '\x1b[36;1m'  # CYAN
-            elif levelno >= logging.EXTRA_DEBUG:
-                color = '\x1b[35;1m'  # MAGENTA
-            else:
-                color = '\x1b[0m'
-
-            if color_logging:
-                args[0].levelname = f"{color}{args[0].levelname:^11s}\x1b[0m"
-            else:
-                args[0].levelname = f"{args[0].levelname:^11s}"
-
-            return fn(*args)
-
-        return new
-
-    sh.emit = decorate_emit(sh.emit)
-    logger.addHandler(sh)
-    logger.propagate = False
-
-    if verbosity == 0:
-        logging.basicConfig(level=logging.WARN, format=format, style=style, datefmt=date_format)
-        logger.setLevel(logging.INFO)
-    elif verbosity == 1:
-        logging.basicConfig(level=logging.WARN, format=format, style=style, datefmt=date_format)
-        logger.setLevel(logging.DEBUG)
-    elif verbosity == 2:
-        logging.basicConfig(level=logging.WARN, format=format, style=style, datefmt=date_format)
-        logger.setLevel(logging.EXTRA_DEBUG)  # type: ignore
-    elif verbosity == 3:
-        logging.basicConfig(level=logging.INFO, format=format, style=style, datefmt=date_format)
-        logger.setLevel(logging.EXTRA_DEBUG)  # type: ignore
-    elif verbosity == 4:
-        logging.basicConfig(level=logging.INFO, format=format, style=style, datefmt=date_format)
-        logger.setLevel(logging.WEBSOCKET_DATA)  # type: ignore
-    elif verbosity >= 5:
-        logging.basicConfig(level=logging.DEBUG, format=format, style=style, datefmt=date_format)
-        logger.setLevel(logging.WEBSOCKET_DATA)  # type: ignore
 
 
 async def create_database(path: str):
