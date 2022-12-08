@@ -160,6 +160,11 @@ class VideoQueue(asyncio.Queue):
         Put an item into the queue. If the queue is full, wait until a free
         slot is available before adding item.
         """
+        if len(item[1]) > self._maxsize:
+            raise ValueError(
+                f"Item is larger ({human_readable_size(len(item[1]))}) than the size of the buffer ({human_readable_size(self._maxsize)})"
+            )
+
         while self.full(item):
             putter = self._loop.create_future()
             self._putters.append(putter)
