@@ -198,6 +198,7 @@ class UnifiProtectBackup:
         ignore_cameras: List[str],
         file_structure_format: str,
         verbose: int,
+        download_buffer_size: int,
         sqlite_path: str = "events.sqlite",
         color_logging=False,
         port: int = 443,
@@ -244,6 +245,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {detection_types=}")
         logger.debug(f"  {file_structure_format=}")
         logger.debug(f"  {sqlite_path=}")
+        logger.debug(f"  {download_buffer_size=}")
 
         self.rclone_destination = rclone_destination
         self.retention = parse_rclone_retention(retention)
@@ -271,6 +273,7 @@ class UnifiProtectBackup:
         self._has_ffprobe = False
         self._sqlite_path = sqlite_path
         self._db = None
+        self._download_buffer_size = download_buffer_size
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -313,7 +316,7 @@ class UnifiProtectBackup:
 
             # Create downloader task
             #   This will download video files to its buffer
-            downloader = VideoDownloader(self._protect, event_queue)  # TODO: Make buffer size configurable
+            downloader = VideoDownloader(self._protect, event_queue, buffer_size=self._download_buffer_size)
             tasks.append(asyncio.create_task(downloader.start()))
 
             # Create upload task

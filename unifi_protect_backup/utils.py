@@ -8,6 +8,8 @@ from pyunifiprotect import ProtectApiClient
 
 logger = logging.getLogger(__name__)
 
+_suffixes = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
+
 
 def human_readable_size(num: float):
     """Turns a number into a human readable number with ISO/IEC 80000 binary prefixes.
@@ -17,11 +19,24 @@ def human_readable_size(num: float):
     Args:
         num (int): The number to be converted into human readable format
     """
-    for unit in ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]:
+    for unit in _suffixes:
         if abs(num) < 1024.0:
             return f"{num:3.1f}{unit}"
         num /= 1024.0
     raise ValueError("`num` too large, ran out of prefixes")
+
+
+def human_readable_to_float(num: str):
+    pattern = r"([\d.]+)(" + "|".join(_suffixes) + ")"
+    print(pattern)
+    result = re.match(pattern, num)
+    if result is None:
+        raise ValueError(f"Value '{num}' is not a valid ISO/IEC 80000 binary value")
+
+    value = float(result[1])
+    suffix = result[2]
+    multiplier = 1024 ** _suffixes.index(suffix)
+    return value * multiplier
 
 
 async def get_camera_name(protect: ProtectApiClient, id: str):

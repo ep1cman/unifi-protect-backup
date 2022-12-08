@@ -37,10 +37,10 @@ async def get_video_length(video: bytes) -> float:
 class VideoDownloader:
     """Downloads event video clips from Unifi Protect"""
 
-    def __init__(self, protect: ProtectApiClient, download_queue: asyncio.Queue, buffer_size: int = 256):
+    def __init__(self, protect: ProtectApiClient, download_queue: asyncio.Queue, buffer_size: int = 256 * 1024 * 1024):
         self._protect: ProtectApiClient = protect
         self._download_queue: asyncio.Queue = download_queue
-        self.video_queue = VideoQueue(buffer_size * 1024 * 1024)
+        self.video_queue = VideoQueue(buffer_size)
 
         # Check if `ffprobe` is available
         ffprobe = shutil.which('ffprobe')

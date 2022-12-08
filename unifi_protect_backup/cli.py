@@ -7,6 +7,7 @@ from aiorun import run
 
 from unifi_protect_backup import __version__
 from unifi_protect_backup.unifi_protect_backup import UnifiProtectBackup
+from unifi_protect_backup.utils import human_readable_to_float
 
 DETECTION_TYPES = ["motion", "person", "vehicle", "ring"]
 
@@ -116,6 +117,13 @@ all warnings, and websocket data
     show_default=True,
     envvar='COLOR_LOGGING',
     help="Set if you want to use color in logging output",
+)
+@click.option(
+    '--download-buffer-size',
+    default='512MiB',
+    envvar='DOWNLOAD_BUFFER_SIZE',
+    help='How big the download buffer should be (you can use suffixes like "B", "KiB", "MiB", "GiB")',
+    callback=lambda ctx, param, value: human_readable_to_float(value),
 )
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
