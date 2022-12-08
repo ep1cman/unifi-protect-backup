@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2022-12-08
+### Added
+- Now logs timezone settings for both the host and NVR
+- Color logging is now optional and defaults to disabled (to match previous behaviour  before v0.8.0)
+- Ability to configure download buffer size (bumped default up to 512MiB)
+- Event IDs to upload/download logging
+
+### Fixed
+- Log spam when lots of events are missing, this will now only occur if the logging level is set to `EXTRA_DEBUG` (-vv)
+- corrected logging not showing smart detection types
+- The application no longer stalls when a video is downloaded larger than the available buffer size
+- Ability to set the least verbose logging for the docker container
+
 ## [0.8.2] - 2022-12-05
 ### Fixed
 - Fixed issue where command output was being returned with added indentation intended for logging only
