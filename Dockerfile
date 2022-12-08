@@ -8,7 +8,7 @@ LABEL maintainer="ep1cman"
 
 WORKDIR /app
 
-COPY dist/unifi_protect_backup-0.8.2.tar.gz sdist.tar.gz
+COPY dist/unifi_protect_backup-0.8.3.tar.gz sdist.tar.gz
 
 RUN \
     echo "**** install build packages ****" && \
