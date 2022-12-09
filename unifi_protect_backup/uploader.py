@@ -23,19 +23,20 @@ class VideoUploader:
     def __init__(
         self,
         protect: ProtectApiClient,
-        video_queue: VideoQueue,
+        upload_queue: VideoQueue,
         rclone_destination: str,
         rclone_args: str,
         file_structure_format: str,
         db: aiosqlite.Connection,
     ):
         self._protect: ProtectApiClient = protect
-        self._video_queue: VideoQueue = video_queue
+        self.upload_queue: VideoQueue = upload_queue
         self._rclone_destination: str = rclone_destination
         self._rclone_args: str = rclone_args
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
         self.logger = logging.LoggerAdapter(logger, {'event': ''})
+        self.current_event = None
 
     async def start(self):
         """Main loop
@@ -46,7 +47,9 @@ class VideoUploader:
         self.logger.info("Starting Uploader")
         while True:
             try:
-                event, video = await self._video_queue.get()
+                event, video = await self.upload_queue.get()
+                self.current_event = event
+
                 self.logger = logging.LoggerAdapter(logger, {'event': f' [{event.id}]'})
 
                 self.logger.info(f"Uploading event: {event.id}")

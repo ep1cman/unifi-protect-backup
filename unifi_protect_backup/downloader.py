@@ -39,11 +39,12 @@ async def get_video_length(video: bytes) -> float:
 class VideoDownloader:
     """Downloads event video clips from Unifi Protect"""
 
-    def __init__(self, protect: ProtectApiClient, download_queue: asyncio.Queue, buffer_size: int = 256 * 1024 * 1024):
+    def __init__(self, protect: ProtectApiClient, download_queue: asyncio.Queue, upload_queue: VideoQueue):
         self._protect: ProtectApiClient = protect
-        self._download_queue: asyncio.Queue = download_queue
-        self.video_queue = VideoQueue(buffer_size)
+        self.download_queue: asyncio.Queue = download_queue
+        self.upload_queue: VideoQueue = upload_queue
         self.logger = logging.LoggerAdapter(logger, {'event': ''})
+        self.current_event = None
 
         # Check if `ffprobe` is available
         ffprobe = shutil.which('ffprobe')
@@ -58,7 +59,8 @@ class VideoDownloader:
         self.logger.info("Starting Downloader")
         while True:
             try:
-                event = await self._download_queue.get()
+                event = await self.download_queue.get()
+                self.current_event = event
                 self.logger = logging.LoggerAdapter(logger, {'event': f' [{event.id}]'})
 
                 # Fix timezones since pyunifiprotect sets all timestamps to UTC. Instead localize them to
@@ -67,9 +69,9 @@ class VideoDownloader:
                 event.end = event.end.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
 
                 self.logger.info(f"Downloading event: {event.id}")
-                self.logger.debug(f"Remaining Download Queue: {self._download_queue.qsize()}")
-                output_queue_current_size = human_readable_size(self.video_queue.qsize())
-                output_queue_max_size = human_readable_size(self.video_queue.maxsize)
+                self.logger.debug(f"Remaining Download Queue: {self.download_queue.qsize()}")
+                output_queue_current_size = human_readable_size(self.upload_queue.qsize())
+                output_queue_max_size = human_readable_size(self.upload_queue.maxsize)
                 self.logger.debug(f"Video Download Buffer: {output_queue_current_size}/{output_queue_max_size}")
                 self.logger.debug(f"  Camera: {await get_camera_name(self._protect, event.camera_id)}")
                 if event.type == EventType.SMART_DETECT:
@@ -102,7 +104,7 @@ class VideoDownloader:
                 if self._has_ffprobe:
                     await self._check_video_length(video, duration)
 
-                await self.video_queue.put((event, video))
+                await self.upload_queue.put((event, video))
                 self.logger.debug("Added to upload queue")
 
             except Exception as e:

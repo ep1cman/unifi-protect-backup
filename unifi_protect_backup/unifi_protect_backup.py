@@ -20,6 +20,7 @@ from unifi_protect_backup.utils import (
     run_command,
     setup_logging,
     human_readable_size,
+    VideoQueue,
 )
 
 logger = logging.getLogger(__name__)
@@ -169,21 +170,22 @@ class UnifiProtectBackup:
             else:
                 self._db = await aiosqlite.connect(self._sqlite_path)
 
-            event_queue = asyncio.Queue()
+            download_queue = asyncio.Queue()
+            upload_queue = VideoQueue(self._download_buffer_size)
 
             # Enable foreign keys in the database
             await self._db.execute("PRAGMA foreign_keys = ON;")
 
             # Create downloader task
             #   This will download video files to its buffer
-            downloader = VideoDownloader(self._protect, event_queue, buffer_size=self._download_buffer_size)
+            downloader = VideoDownloader(self._protect, download_queue, upload_queue)
             tasks.append(asyncio.create_task(downloader.start()))
 
             # Create upload task
             #   This will upload the videos in the downloader's buffer to the rclone remotes and log it in the database
             uploader = VideoUploader(
                 self._protect,
-                downloader.video_queue,
+                upload_queue,
                 self.rclone_destination,
                 self.rclone_args,
                 self.file_structure_format,
@@ -194,7 +196,7 @@ class UnifiProtectBackup:
             # Create event listener task
             #   This will connect to the unifi protect websocket and listen for events. When one is detected it will
             #   be added to the queue of events to download
-            event_listener = EventListener(event_queue, self._protect, self.detection_types, self.ignore_cameras)
+            event_listener = EventListener(download_queue, self._protect, self.detection_types, self.ignore_cameras)
             tasks.append(asyncio.create_task(event_listener.start()))
 
             # Create purge task
@@ -206,7 +208,14 @@ class UnifiProtectBackup:
             #   This will check all the events within the retention period, if any have been missed and not backed up
             #   they will be added to the event queue
             missing = MissingEventChecker(
-                self._protect, self._db, event_queue, self.retention, self.detection_types, self.ignore_cameras
+                self._protect,
+                self._db,
+                download_queue,
+                downloader,
+                uploader,
+                self.retention,
+                self.detection_types,
+                self.ignore_cameras,
             )
             tasks.append(asyncio.create_task(missing.start()))
 

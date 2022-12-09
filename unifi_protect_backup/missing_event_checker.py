@@ -9,6 +9,8 @@ from dateutil.relativedelta import relativedelta
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.types import EventType
 
+from unifi_protect_backup import VideoDownloader, VideoUploader
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +21,9 @@ class MissingEventChecker:
         self,
         protect: ProtectApiClient,
         db: aiosqlite.Connection,
-        event_queue: asyncio.Queue,
+        download_queue: asyncio.Queue,
+        downloader: VideoDownloader,
+        uploader: VideoUploader,
         retention: relativedelta,
         detection_types: List[str],
         ignore_cameras: List[str],
@@ -27,7 +31,9 @@ class MissingEventChecker:
     ) -> None:
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
-        self._event_queue: asyncio.Queue = event_queue
+        self._download_queue: asyncio.Queue = download_queue
+        self._downloader: VideoDownloader = downloader
+        self._uploader: VideoUploader = uploader
         self.retention: relativedelta = retention
         self.detection_types: List[str] = detection_types
         self.ignore_cameras: List[str] = ignore_cameras
@@ -54,10 +60,15 @@ class MissingEventChecker:
                     rows = await cursor.fetchall()
                     db_event_ids = {row[0] for row in rows}
 
-                # Prevent re-adding events currently in the download queue
-                downloading_event_ids = {event.id for event in self._event_queue._queue}
+                # Prevent re-adding events currently in the download/upload queue
+                downloading_event_ids = {event.id for event in self._downloader.download_queue._queue}
+                downloading_event_ids.add(self._downloader.current_event)
+                uploading_event_ids = {event.id for event in self._uploader.upload_queue._queue}
+                uploading_event_ids.add(self._uploader.current_event)
 
-                missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids)
+                missing_event_ids = set(unifi_events.keys()) - (
+                    db_event_ids | downloading_event_ids | uploading_event_ids
+                )
                 logger.debug(f" Total undownloaded events: {len(missing_event_ids)}")
 
                 def wanted_event_type(event_id):
@@ -93,7 +104,7 @@ class MissingEventChecker:
                         missing_logger(
                             f" Adding missing event to backup queue: {event.id} ({', '.join(event.smart_detect_types)}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
                         )
-                    await self._event_queue.put(event)
+                    await self._download_queue.put(event)
 
             except Exception as e:
                 logger.warn(f"Unexpected exception occurred during missing event check:")
