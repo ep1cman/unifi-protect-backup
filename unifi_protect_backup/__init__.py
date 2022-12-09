@@ -2,7 +2,7 @@
 
 __author__ = """sebastian.goscik"""
 __email__ = 'sebastian@goscik.com'
-__version__ = '0.8.4'
+__version__ = '0.8.5'
 
 # from .unifi_protect_backup import UnifiProtectBackup
 from .downloader import VideoDownloader
