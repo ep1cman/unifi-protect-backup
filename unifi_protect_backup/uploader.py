@@ -8,7 +8,7 @@ import aiosqlite
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect import ProtectApiClient
 
-from unifi_protect_backup.utils import get_camera_name, VideoQueue, run_command, setup_event_logger
+from unifi_protect_backup.utils import get_camera_name, VideoQueue, run_command, setup_event_logger, human_readable_size
 
 logger = logging.getLogger(__name__)
 setup_event_logger(logger)
@@ -50,7 +50,9 @@ class VideoUploader:
                 self.logger = logging.LoggerAdapter(logger, {'event': f' [{event.id}]'})
 
                 self.logger.info(f"Uploading event: {event.id}")
-                self.logger.debug(f" Remaining Upload Queue: {self._video_queue.qsize_files()}")
+                self.logger.debug(
+                    f" Remaining Upload Queue: {self.upload_queue.qsize_files()} ({human_readable_size(self.upload_queue.qsize())})"
+                )
 
                 destination = await self._generate_file_path(event)
                 self.logger.debug(f" Destination: {destination}")

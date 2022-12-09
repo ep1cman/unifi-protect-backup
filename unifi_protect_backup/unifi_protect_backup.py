@@ -14,7 +14,13 @@ from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.types import ModelType
 
 from unifi_protect_backup import EventListener, MissingEventChecker, Purge, VideoDownloader, VideoUploader
-from unifi_protect_backup.utils import SubprocessException, parse_rclone_retention, run_command, setup_logging
+from unifi_protect_backup.utils import (
+    SubprocessException,
+    parse_rclone_retention,
+    run_command,
+    setup_logging,
+    human_readable_size,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +105,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {detection_types=}")
         logger.debug(f"  {file_structure_format=}")
         logger.debug(f"  {sqlite_path=}")
-        logger.debug(f"  {download_buffer_size=}")
+        logger.debug(f"  download_buffer_size={human_readable_size(download_buffer_size)}")
 
         self.rclone_destination = rclone_destination
         self.retention = parse_rclone_retention(retention)
