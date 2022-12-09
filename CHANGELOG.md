@@ -4,10 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+
+## [0.8.4] - 2022-12-09
+### Added
+- Logging of remaining upload queue size
+
+### Fixed
+- Uploading files were not accounted for when checking for missing events
+- Buffer size parameter is logged in human-readable format 
+
 ## [0.8.3] - 2022-12-08
 ### Added
-- Now logs timezone settings for both the host and NVR
-- Color logging is now optional and defaults to disabled (to match previous behaviour  before v0.8.0)
+- Now logs time zone settings for both the host and NVR
+- Color logging is now optional and defaults to disabled (to match previous behavior before v0.8.0)
 - Ability to configure download buffer size (bumped default up to 512MiB)
 - Event IDs to upload/download logging
 
