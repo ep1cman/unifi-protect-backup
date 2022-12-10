@@ -62,9 +62,14 @@ class MissingEventChecker:
 
                 # Prevent re-adding events currently in the download/upload queue
                 downloading_event_ids = {event.id for event in self._downloader.download_queue._queue}
-                downloading_event_ids.add(self._downloader.current_event.id)
+                current_download = self._downloader.current_event
+                if current_download is not None:
+                    downloading_event_ids.add(current_download.id)
+                
                 uploading_event_ids = {event.id for event in self._uploader.upload_queue._queue}
-                uploading_event_ids.add(self._uploader.current_event.id)
+                current_upload = self._uploader.current_event
+                if current_upload is not None:
+                    uploading_event_ids.add(current_upload.id)
 
                 missing_event_ids = set(unifi_events.keys()) - (
                     db_event_ids | downloading_event_ids | uploading_event_ids
