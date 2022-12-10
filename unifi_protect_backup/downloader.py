@@ -106,7 +106,8 @@ class VideoDownloader:
 
                 await self.upload_queue.put((event, video))
                 self.logger.debug("Added to upload queue")
-
+                self.current_event = None
+ 
             except Exception as e:
                 self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
                 self.logger.exception(e)

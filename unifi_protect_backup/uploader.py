@@ -64,7 +64,8 @@ class VideoUploader:
                 await self._update_database(event, destination)
 
                 self.logger.debug(f"Uploaded")
-
+                self.current_event = None
+  
             except Exception as e:
                 self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
                 self.logger.exception(e)
