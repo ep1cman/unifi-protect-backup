@@ -65,8 +65,8 @@ class MissingEventChecker:
                 current_download = self._downloader.current_event
                 if current_download is not None:
                     downloading_event_ids.add(current_download.id)
-                
-                uploading_event_ids = {event.id for event in self._uploader.upload_queue._queue}
+
+                uploading_event_ids = {event.id for event, video in self._uploader.upload_queue._queue}
                 current_upload = self._uploader.current_event
                 if current_upload is not None:
                     uploading_event_ids.add(current_upload.id)
