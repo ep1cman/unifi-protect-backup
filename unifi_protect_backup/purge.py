@@ -32,7 +32,7 @@ async def tidy_empty_dirs(base_dir_path):
 class Purge:
     """Deletes old files from rclone remotes"""
 
-    def __init__(self, db: aiosqlite.Connection, retention: relativedelta, rclone_destination: str, interval: int = 60):
+    def __init__(self, db: aiosqlite.Connection, retention: relativedelta, rclone_destination: str, interval: int = 86400):
         self._db: aiosqlite.Connection = db
         self.retention: relativedelta = retention
         self.rclone_destination: str = rclone_destination
