@@ -6,15 +6,9 @@ from datetime import datetime
 import aiosqlite
 from dateutil.relativedelta import relativedelta
 
-from unifi_protect_backup.utils import parse_rclone_retention, run_command
+from unifi_protect_backup.utils import run_command, wait_until
 
 logger = logging.getLogger(__name__)
-
-
-async def wait_until(dt):
-    # sleep until the specified datetime
-    now = datetime.now()
-    await asyncio.sleep((dt - now).total_seconds())
 
 
 async def delete_file(file_path):
@@ -32,11 +26,17 @@ async def tidy_empty_dirs(base_dir_path):
 class Purge:
     """Deletes old files from rclone remotes"""
 
-    def __init__(self, db: aiosqlite.Connection, retention: relativedelta, rclone_destination: str, interval: int = 60):
+    def __init__(
+        self,
+        db: aiosqlite.Connection,
+        retention: relativedelta,
+        rclone_destination: str,
+        interval: relativedelta(days=1),
+    ):
         self._db: aiosqlite.Connection = db
         self.retention: relativedelta = retention
         self.rclone_destination: str = rclone_destination
-        self.interval: int = interval
+        self.interval: relativedelta = interval
 
     async def start(self):
         """Main loop - runs forever"""
@@ -72,4 +72,6 @@ class Purge:
                 logger.warn(f"Unexpected exception occurred during purge:")
                 logger.exception(e)
 
-            await asyncio.sleep(self.interval)
+            next_purge_time = datetime.now() + self.interval
+            logger.extra_debug(f'sleeping until {next_purge_time}')
+            await wait_until(next_purge_time)

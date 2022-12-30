@@ -2,6 +2,7 @@ import logging
 import re
 import asyncio
 from typing import Optional
+from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 
@@ -385,3 +386,9 @@ class VideoQueue(asyncio.Queue):
         self._unfinished_tasks += 1
         self._finished.clear()
         self._wakeup_next(self._getters)
+
+
+async def wait_until(dt):
+    # sleep until the specified datetime
+    now = datetime.now()
+    await asyncio.sleep((dt - now).total_seconds())

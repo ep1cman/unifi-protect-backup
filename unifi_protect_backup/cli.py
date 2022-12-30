@@ -126,6 +126,14 @@ all warnings, and websocket data
     help='How big the download buffer should be (you can use suffixes like "B", "KiB", "MiB", "GiB")',
     callback=lambda ctx, param, value: human_readable_to_float(value),
 )
+@click.option(
+    '--purge_interval',
+    default='1d',
+    show_default=True,
+    envvar='PURGE_INTERVAL',
+    help="How frequently to check for file to purge.\n\nNOTE: Can create a lot of API calls, so be careful if "
+    "your cloud provider charges you per api call",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     event_listener = UnifiProtectBackup(**kwargs)

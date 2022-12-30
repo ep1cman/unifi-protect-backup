@@ -60,6 +60,7 @@ class UnifiProtectBackup:
         file_structure_format: str,
         verbose: int,
         download_buffer_size: int,
+        purge_interval: str,
         sqlite_path: str = "events.sqlite",
         color_logging=False,
         port: int = 443,
@@ -85,6 +86,7 @@ class UnifiProtectBackup:
             file_structure_format (str): A Python format string for output file path.
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
             sqlite_path (str): Path where to find/create sqlite database
+            purge_interval (str): How often to check for files to delete
         """
         setup_logging(verbose, color_logging)
 
@@ -107,6 +109,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {file_structure_format=}")
         logger.debug(f"  {sqlite_path=}")
         logger.debug(f"  download_buffer_size={human_readable_size(download_buffer_size)}")
+        logger.debug(f"  {purge_interval=}")
 
         self.rclone_destination = rclone_destination
         self.retention = parse_rclone_retention(retention)
@@ -135,6 +138,7 @@ class UnifiProtectBackup:
         self._sqlite_path = sqlite_path
         self._db = None
         self._download_buffer_size = download_buffer_size
+        self._purge_interval = parse_rclone_retention(purge_interval)
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -201,7 +205,7 @@ class UnifiProtectBackup:
 
             # Create purge task
             #   This will, every midnight, purge old backups from the rclone remotes and database
-            purge = Purge(self._db, self.retention, self.rclone_destination)
+            purge = Purge(self._db, self.retention, self.rclone_destination, self._purge_interval)
             tasks.append(asyncio.create_task(purge.start()))
 
             # Create missing event task

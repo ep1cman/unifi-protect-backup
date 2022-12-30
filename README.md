@@ -131,6 +131,11 @@ Options:
   --download-buffer-size TEXT     How big the download buffer should be (you
                                   can use suffixes like "B", "KiB", "MiB",
                                   "GiB")  [default: 512MiB]
+  --purge_interval TEXT           How frequently to check for file to purge.
+                                  
+                                  NOTE: Can create a lot of API calls, so be
+                                  careful if your cloud provider charges you per
+                                  api call  [default: 1d]
   --help                          Show this message and exit.
 ```
 
@@ -150,6 +155,7 @@ always take priority over environment variables):
 - `SQLITE_PATH`
 - `DOWNLOAD_BUFFER_SIZE`
 - `COLOR_LOGGING`
+- `PURGE_INTERVAL`
 
 ## File path formatting
 
