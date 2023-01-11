@@ -1,4 +1,6 @@
 sources = unifi_protect_backup
+container_name ?= ghcr.io/ep1cman/unifi-protect-backup
+container_arches ?= linux/amd64,linux/arm64,linux/arm/v7
 
 .PHONY: test format lint unittest coverage pre-commit clean
 test: format lint unittest
@@ -25,3 +27,7 @@ clean:
 	rm -rf *.egg-info
 	rm -rf .tox dist site
 	rm -rf coverage.xml .coverage
+
+docker:
+	poetry build
+	docker buildx build . --platform $(container_arches) -t $(container_name) --push

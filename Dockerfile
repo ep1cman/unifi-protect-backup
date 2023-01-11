@@ -1,6 +1,5 @@
 # To build run:
-# $ poetry build
-# $ docker build -t ghcr.io/ep1cman/unifi-protect-backup .
+# make docker
 
 FROM ghcr.io/linuxserver/baseimage-alpine:3.16
 
