@@ -13,7 +13,14 @@ import aiosqlite
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.types import ModelType
 
-from unifi_protect_backup import EventListener, MissingEventChecker, Purge, VideoDownloader, VideoUploader
+from unifi_protect_backup import (
+    EventListener,
+    MissingEventChecker,
+    Purge,
+    VideoDownloader,
+    VideoUploader,
+)
+
 from unifi_protect_backup.utils import (
     SubprocessException,
     parse_rclone_retention,
