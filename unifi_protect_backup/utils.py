@@ -202,7 +202,6 @@ def human_readable_size(num: float):
 
 def human_readable_to_float(num: str):
     pattern = r"([\d.]+)(" + "|".join(_suffixes) + ")"
-    print(pattern)
     result = re.match(pattern, num)
     if result is None:
         raise ValueError(f"Value '{num}' is not a valid ISO/IEC 80000 binary value")
