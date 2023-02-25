@@ -5,7 +5,6 @@ import logging
 import os
 import shutil
 from cmath import log
-from pprint import pprint
 from time import sleep
 from typing import Callable, List
 
@@ -247,6 +246,11 @@ class UnifiProtectBackup:
                 await self._protect.close_session()
             if self._db is not None:
                 await self._db.close()
+
+        except Exception as e:
+            logger.error(f"Unexpected exception occurred in main loop:", exc_info=e)
+            await asyncio.sleep(10)  # Give remaining tasks a chance to complete e.g sending notifications
+            raise
 
     async def _check_rclone(self) -> None:
         """Check if rclone is installed and the specified remote is configured.

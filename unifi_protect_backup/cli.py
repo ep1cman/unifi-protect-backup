@@ -137,7 +137,7 @@ all warnings, and websocket data
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     event_listener = UnifiProtectBackup(**kwargs)
-    run(event_listener.start())
+    run(event_listener.start(), stop_on_unhandled_errors=True)
 
 
 if __name__ == "__main__":
