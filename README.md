@@ -224,6 +224,34 @@ The following fields are provided to the format string:
 
 You can optionally format the `event.start`/`event.end` timestamps as per the [`strftime` format](https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior) by appending it after a `:` e.g to get just the date without the time: `{event.start:%Y-%m-%d}`
 
+# A note about `rclone` backends and disk wear
+This tool attempts to not write the downloaded files to disk to minimise disk wear, and instead streams them directly to 
+rclone. Sadly, not all storage backends supported by `rclone` allow "Stream Uploads". Please refer to the `StreamUpload` column on this table to see which one do and don't: https://rclone.org/overview/#optional-features
+
+If you are using a storage medium with poor write durability e.g. an SD card on a Raspberry Pi, it is advised to avoid
+such backends. 
+
+If you are running on a linux host you can setup `rclone` to use `tmpfs` (which is in RAM) to store its temp files, but this will significantly increase memory usage of the tool.
+
+### Running Docker Container (LINUX ONLY)
+Add the following arguments to your docker run command:
+```
+-e RCLONE_ARGS='--temp-dir=/rclone_tmp'
+--tmpfs /rclone_tmp
+```
+
+### Running Directly (LINUX ONLY)
+```
+sudo mkdir /mnt/tmpfs
+sudo mount -o size=1G -t tmpfs none /mnt/tmpfs
+$ unifi-protect-backup --rclone-args "--temp-dir=/mnt/tmpfs"
+```
+
+To make this persist reboots add the following to `/etc/fstab`:
+```
+tmpfs /mnt/tmpfs tmpfs nosuid,nodev,noatime 0 0
+```
+
 # Debugging
 
 If you need to debug your rclone setup, you can invoke rclone directly like so:
