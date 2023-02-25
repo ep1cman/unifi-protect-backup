@@ -24,7 +24,7 @@ def _parse_detection_types(ctx, param, value):
     return types
 
 
-@click.command()
+@click.command(context_settings=dict(max_content_width=100))
 @click.version_option(__version__)
 @click.option('--address', required=True, envvar='UFP_ADDRESS', help='Address of Unifi Protect instance')
 @click.option('--port', default=443, envvar='UFP_PORT', show_default=True, help='Port of Unifi Protect instance')
@@ -133,6 +133,25 @@ all warnings, and websocket data
     envvar='PURGE_INTERVAL',
     help="How frequently to check for file to purge.\n\nNOTE: Can create a lot of API calls, so be careful if "
     "your cloud provider charges you per api call",
+)
+@click.option(
+    '--apprise-notifier',
+    'apprise_notifiers',
+    multiple=True,
+    envvar="APPRISE_NOTIFIERS",
+    help="""\b
+Apprise URL for sending notifications.
+E.g: ERROR,WARNING=tgram://[BOT KEY]/[CHAT ID]
+
+You can use this parameter multiple times to use more than one notification platform.
+
+The following notification tags are available (corresponding to the respective logging levels):
+
+    ERROR, WARNING, INFO, DEBUG, EXTRA_DEBUG, WEBSOCKET_DATA
+
+If no tags are specified, it defaults to ERROR 
+
+More details about supported platforms can be found here: https://github.com/caronc/apprise""",
 )
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""

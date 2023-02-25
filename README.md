@@ -112,80 +112,77 @@ Usage: unifi-protect-backup [OPTIONS]
 
 Options:
   --version                       Show the version and exit.
-  --address TEXT                  Address of Unifi Protect instance
-                                  [required]
-  --port INTEGER                  Port of Unifi Protect instance  [default:
-                                  443]
-  --username TEXT                 Username to login to Unifi Protect instance
-                                  [required]
+  --address TEXT                  Address of Unifi Protect instance  [required]
+  --port INTEGER                  Port of Unifi Protect instance  [default: 443]
+  --username TEXT                 Username to login to Unifi Protect instance  [required]
   --password TEXT                 Password for Unifi Protect user  [required]
-  --verify-ssl / --no-verify-ssl  Set if you do not have a valid HTTPS
-                                  Certificate for your instance  [default:
-                                  verify-ssl]
-  --rclone-destination TEXT       `rclone` destination path in the format
-                                  {rclone remote}:{path on remote}. E.g.
-                                  `gdrive:/backups/unifi_protect`  [required]
-  --retention TEXT                How long should event clips be backed up
-                                  for. Format as per the `--max-age` argument
-                                  of `rclone`
-                                  (https://rclone.org/filtering/#max-age-don-
-                                  t-transfer-any-file-older-than-this)
-                                  [default: 7d]
-  --rclone-args TEXT              Optional extra arguments to pass to `rclone
-                                  rcat` directly. Common usage for this would
-                                  be to set a bandwidth limit, for example.
-  --detection-types TEXT          A comma separated list of which types of
-                                  detections to backup. Valid options are:
-                                  `motion`, `person`, `vehicle`, `ring`
+  --verify-ssl / --no-verify-ssl  Set if you do not have a valid HTTPS Certificate for your
+                                  instance  [default: verify-ssl]
+  --rclone-destination TEXT       `rclone` destination path in the format {rclone remote}:{path on
+                                  remote}. E.g. `gdrive:/backups/unifi_protect`  [required]
+  --retention TEXT                How long should event clips be backed up for. Format as per the
+                                  `--max-age` argument of `rclone`
+                                  (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-
+                                  older-than-this)  [default: 7d]
+  --rclone-args TEXT              Optional extra arguments to pass to `rclone rcat` directly.
+                                  Common usage for this would be to set a bandwidth limit, for
+                                  example.
+  --detection-types TEXT          A comma separated list of which types of detections to backup.
+                                  Valid options are: `motion`, `person`, `vehicle`, `ring`
                                   [default: motion,person,vehicle,ring]
-  --ignore-camera TEXT            IDs of cameras for which events should not
-                                  be backed up. Use multiple times to ignore
-                                  multiple IDs. If being set as an environment
-                                  variable the IDs should be separated by
-                                  whitespace.
-  --file-structure-format TEXT    A Python format string used to generate the
-                                  file structure/name on the rclone remote.For
-                                  details of the fields available, see the
-                                  projects `README.md` file.  [default: {camer
-                                  a_name}/{event.start:%Y-%m-%d}/{event.end:%Y
-                                  -%m-%dT%H-%M-%S} {detection_type}.mp4]
+  --ignore-camera TEXT            IDs of cameras for which events should not be backed up. Use
+                                  multiple times to ignore multiple IDs. If being set as an
+                                  environment variable the IDs should be separated by whitespace.
+  --file-structure-format TEXT    A Python format string used to generate the file structure/name
+                                  on the rclone remote.For details of the fields available, see
+                                  the projects `README.md` file.  [default: {camera_name}/{event.s
+                                  tart:%Y-%m-%d}/{event.end:%Y-%m-%dT%H-%M-%S}
+                                  {detection_type}.mp4]
   -v, --verbose                   How verbose the logging output should be.
                                   
-                                      None: Only log info messages created by
-                                      `unifi-protect-backup`, and all warnings
+                                      None: Only log info messages created by `unifi-protect-
+                                      backup`, and all warnings
                                   
-                                      -v: Only log info & debug messages
-                                      created by `unifi-protect-backup`, and
-                                      all warnings
+                                      -v: Only log info & debug messages created by `unifi-
+                                      protect-backup`, and all warnings
                                   
-                                      -vv: Log info & debug messages created
-                                      by `unifi-protect-backup`, command
-                                      output, and all warnings
+                                      -vv: Log info & debug messages created by `unifi-protect-
+                                      backup`, command output, and all warnings
                                   
-                                      -vvv Log debug messages created by
-                                      `unifi-protect-backup`, command output,
-                                      all info messages, and all warnings
+                                      -vvv Log debug messages created by `unifi-protect-backup`,
+                                      command output, all info messages, and all warnings
                                   
-                                      -vvvv: Log debug messages created by
-                                      `unifi-protect-backup` command output,
-                                      all info messages, all warnings, and
+                                      -vvvv: Log debug messages created by `unifi-protect-backup`
+                                      command output, all info messages, all warnings, and
                                       websocket data
                                   
-                                      -vvvvv: Log websocket data, command
-                                      output, all debug messages, all info
-                                      messages and all warnings  [x>=0]
+                                      -vvvvv: Log websocket data, command output, all debug
+                                      messages, all info messages and all warnings  [x>=0]
   --sqlite_path TEXT              Path to the SQLite database to use/create
   --color-logging / --plain-logging
-                                  Set if you want to use color in logging
-                                  output  [default: plain-logging]
-  --download-buffer-size TEXT     How big the download buffer should be (you
-                                  can use suffixes like "B", "KiB", "MiB",
-                                  "GiB")  [default: 512MiB]
+                                  Set if you want to use color in logging output  [default: plain-
+                                  logging]
+  --download-buffer-size TEXT     How big the download buffer should be (you can use suffixes like
+                                  "B", "KiB", "MiB", "GiB")  [default: 512MiB]
   --purge_interval TEXT           How frequently to check for file to purge.
                                   
-                                  NOTE: Can create a lot of API calls, so be
-                                  careful if your cloud provider charges you per
-                                  api call  [default: 1d]
+                                  NOTE: Can create a lot of API calls, so be careful if your cloud
+                                  provider charges you per api call  [default: 1d]
+  --apprise-notifier TEXT         Apprise URL for sending notifications.
+                                  E.g: ERROR,WARNING=tgram://[BOT KEY]/[CHAT ID]
+                                  
+                                  You can use this parameter multiple times to use more than one
+                                  notification platform.
+                                  
+                                  The following notification tags are available (corresponding to
+                                  the respective logging levels):
+                                  
+                                      ERROR, WARNING, INFO, DEBUG, EXTRA_DEBUG, WEBSOCKET_DATA
+                                  
+                                  If no tags are specified, it defaults to ERROR
+                                  
+                                  More details about supported platforms can be found here:
+                                  https://github.com/caronc/apprise
   --help                          Show this message and exit.
 ```
 

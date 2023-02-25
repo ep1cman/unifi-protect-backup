@@ -28,6 +28,7 @@ from unifi_protect_backup.utils import (
     human_readable_size,
     VideoQueue,
 )
+from unifi_protect_backup.notifications import notifier
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,7 @@ class UnifiProtectBackup:
         verbose: int,
         download_buffer_size: int,
         purge_interval: str,
+        apprise_notifiers: str,
         sqlite_path: str = "events.sqlite",
         color_logging=False,
         port: int = 443,
@@ -94,7 +96,7 @@ class UnifiProtectBackup:
             sqlite_path (str): Path where to find/create sqlite database
             purge_interval (str): How often to check for files to delete
         """
-        setup_logging(verbose, color_logging)
+        setup_logging(verbose, color_logging, apprise_notifiers)
 
         logger.debug("Config:")
         logger.debug(f"  {address=}")
@@ -116,6 +118,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {sqlite_path=}")
         logger.debug(f"  download_buffer_size={human_readable_size(download_buffer_size)}")
         logger.debug(f"  {purge_interval=}")
+        logger.debug(f"  {apprise_notifiers=}")
 
         self.rclone_destination = rclone_destination
         self.retention = parse_rclone_retention(retention)
@@ -154,6 +157,7 @@ class UnifiProtectBackup:
         """
         try:
             logger.info("Starting...")
+            await notifier.async_notify("Starting UniFi Protect Backup")
 
             # Ensure `rclone` is installed and properly configured
             logger.info("Checking rclone configuration...")

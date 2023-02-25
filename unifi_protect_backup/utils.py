@@ -1,12 +1,15 @@
 import logging
 import re
 import asyncio
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 
 from pyunifiprotect import ProtectApiClient
+from apprise import NotifyType
+
+from unifi_protect_backup import notifications
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +121,41 @@ def create_logging_handler(format):
     return sh
 
 
-def setup_logging(verbosity: int, color_logging: bool = False) -> None:
+def patch_logger_notifications(logger):
+    """
+    Patches the core logging function to also send apprise notifications
+    """
+    original_log = logger._log
+
+    logging_map = {
+        logging.ERROR: NotifyType.FAILURE,
+        logging.WARNING: NotifyType.WARNING,
+        logging.INFO: NotifyType.INFO,
+        logging.DEBUG: NotifyType.INFO,
+        logging.EXTRA_DEBUG: NotifyType.INFO,
+        logging.WEBSOCKET_DATA: NotifyType.INFO,
+    }
+
+    def new_log(self, level, msg, *args, **kwargs):
+        original_log(level, msg, *args, **kwargs)
+
+        loop = asyncio.get_event_loop()
+
+        if not loop.is_closed():
+            level_name = logging.getLevelName(level)
+            coro = notifications.notifier.async_notify(
+                body=msg, title=level_name, notify_type=logging_map[level], tag=[level_name]
+            )
+
+            if loop.is_running():
+                asyncio.create_task(coro)
+            else:
+                loop.run_until_complete(coro)
+
+    logger.__class__._log = new_log
+
+
+def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers: List[str] = []) -> None:
     """Configures loggers to provided the desired level of verbosity.
 
     Verbosity 0: Only log info messages created by `unifi-protect-backup`, and all warnings
@@ -135,6 +172,7 @@ def setup_logging(verbosity: int, color_logging: bool = False) -> None:
     Args:
         verbosity (int): The desired level of verbosity
         color_logging (bool): If colors should be used in the log (default=False)
+        apprise_notifiers (List[str]): Notification services to hook into the logger
 
     """
     globals()['color_logging'] = color_logging
@@ -173,6 +211,13 @@ def setup_logging(verbosity: int, color_logging: bool = False) -> None:
     elif verbosity >= 5:
         logging.basicConfig(level=logging.DEBUG, handlers=[sh])
         logger.setLevel(logging.WEBSOCKET_DATA)  # type: ignore
+
+    for notifier in apprise_notifiers:
+        notifications.add_notification_service(notifier)
+
+    # Only send logs to notification service if it is enabled
+    if notifications.notifier.servers:
+        patch_logger_notifications(logger)
 
 
 def setup_event_logger(logger):
