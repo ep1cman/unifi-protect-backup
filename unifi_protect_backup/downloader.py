@@ -107,10 +107,9 @@ class VideoDownloader:
                 await self.upload_queue.put((event, video))
                 self.logger.debug("Added to upload queue")
                 self.current_event = None
- 
+
             except Exception as e:
-                self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
-                self.logger.exception(e)
+                self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
 
     async def _download(self, event: Event) -> bytes:
         """Downloads the video clip for the given event"""
@@ -121,8 +120,7 @@ class VideoDownloader:
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
-                self.logger.warn(f"    Failed download attempt {x+1}, retying in 1s")
-                self.logger.exception(e)
+                self.logger.warn(f"    Failed download attempt {x+1}, retying in 1s", exc_info=e)
                 await asyncio.sleep(1)
         else:
             self.logger.warn(f"Download failed after 5 attempts, abandoning event {event.id}:")

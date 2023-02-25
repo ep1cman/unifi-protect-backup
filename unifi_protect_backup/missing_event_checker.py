@@ -112,7 +112,6 @@ class MissingEventChecker:
                     await self._download_queue.put(event)
 
             except Exception as e:
-                logger.warn(f"Unexpected exception occurred during missing event check:")
-                logger.exception(e)
+                logger.warn(f"Unexpected exception occurred during missing event check:", exc_info=e)
 
             await asyncio.sleep(self.interval)

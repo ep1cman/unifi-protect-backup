@@ -111,8 +111,7 @@ class EventListener:
                     else:
                         logger.warn("Unable to establish connection to Unifi Protect")
                 except Exception as e:
-                    logger.warn("Unexpected exception occurred while trying to reconnect:")
-                    logger.exception(e)
+                    logger.warn("Unexpected exception occurred while trying to reconnect:", exc_info=e)
 
                 # Back off for a little while
                 await asyncio.sleep(10)

@@ -65,10 +65,9 @@ class VideoUploader:
 
                 self.logger.debug(f"Uploaded")
                 self.current_event = None
-  
+
             except Exception as e:
-                self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:")
-                self.logger.exception(e)
+                self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
         """Upload video using rclone.
