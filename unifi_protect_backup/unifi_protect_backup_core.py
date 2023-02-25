@@ -162,7 +162,16 @@ class UnifiProtectBackup:
 
             # Start the pyunifiprotect connection by calling `update`
             logger.info("Connecting to Unifi Protect...")
-            await self._protect.update()
+
+            for attempts in range(1):
+                try:
+                    await self._protect.update()
+                    break
+                except Exception as e:
+                    logger.warning(f"Failed to connect to UniFi Protect, retrying in {attempts}s...", exc_info=e)
+                    await asyncio.sleep(attempts)
+            else:
+                raise ConnectionError("Failed to connect to UniFi Protect after 10 attempts")
 
             # Get a mapping of camera ids -> names
             logger.info("Found cameras:")
