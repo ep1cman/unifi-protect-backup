@@ -32,15 +32,9 @@ retention period.
 - Unifi Protect version 1.20 or higher (as per [`pyunifiprotect`](https://github.com/briis/pyunifiprotect))
 - `rclone` installed with at least one remote configured.
 
-## Installation
+# Setup
 
-1. Install `rclone`. Instructions for your platform can be found here: https://rclone.org/install/#quickstart
-2. Configure the `rclone` remote you want to backup to. Instructions can be found here: https://rclone.org/docs/#configure
-3. `pip install unifi-protect-backup`
-4. Optional: Install `ffprobe` so that `unifi-protect-backup` can check the length of the clips it downloads
-
-
-### Account Setup
+## Unifi Protect Account Setup
 In order to connect to your unifi protect instance, you will first need to setup a local admin account:
 
 * Login to your *Local Portal* on your UniFiOS device, and click on *Users*
@@ -52,8 +46,64 @@ In order to connect to your unifi protect instance, you will first need to setup
 * Click *Add* in at the bottom Right.
 * Select the newly created user in the list, and navigate to the `Assignments` tab in the left-hand pane, and ensure all cameras are ticked.
 
+## Installation
 
-## Usage
+*The prefered way to run this tool is using a container*
+
+### Docker Container
+You can run this tool as a container if you prefer with the following command.
+Remember to change the variable to make your setup.
+
+> **Note**
+> As of version 0.8.0, the event database needs to be persisted for the tool to function properly
+> please see the updated commands below
+
+#### Backing up locally:
+By default, if no rclone config is provided clips will be backed up to `/data`.
+
+```
+docker run \
+  -e UFP_USERNAME='USERNAME' \
+  -e UFP_PASSWORD='PASSWORD' \
+  -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
+  -e UFP_SSL_VERIFY='false' \
+  -v '/path/to/save/clips':'/data' \
+  -v '/path/to/save/database':/config/database/ \
+  ghcr.io/ep1cman/unifi-protect-backup
+```
+
+#### Backing up to cloud storage:
+In order to backup to cloud storage you need to provide a `rclone.conf` file.
+
+If you do not already have a `rclone.conf` file you can create one as follows:
+```
+$ docker run -it --rm -v $PWD:/root/.config/rclone --entrypoint rclone ghcr.io/ep1cman/unifi-protect-backup config
+```
+Follow the interactive configuration proceed, this will create a `rclone.conf`
+file in your current directory.
+
+Finally, start the container:
+```
+docker run \
+  -e UFP_USERNAME='USERNAME' \
+  -e UFP_PASSWORD='PASSWORD' \
+  -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
+  -e UFP_SSL_VERIFY='false' \
+  -e RCLONE_DESTINATION='my_remote:/unifi_protect_backup' \
+  -v '/path/to/save/clips':'/data' \
+  -v `/path/to/rclone.conf':'/config/rclone/rclone.conf' \
+  -v '/path/to/save/database':/config/database/ \
+  ghcr.io/ep1cman/unifi-protect-backup
+```
+
+### Installing on host:
+1. Install `rclone`. Instructions for your platform can be found here: https://rclone.org/install/#quickstart
+2. Configure the `rclone` remote you want to backup to. Instructions can be found here: https://rclone.org/docs/#configure
+3. `pip install unifi-protect-backup`
+4. Optional: Install `ffprobe` so that `unifi-protect-backup` can check the length of the clips it downloads
+
+
+# Usage
 
 ```
 Usage: unifi-protect-backup [OPTIONS]
@@ -174,54 +224,7 @@ The following fields are provided to the format string:
 
 You can optionally format the `event.start`/`event.end` timestamps as per the [`strftime` format](https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior) by appending it after a `:` e.g to get just the date without the time: `{event.start:%Y-%m-%d}`
 
-
-## Docker Container
-You can run this tool as a container if you prefer with the following command.
-Remember to change the variable to make your setup.
-
-> **Note**
-> As of version 0.8.0, the event database needs to be persisted for the tool to function properly
-> please see the updated commands below
-
-### Backing up locally
-By default, if no rclone config is provided clips will be backed up to `/data`.
-
-```
-docker run \
-  -e UFP_USERNAME='USERNAME' \
-  -e UFP_PASSWORD='PASSWORD' \
-  -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
-  -e UFP_SSL_VERIFY='false' \
-  -v '/path/to/save/clips':'/data' \
-  -v '/path/to/save/database':/config/database/ \
-  ghcr.io/ep1cman/unifi-protect-backup
-```
-
-### Backing up to cloud storage
-In order to backup to cloud storage you need to provide a `rclone.conf` file.
-
-If you do not already have a `rclone.conf` file you can create one as follows:
-```
-$ docker run -it --rm -v $PWD:/root/.config/rclone --entrypoint rclone ghcr.io/ep1cman/unifi-protect-backup config
-```
-Follow the interactive configuration proceed, this will create a `rclone.conf`
-file in your current directory.
-
-Finally, start the container:
-```
-docker run \
-  -e UFP_USERNAME='USERNAME' \
-  -e UFP_PASSWORD='PASSWORD' \
-  -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
-  -e UFP_SSL_VERIFY='false' \
-  -e RCLONE_DESTINATION='my_remote:/unifi_protect_backup' \
-  -v '/path/to/save/clips':'/data' \
-  -v `/path/to/rclone.conf':'/config/rclone/rclone.conf' \
-  -v '/path/to/save/database':/config/database/ \
-  ghcr.io/ep1cman/unifi-protect-backup
-```
-
-### Debugging
+# Debugging
 
 If you need to debug your rclone setup, you can invoke rclone directly like so:
 
@@ -246,7 +249,12 @@ docker run \
     listremotes
 ```
 
-## Credits
+# Credits
+- All the contributors who have helped make this project:
+<a href="https://github.com/ep1cman/unifi-protect-backup/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ep1cman/unifi-protect-backup" />
+</a>
+
 
 - Heavily utilises [`pyunifiprotect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
 - All the cloud functionality is provided by [`rclone`](https://rclone.org/)
