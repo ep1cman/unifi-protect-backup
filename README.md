@@ -203,6 +203,7 @@ always take priority over environment variables):
 - `DOWNLOAD_BUFFER_SIZE`
 - `COLOR_LOGGING`
 - `PURGE_INTERVAL`
+- `APPRISE_NOTIFIERS`
 
 ## File path formatting
 
