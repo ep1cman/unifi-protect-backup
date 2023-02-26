@@ -80,79 +80,87 @@ def add_logging_level(levelName: str, levelNum: int, methodName: Optional[str] =
 color_logging = False
 
 
+def add_color_to_record_levelname(record):
+    levelno = record.levelno
+    if levelno >= logging.CRITICAL:
+        color = '\x1b[31;1m'  # RED
+    elif levelno >= logging.ERROR:
+        color = '\x1b[31;1m'  # RED
+    elif levelno >= logging.WARNING:
+        color = '\x1b[33;1m'  # YELLOW
+    elif levelno >= logging.INFO:
+        color = '\x1b[32;1m'  # GREEN
+    elif levelno >= logging.DEBUG:
+        color = '\x1b[36;1m'  # CYAN
+    elif levelno >= logging.EXTRA_DEBUG:
+        color = '\x1b[35;1m'  # MAGENTA
+    else:
+        color = '\x1b[0m'
+
+    return f"{color}{record.levelname}\x1b[0m"
+
+
+class AppriseStreamHandler(logging.StreamHandler):
+    def __init__(self, color_logging, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.color_logging = color_logging
+
+    def emit_apprise(self, record):
+        loop = asyncio.get_event_loop()
+        msg = self.format(record)
+        logging_map = {
+            logging.ERROR: NotifyType.FAILURE,
+            logging.WARNING: NotifyType.WARNING,
+            logging.INFO: NotifyType.INFO,
+            logging.DEBUG: NotifyType.INFO,
+            logging.EXTRA_DEBUG: NotifyType.INFO,
+            logging.WEBSOCKET_DATA: NotifyType.INFO,
+        }
+
+        # Only try notifying if there are notification servers configured
+        # and the asyncio loop isn't closed (aka we are quitting)
+        if notifications.notifier.servers and not loop.is_closed():
+            notify = notifications.notifier.async_notify(
+                body=msg,
+                title=record.levelname,
+                notify_type=logging_map[record.levelno],
+                tag=[record.levelname],
+            )
+            if loop.is_running():
+                asyncio.create_task(notify)
+            else:
+                loop.run_until_complete(notify)
+
+    def emit_stream(self, record):
+        record.levelname = f"{record.levelname:^11s}"  # Pad level name to max width
+        if self.color_logging:
+            record.levelname = add_color_to_record_levelname(record)
+
+        msg = self.format(record)
+        stream = self.stream
+        # issue 35046: merged two stream.writes into one.
+        stream.write(msg + self.terminator)
+        self.flush()
+
+    def emit(self, record):
+        try:
+            self.emit_apprise(record)
+            self.emit_stream(record)
+        except RecursionError:  # See issue 36272
+            raise
+        except Exception:
+            self.handleError(record)
+
+
 def create_logging_handler(format):
     date_format = "%Y-%m-%d %H:%M:%S"
     style = '{'
 
-    sh = logging.StreamHandler()
+    global color_logging
+    sh = AppriseStreamHandler(color_logging)
     formatter = logging.Formatter(format, date_format, style)
     sh.setFormatter(formatter)
-
-    def decorate_emit(fn):
-        # add methods we need to the class
-        def new(*args):
-            levelno = args[0].levelno
-            if levelno >= logging.CRITICAL:
-                color = '\x1b[31;1m'  # RED
-            elif levelno >= logging.ERROR:
-                color = '\x1b[31;1m'  # RED
-            elif levelno >= logging.WARNING:
-                color = '\x1b[33;1m'  # YELLOW
-            elif levelno >= logging.INFO:
-                color = '\x1b[32;1m'  # GREEN
-            elif levelno >= logging.DEBUG:
-                color = '\x1b[36;1m'  # CYAN
-            elif levelno >= logging.EXTRA_DEBUG:
-                color = '\x1b[35;1m'  # MAGENTA
-            else:
-                color = '\x1b[0m'
-
-            global color_logging
-            if color_logging:
-                args[0].levelname = f"{color}{args[0].levelname:^11s}\x1b[0m"
-            else:
-                args[0].levelname = f"{args[0].levelname:^11s}"
-
-            return fn(*args)
-
-        return new
-
-    sh.emit = decorate_emit(sh.emit)
     return sh
-
-
-def patch_logger_notifications(logger):
-    """
-    Patches the core logging function to also send apprise notifications
-    """
-    original_log = logger._log
-
-    logging_map = {
-        logging.ERROR: NotifyType.FAILURE,
-        logging.WARNING: NotifyType.WARNING,
-        logging.INFO: NotifyType.INFO,
-        logging.DEBUG: NotifyType.INFO,
-        logging.EXTRA_DEBUG: NotifyType.INFO,
-        logging.WEBSOCKET_DATA: NotifyType.INFO,
-    }
-
-    def new_log(self, level, msg, *args, **kwargs):
-        original_log(level, msg, *args, **kwargs)
-
-        loop = asyncio.get_event_loop()
-
-        if not loop.is_closed():
-            level_name = logging.getLevelName(level)
-            coro = notifications.notifier.async_notify(
-                body=msg, title=level_name, notify_type=logging_map[level], tag=[level_name]
-            )
-
-            if loop.is_running():
-                asyncio.create_task(coro)
-            else:
-                loop.run_until_complete(coro)
-
-    logger.__class__._log = new_log
 
 
 def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers: List[str] = []) -> None:
@@ -211,13 +219,6 @@ def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers
     elif verbosity >= 5:
         logging.basicConfig(level=logging.DEBUG, handlers=[sh])
         logger.setLevel(logging.WEBSOCKET_DATA)  # type: ignore
-
-    for notifier in apprise_notifiers:
-        notifications.add_notification_service(notifier)
-
-    # Only send logs to notification service if it is enabled
-    if notifications.notifier.servers:
-        patch_logger_notifications(logger)
 
 
 def setup_event_logger(logger):

@@ -28,7 +28,7 @@ from unifi_protect_backup.utils import (
     human_readable_size,
     VideoQueue,
 )
-from unifi_protect_backup.notifications import notifier
+from unifi_protect_backup import notifications
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,10 @@ class UnifiProtectBackup:
             sqlite_path (str): Path where to find/create sqlite database
             purge_interval (str): How often to check for files to delete
         """
-        setup_logging(verbose, color_logging, apprise_notifiers)
+        for notifier in apprise_notifiers:
+            notifications.add_notification_service(notifier)
+
+        setup_logging(verbose, color_logging)
 
         logger.debug("Config:")
         logger.debug(f"  {address=}")
@@ -157,7 +160,7 @@ class UnifiProtectBackup:
         """
         try:
             logger.info("Starting...")
-            await notifier.async_notify("Starting UniFi Protect Backup")
+            await notifications.notifier.async_notify("Starting UniFi Protect Backup")
 
             # Ensure `rclone` is installed and properly configured
             logger.info("Checking rclone configuration...")
