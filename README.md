@@ -285,3 +285,7 @@ docker run \
 - Heavily utilises [`pyunifiprotect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
 - All the cloud functionality is provided by [`rclone`](https://rclone.org/)
 - This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter) and the [waynerv/cookiecutter-pypackage](https://github.com/waynerv/cookiecutter-pypackage) project template.
+
+# Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ep1cman/unifi-protect-backup&type=Date)](https://star-history.com/#ep1cman/unifi-protect-backup&Date)
