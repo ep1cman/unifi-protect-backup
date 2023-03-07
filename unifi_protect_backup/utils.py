@@ -106,7 +106,11 @@ class AppriseStreamHandler(logging.StreamHandler):
         self.color_logging = color_logging
 
     def emit_apprise(self, record):
-        loop = asyncio.get_event_loop()
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            return  # There is no running loop
+
         msg = self.format(record)
         logging_map = {
             logging.ERROR: NotifyType.FAILURE,
@@ -145,12 +149,17 @@ class AppriseStreamHandler(logging.StreamHandler):
     def emit(self, record):
         try:
             self.emit_apprise(record)
-            self.emit_stream(record)
         except RecursionError:  # See issue 36272
             raise
         except Exception:
             self.handleError(record)
 
+        try:
+            self.emit_stream(record)
+        except RecursionError:  # See issue 36272
+            raise
+        except Exception:
+            self.handleError(record)
 
 
 def create_logging_handler(format, color_logging):
