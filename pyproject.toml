@@ -8,8 +8,8 @@ authors = ["sebastian.goscik <sebastian@goscik.com>"]
 readme = "README.md"
 license =  "MIT"
 classifiers=[
-    'Development Status :: 2 - Pre-Alpha',
-    'Intended Audience :: Developers',
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Information Technology',
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
@@ -23,46 +23,37 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.9.0,<4.0"
 click = "8.0.1"
-
-black  = { version = "^22.10.0", optional = true}
-isort  = { version = "^5.8.0", optional = true}
-flake8  = { version = "^3.9.2", optional = true}
-flake8-docstrings = { version = "^1.6.0", optional = true }
-mypy = {version = "^0.900", optional = true}
-pytest  = { version = "^6.2.4", optional = true}
-pytest-cov  = { version = "^2.12.0", optional = true}
-tox  = { version = "^3.20.1", optional = true}
-virtualenv  = { version = "^20.2.2", optional = true}
-pip  = { version = "^20.3.1", optional = true}
-twine  = { version = "^3.3.0", optional = true}
-pre-commit = {version = "^2.12.0", optional = true}
-toml = {version = "^0.10.2", optional = true}
-bump2version = {version = "^1.0.1", optional = true}
-tox-asdf = {version = "^0.1.0", optional = true}
 pyunifiprotect = "^4.0.11"
-ipdb = {version = "^0.13.9", optional = true}
-types-pytz = {version = "^2021.3.5", optional = true}
-types-cryptography = {version = "^3.3.18", optional = true}
+aiorun = "^2022.11.1"
 aiosqlite = "^0.17.0"
 python-dateutil = "^2.8.2"
-aiorun = "^2022.11.1"
-pylint = {version = "^2.15.6", extras = ["dev"]}
 apprise = "^1.3.0"
 
-[tool.poetry.extras]
-test = [
-    "pytest",
-    "black",
-    "isort",
-    "mypy",
-    "flake8",
-    "flake8-docstrings",
-    "pytest-cov",
-    "types-pytz",
-    "types-cryptography"
-    ]
+[tool.poetry.group.dev]
+optional = true
 
-dev = ["tox", "pre-commit", "virtualenv", "pip", "twine", "toml", "bump2version", "tox-asdf", "ipdb"]
+[tool.poetry.group.dev.dependencies]
+pylint = "^2.15.6"
+black  = "^22.10.0"
+isort  = "^5.8.0"
+flake8  = "^3.9.2"
+flake8-docstrings = "^1.6.0"
+virtualenv  = "^20.2.2"
+mypy = "^0.900"
+types-pytz = "^2021.3.5"
+types-cryptography = "^3.3.18"
+twine  = "^3.3.0"
+bump2version = "^1.0.1"
+pre-commit = "^2.12.0"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest  = "^6.2.4"
+pytest-cov  = "^2.12.0"
+tox  = "^3.20.1"
+tox-asdf = "^0.1.0"
 
 [tool.poetry.scripts]
 unifi-protect-backup = 'unifi_protect_backup.cli:main'
