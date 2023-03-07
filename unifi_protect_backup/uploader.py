@@ -68,7 +68,7 @@ class VideoUploader:
                 self.current_event = None
 
             except Exception as e:
-                self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+                self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
         """Upload video using rclone.
@@ -86,7 +86,7 @@ class VideoUploader:
         """
         returncode, stdout, stderr = await run_command(f'rclone rcat -vv {rclone_args} "{destination}"', video)
         if returncode != 0:
-            self.logger.warn(f" Failed to upload file: '{destination}'")
+            self.logger.error(f" Failed to upload file: '{destination}'")
 
     async def _update_database(self, event: Event, destination: str):
         """

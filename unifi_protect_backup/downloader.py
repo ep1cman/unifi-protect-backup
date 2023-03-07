@@ -111,7 +111,7 @@ class VideoDownloader:
                 self.current_event = None
 
             except Exception as e:
-                self.logger.warn(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+                self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
 
     async def _download(self, event: Event) -> bytes:
         """Downloads the video clip for the given event"""
@@ -122,10 +122,10 @@ class VideoDownloader:
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
-                self.logger.warn(f"    Failed download attempt {x+1}, retying in 1s", exc_info=e)
+                self.logger.warning(f"    Failed download attempt {x+1}, retying in 1s", exc_info=e)
                 await asyncio.sleep(1)
         else:
-            self.logger.warn(f"Download failed after 5 attempts, abandoning event {event.id}:")
+            self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
             return
 
         self.logger.debug(f"  Downloaded video size: {human_readable_size(len(video))}s")
@@ -143,4 +143,4 @@ class VideoDownloader:
             else:
                 self.logger.debug(msg)
         except SubprocessException as e:
-            self.logger.warn("    `ffprobe` failed")
+            self.logger.warning("    `ffprobe` failed")

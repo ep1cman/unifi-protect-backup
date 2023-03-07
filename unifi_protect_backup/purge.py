@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 async def delete_file(file_path):
     returncode, stdout, stderr = await run_command(f'rclone delete -vv "{file_path}"')
     if returncode != 0:
-        logger.warn(f" Failed to delete file: '{file_path}'")
+        logger.error(f" Failed to delete file: '{file_path}'")
 
 
 async def tidy_empty_dirs(base_dir_path):
     returncode, stdout, stderr = await run_command(f'rclone rmdirs -vv --ignore-errors --leave-root "{base_dir_path}"')
     if returncode != 0:
-        logger.warn(f" Failed to tidy empty dirs")
+        logger.error(f" Failed to tidy empty dirs")
 
 
 class Purge:
@@ -69,7 +69,7 @@ class Purge:
                     await tidy_empty_dirs(self.rclone_destination)
 
             except Exception as e:
-                logger.warn(f"Unexpected exception occurred during purge:", exc_info=e)
+                logger.error(f"Unexpected exception occurred during purge:", exc_info=e)
 
             next_purge_time = datetime.now() + self.interval
             logger.extra_debug(f'sleeping until {next_purge_time}')

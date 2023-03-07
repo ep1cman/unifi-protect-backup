@@ -91,14 +91,14 @@ class EventListener:
         if self._protect.check_ws():
             logger.extra_debug("Websocket is connected.")
         else:
-            logger.warn("Lost connection to Unifi Protect.")
+            logger.warning("Lost connection to Unifi Protect.")
 
             # Unsubscribe, close the session.
             self._unsub()
             await self._protect.close_session()
 
             while True:
-                logger.warn("Attempting reconnect...")
+                logger.warning("Attempting reconnect...")
 
                 try:
                     # Start the pyunifiprotect connection by calling `update`
@@ -109,9 +109,9 @@ class EventListener:
                         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
                         break
                     else:
-                        logger.warn("Unable to establish connection to Unifi Protect")
+                        logger.error("Unable to establish connection to Unifi Protect")
                 except Exception as e:
-                    logger.warn("Unexpected exception occurred while trying to reconnect:", exc_info=e)
+                    logger.error("Unexpected exception occurred while trying to reconnect:", exc_info=e)
 
                 # Back off for a little while
                 await asyncio.sleep(10)

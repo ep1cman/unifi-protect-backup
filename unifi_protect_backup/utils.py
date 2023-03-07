@@ -335,9 +335,9 @@ async def run_command(cmd: str, data=None):
     stderr_indented = '\t' + stderr.replace('\n', '\n\t').strip()
 
     if proc.returncode != 0:
-        logger.warn(f"Failed to run: '{cmd}")
-        logger.warn(f"stdout:\n{stdout_indented}")
-        logger.warn(f"stderr:\n{stderr_indented}")
+        logger.error(f"Failed to run: '{cmd}")
+        logger.error(f"stdout:\n{stdout_indented}")
+        logger.error(f"stderr:\n{stderr_indented}")
     else:
         logger.extra_debug(f"stdout:\n{stdout_indented}")
         logger.extra_debug(f"stderr:\n{stderr_indented}")
