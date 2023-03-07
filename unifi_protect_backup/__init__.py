@@ -6,7 +6,7 @@ __version__ = '0.8.8'
 
 # from .unifi_protect_backup_core import UnifiProtectBackup
 from .downloader import VideoDownloader
-from .uploader import VideoUploader
 from .event_listener import EventListener
-from .purge import Purge
 from .missing_event_checker import MissingEventChecker
+from .purge import Purge
+from .uploader import VideoUploader

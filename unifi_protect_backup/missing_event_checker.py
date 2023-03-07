@@ -5,7 +5,6 @@ from typing import List
 
 import aiosqlite
 from dateutil.relativedelta import relativedelta
-
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.types import EventType
 

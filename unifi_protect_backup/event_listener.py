@@ -1,12 +1,12 @@
+import asyncio
 import logging
 from time import sleep
-import asyncio
 from typing import List
 
-from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
+from pyunifiprotect.api import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType
-from pyunifiprotect.api import ProtectApiClient
+from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
 
 logger = logging.getLogger(__name__)
 

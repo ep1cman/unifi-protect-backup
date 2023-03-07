@@ -5,10 +5,10 @@ import re
 from datetime import datetime
 
 import aiosqlite
-from pyunifiprotect.data.nvr import Event
 from pyunifiprotect import ProtectApiClient
+from pyunifiprotect.data.nvr import Event
 
-from unifi_protect_backup.utils import get_camera_name, VideoQueue, run_command, setup_event_logger, human_readable_size
+from unifi_protect_backup.utils import VideoQueue, get_camera_name, human_readable_size, run_command, setup_event_logger
 
 
 class VideoUploader:

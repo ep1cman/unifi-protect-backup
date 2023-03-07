@@ -1,10 +1,10 @@
 """Main module."""
 import asyncio
-from datetime import datetime, timezone
 import logging
 import os
 import shutil
 from cmath import log
+from datetime import datetime, timezone
 from time import sleep
 from typing import Callable, List
 
@@ -18,17 +18,16 @@ from unifi_protect_backup import (
     Purge,
     VideoDownloader,
     VideoUploader,
+    notifications,
 )
-
 from unifi_protect_backup.utils import (
     SubprocessException,
+    VideoQueue,
+    human_readable_size,
     parse_rclone_retention,
     run_command,
     setup_logging,
-    human_readable_size,
-    VideoQueue,
 )
-from unifi_protect_backup import notifications
 
 logger = logging.getLogger(__name__)
 

@@ -1,13 +1,12 @@
+import asyncio
 import logging
 import re
-import asyncio
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
 
-from dateutil.relativedelta import relativedelta
-
-from pyunifiprotect import ProtectApiClient
 from apprise import NotifyType
+from dateutil.relativedelta import relativedelta
+from pyunifiprotect import ProtectApiClient
 
 from unifi_protect_backup import notifications
 
