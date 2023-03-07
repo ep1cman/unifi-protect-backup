@@ -152,11 +152,11 @@ class AppriseStreamHandler(logging.StreamHandler):
             self.handleError(record)
 
 
-def create_logging_handler(format):
+
+def create_logging_handler(format, color_logging):
     date_format = "%Y-%m-%d %H:%M:%S"
     style = '{'
 
-    global color_logging
     sh = AppriseStreamHandler(color_logging)
     formatter = logging.Formatter(format, date_format, style)
     sh.setFormatter(formatter)
@@ -183,8 +183,6 @@ def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers
         apprise_notifiers (List[str]): Notification services to hook into the logger
 
     """
-    globals()['color_logging'] = color_logging
-
     add_logging_level(
         'EXTRA_DEBUG',
         logging.DEBUG - 1,
@@ -195,7 +193,7 @@ def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers
     )
 
     format = "{asctime} [{levelname:^11s}] {name:<42} :  {message}"
-    sh = create_logging_handler(format)
+    sh = create_logging_handler(format, color_logging)
 
     logger = logging.getLogger("unifi_protect_backup")
     logger.addHandler(sh)
@@ -221,9 +219,9 @@ def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers
         logger.setLevel(logging.WEBSOCKET_DATA)  # type: ignore
 
 
-def setup_event_logger(logger):
+def setup_event_logger(logger, color_logging):
     format = "{asctime} [{levelname:^11s}] {name:<42} :{event}  {message}"
-    sh = create_logging_handler(format)
+    sh = create_logging_handler(format, color_logging)
     logger.addHandler(sh)
     logger.propagate = False
 

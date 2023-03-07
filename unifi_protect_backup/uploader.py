@@ -10,9 +10,6 @@ from pyunifiprotect import ProtectApiClient
 
 from unifi_protect_backup.utils import get_camera_name, VideoQueue, run_command, setup_event_logger, human_readable_size
 
-logger = logging.getLogger(__name__)
-setup_event_logger(logger)
-
 
 class VideoUploader:
     """Uploads videos from the video_queue to the provided rclone destination
@@ -28,6 +25,7 @@ class VideoUploader:
         rclone_args: str,
         file_structure_format: str,
         db: aiosqlite.Connection,
+        color_logging: bool,
     ):
         self._protect: ProtectApiClient = protect
         self.upload_queue: VideoQueue = upload_queue
@@ -35,8 +33,11 @@ class VideoUploader:
         self._rclone_args: str = rclone_args
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
-        self.logger = logging.LoggerAdapter(logger, {'event': ''})
         self.current_event = None
+
+        self.base_logger = logging.getLogger(__name__)
+        setup_event_logger(self.base_logger, color_logging)
+        self.logger = logging.LoggerAdapter(self.base_logger, {'event': ''})
 
     async def start(self):
         """Main loop
@@ -50,7 +51,7 @@ class VideoUploader:
                 event, video = await self.upload_queue.get()
                 self.current_event = event
 
-                self.logger = logging.LoggerAdapter(logger, {'event': f' [{event.id}]'})
+                self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
 
                 self.logger.info(f"Uploading event: {event.id}")
                 self.logger.debug(

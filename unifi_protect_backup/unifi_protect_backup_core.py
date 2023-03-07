@@ -99,7 +99,8 @@ class UnifiProtectBackup:
         for notifier in apprise_notifiers:
             notifications.add_notification_service(notifier)
 
-        setup_logging(verbose, color_logging)
+        self.color_logging = color_logging
+        setup_logging(verbose, self.color_logging)
 
         logger.debug("Config:")
         logger.debug(f"  {address=}")
@@ -204,7 +205,7 @@ class UnifiProtectBackup:
 
             # Create downloader task
             #   This will download video files to its buffer
-            downloader = VideoDownloader(self._protect, download_queue, upload_queue)
+            downloader = VideoDownloader(self._protect, download_queue, upload_queue, self.color_logging)
             tasks.append(asyncio.create_task(downloader.start()))
 
             # Create upload task
@@ -216,6 +217,7 @@ class UnifiProtectBackup:
                 self.rclone_args,
                 self.file_structure_format,
                 self._db,
+                self.color_logging,
             )
             tasks.append(asyncio.create_task(uploader.start()))
 

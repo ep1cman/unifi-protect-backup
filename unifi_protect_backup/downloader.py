@@ -19,9 +19,6 @@ from unifi_protect_backup.utils import (
     setup_event_logger,
 )
 
-logger = logging.getLogger(__name__)
-setup_event_logger(logger)
-
 
 async def get_video_length(video: bytes) -> float:
     """Uses ffprobe to get the length of the video file passed in as a byte stream"""
@@ -39,12 +36,17 @@ async def get_video_length(video: bytes) -> float:
 class VideoDownloader:
     """Downloads event video clips from Unifi Protect"""
 
-    def __init__(self, protect: ProtectApiClient, download_queue: asyncio.Queue, upload_queue: VideoQueue):
+    def __init__(
+        self, protect: ProtectApiClient, download_queue: asyncio.Queue, upload_queue: VideoQueue, color_logging: bool
+    ):
         self._protect: ProtectApiClient = protect
         self.download_queue: asyncio.Queue = download_queue
         self.upload_queue: VideoQueue = upload_queue
-        self.logger = logging.LoggerAdapter(logger, {'event': ''})
         self.current_event = None
+
+        self.base_logger = logging.getLogger(__name__)
+        setup_event_logger(self.base_logger, color_logging)
+        self.logger = logging.LoggerAdapter(self.base_logger, {'event': ''})
 
         # Check if `ffprobe` is available
         ffprobe = shutil.which('ffprobe')
@@ -61,7 +63,7 @@ class VideoDownloader:
             try:
                 event = await self.download_queue.get()
                 self.current_event = event
-                self.logger = logging.LoggerAdapter(logger, {'event': f' [{event.id}]'})
+                self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
 
                 # Fix timezones since pyunifiprotect sets all timestamps to UTC. Instead localize them to
                 # the timezone of the unifi protect NVR.
