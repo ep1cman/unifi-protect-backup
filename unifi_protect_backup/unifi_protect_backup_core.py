@@ -3,9 +3,7 @@ import asyncio
 import logging
 import os
 import shutil
-from cmath import log
 from datetime import datetime, timezone
-from time import sleep
 from typing import Callable, List
 
 import aiosqlite
@@ -35,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 async def create_database(path: str):
-    """Creates sqlite database and creates the events abd backups tables"""
+    """Creates sqlite database and creates the events abd backups tables."""
     db = await aiosqlite.connect(path)
     await db.execute("CREATE TABLE events(id PRIMARY KEY, type, camera_id, start REAL, end REAL)")
     await db.execute(
@@ -92,8 +90,11 @@ class UnifiProtectBackup:
             ignore_cameras (List[str]): List of camera IDs for which to not backup events.
             file_structure_format (str): A Python format string for output file path.
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
-            sqlite_path (str): Path where to find/create sqlite database
+            download_buffer_size (int): How many bytes big the download buffer should be
             purge_interval (str): How often to check for files to delete
+            apprise_notifiers (str): Apprise URIs for notifications
+            sqlite_path (str): Path where to find/create sqlite database
+            color_logging (bool): Whether to add color to logging output or not
         """
         for notifier in apprise_notifiers:
             notifications.add_notification_service(notifier)
@@ -256,7 +257,7 @@ class UnifiProtectBackup:
                 await self._db.close()
 
         except Exception as e:
-            logger.error(f"Unexpected exception occurred in main loop:", exc_info=e)
+            logger.error("Unexpected exception occurred in main loop:", exc_info=e)
             await asyncio.sleep(10)  # Give remaining tasks a chance to complete e.g sending notifications
             raise
 

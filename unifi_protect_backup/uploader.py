@@ -1,4 +1,5 @@
-import asyncio
+# noqa: D100
+
 import logging
 import pathlib
 import re
@@ -12,7 +13,7 @@ from unifi_protect_backup.utils import VideoQueue, get_camera_name, human_readab
 
 
 class VideoUploader:
-    """Uploads videos from the video_queue to the provided rclone destination
+    """Uploads videos from the video_queue to the provided rclone destination.
 
     Keeps a log of what its uploaded in `db`
     """
@@ -27,6 +28,17 @@ class VideoUploader:
         db: aiosqlite.Connection,
         color_logging: bool,
     ):
+        """Init.
+
+        Args:
+            protect (ProtectApiClient): UniFi Protect API client to use
+            upload_queue (VideoQueue): Queue to get video files from
+            rclone_destination (str): rclone file destination URI
+            rclone_args (str): arguments to pass to the rclone command
+            file_structure_format (str): format string for how to structure the uploaded files
+            db (aiosqlite.Connection): Async SQlite database connection
+            color_logging (bool):  Whether or not to add color to logging output
+        """
         self._protect: ProtectApiClient = protect
         self.upload_queue: VideoQueue = upload_queue
         self._rclone_destination: str = rclone_destination
@@ -40,11 +52,11 @@ class VideoUploader:
         self.logger = logging.LoggerAdapter(self.base_logger, {'event': ''})
 
     async def start(self):
-        """Main loop
+        """Main loop.
 
-        Runs forever looking for video data in the video queue and then uploads it using rclone, finally it updates the database
+        Runs forever looking for video data in the video queue and then uploads it
+        using rclone, finally it updates the database
         """
-
         self.logger.info("Starting Uploader")
         while True:
             try:
@@ -55,7 +67,8 @@ class VideoUploader:
 
                 self.logger.info(f"Uploading event: {event.id}")
                 self.logger.debug(
-                    f" Remaining Upload Queue: {self.upload_queue.qsize_files()} ({human_readable_size(self.upload_queue.qsize())})"
+                    f" Remaining Upload Queue: {self.upload_queue.qsize_files()}"
+                    f" ({human_readable_size(self.upload_queue.qsize())})"
                 )
 
                 destination = await self._generate_file_path(event)
@@ -64,7 +77,7 @@ class VideoUploader:
                 await self._upload_video(video, destination, self._rclone_args)
                 await self._update_database(event, destination)
 
-                self.logger.debug(f"Uploaded")
+                self.logger.debug("Uploaded")
                 self.current_event = None
 
             except Exception as e:
@@ -89,13 +102,13 @@ class VideoUploader:
             self.logger.error(f" Failed to upload file: '{destination}'")
 
     async def _update_database(self, event: Event, destination: str):
-        """
-        Add the backed up event to the database along with where it was backed up to
-        """
+        """Add the backed up event to the database along with where it was backed up to."""
+        assert isinstance(event.start, datetime)
+        assert isinstance(event.end, datetime)
         await self._db.execute(
-            f"""INSERT INTO events VALUES
-                ('{event.id}', '{event.type}', '{event.camera_id}', '{event.start.timestamp()}', '{event.end.timestamp()}')
-            """
+            "INSERT INTO events VALUES "
+            f"('{event.id}', '{event.type}', '{event.camera_id}',"
+            f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
         )
 
         remote, file_path = str(destination).split(":")

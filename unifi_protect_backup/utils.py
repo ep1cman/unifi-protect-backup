@@ -1,3 +1,5 @@
+"""Utility functions used throughout the code, kept here to allow re use and/or minimize clutter elsewhere."""
+
 import asyncio
 import logging
 import re
@@ -7,6 +9,7 @@ from typing import List, Optional
 from apprise import NotifyType
 from dateutil.relativedelta import relativedelta
 from pyunifiprotect import ProtectApiClient
+from pyunifiprotect.data.nvr import Event
 
 from unifi_protect_backup import notifications
 
@@ -64,9 +67,7 @@ def add_logging_level(levelName: str, levelNum: int, methodName: Optional[str] =
         logging.log(levelNum, message, *args, **kwargs)
 
     def adapterLog(self, msg, *args, **kwargs):
-        """
-        Delegate an error call to the underlying logger.
-        """
+        """Delegate an error call to the underlying logger."""
         self.log(levelNum, msg, *args, **kwargs)
 
     logging.addLevelName(levelNum, levelName)
@@ -80,6 +81,7 @@ color_logging = False
 
 
 def add_color_to_record_levelname(record):
+    """Colorizes logging level names."""
     levelno = record.levelno
     if levelno >= logging.CRITICAL:
         color = '\x1b[31;1m'  # RED
@@ -100,11 +102,18 @@ def add_color_to_record_levelname(record):
 
 
 class AppriseStreamHandler(logging.StreamHandler):
-    def __init__(self, color_logging, *args, **kwargs):
+    """Logging handler that also sends logging output to configured Apprise notifiers."""
+
+    def __init__(self, color_logging: bool, *args, **kwargs):
+        """Init.
+
+        Args:
+            color_logging (bool): If true logging levels will be colorized
+        """
         super().__init__(*args, **kwargs)
         self.color_logging = color_logging
 
-    def emit_apprise(self, record):
+    def _emit_apprise(self, record):
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -134,7 +143,7 @@ class AppriseStreamHandler(logging.StreamHandler):
             else:
                 loop.run_until_complete(notify)
 
-    def emit_stream(self, record):
+    def _emit_stream(self, record):
         record.levelname = f"{record.levelname:^11s}"  # Pad level name to max width
         if self.color_logging:
             record.levelname = add_color_to_record_levelname(record)
@@ -146,15 +155,16 @@ class AppriseStreamHandler(logging.StreamHandler):
         self.flush()
 
     def emit(self, record):
+        """Emit log to stdout and apprise."""
         try:
-            self.emit_apprise(record)
+            self._emit_apprise(record)
         except RecursionError:  # See issue 36272
             raise
         except Exception:
             self.handleError(record)
 
         try:
-            self.emit_stream(record)
+            self._emit_stream(record)
         except RecursionError:  # See issue 36272
             raise
         except Exception:
@@ -162,6 +172,7 @@ class AppriseStreamHandler(logging.StreamHandler):
 
 
 def create_logging_handler(format, color_logging):
+    """Constructs apprise logging handler for the given format."""
     date_format = "%Y-%m-%d %H:%M:%S"
     style = '{'
 
@@ -228,6 +239,7 @@ def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers
 
 
 def setup_event_logger(logger, color_logging):
+    """Sets up a logger that also displays the event ID currently being processed."""
     format = "{asctime} [{levelname:^11s}] {name:<42} :{event}  {message}"
     sh = create_logging_handler(format, color_logging)
     logger.addHandler(sh)
@@ -253,6 +265,7 @@ def human_readable_size(num: float):
 
 
 def human_readable_to_float(num: str):
+    """Turns a human readable ISO/IEC 80000 suffix value to its full float value."""
     pattern = r"([\d.]+)(" + "|".join(_suffixes) + ")"
     result = re.match(pattern, num)
     if result is None:
@@ -265,8 +278,7 @@ def human_readable_to_float(num: str):
 
 
 async def get_camera_name(protect: ProtectApiClient, id: str):
-    """
-    Returns the name for the camera with the given ID
+    """Returns the name for the camera with the given ID.
 
     If the camera ID is not know, it tries refreshing the cached data
     """
@@ -289,6 +301,8 @@ async def get_camera_name(protect: ProtectApiClient, id: str):
 
 
 class SubprocessException(Exception):
+    """Class to capture: stdout, stderr, and return code of Subprocess errors."""
+
     def __init__(self, stdout, stderr, returncode):
         """Exception class for when rclone does not exit with `0`.
 
@@ -308,11 +322,7 @@ class SubprocessException(Exception):
 
 
 def parse_rclone_retention(retention: str) -> relativedelta:
-    """
-    Parses the rclone `retention` parameter into a relativedelta which can then be used
-    to calculate datetimes
-    """
-
+    """Parses the rclone `retention` parameter into a relativedelta which can then be used to calculate datetimes."""
     matches = {k: int(v) for v, k in re.findall(r"([\d]+)(ms|s|m|h|d|w|M|y)", retention)}
     return relativedelta(
         microseconds=matches.get("ms", 0) * 1000,
@@ -327,9 +337,7 @@ def parse_rclone_retention(retention: str) -> relativedelta:
 
 
 async def run_command(cmd: str, data=None):
-    """
-    Runs the given command returning the exit code, stdout and stderr
-    """
+    """Runs the given command returning the exit code, stdout and stderr."""
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdin=asyncio.subprocess.PIPE,
@@ -347,16 +355,17 @@ async def run_command(cmd: str, data=None):
         logger.error(f"stdout:\n{stdout_indented}")
         logger.error(f"stderr:\n{stderr_indented}")
     else:
-        logger.extra_debug(f"stdout:\n{stdout_indented}")
-        logger.extra_debug(f"stderr:\n{stderr_indented}")
+        logger.extra_debug(f"stdout:\n{stdout_indented}")  # type: ignore
+        logger.extra_debug(f"stderr:\n{stderr_indented}")  # type: ignore
 
     return proc.returncode, stdout, stderr
 
 
 class VideoQueue(asyncio.Queue):
-    """A queue that limits the number of bytes it can store rather than discrete entries"""
+    """A queue that limits the number of bytes it can store rather than discrete entries."""
 
     def __init__(self, *args, **kwargs):
+        """Init."""
         super().__init__(*args, **kwargs)
         self._bytes_sum = 0
 
@@ -373,11 +382,11 @@ class VideoQueue(asyncio.Queue):
         self._bytes_sum -= len(data[1])
         return data
 
-    def _put(self, item: bytes):
-        self._queue.append(item)
+    def _put(self, item: tuple[Event, bytes]):
+        self._queue.append(item)  # type: ignore
         self._bytes_sum += len(item[1])
 
-    def full(self, item: bytes = None):
+    def full(self, item: tuple[Event, bytes] = None):
         """Return True if there are maxsize bytes in the queue.
 
         optionally if `item` is provided, it will return False if there is enough space to
@@ -386,35 +395,36 @@ class VideoQueue(asyncio.Queue):
         Note: if the Queue was initialized with maxsize=0 (the default),
         then full() is never True.
         """
-        if self._maxsize <= 0:
+        if self._maxsize <= 0:  # type: ignore
             return False
         else:
             if item is None:
-                return self.qsize() >= self._maxsize
+                return self.qsize() >= self._maxsize  # type: ignore
             else:
-                return self.qsize() + len(item[1]) >= self._maxsize
+                return self.qsize() + len(item[1]) >= self._maxsize  # type: ignore
 
-    async def put(self, item: bytes):
+    async def put(self, item: tuple[Event, bytes]):
         """Put an item into the queue.
 
         Put an item into the queue. If the queue is full, wait until a free
         slot is available before adding item.
         """
-        if len(item[1]) > self._maxsize:
+        if len(item[1]) > self._maxsize:  # type: ignore
             raise ValueError(
-                f"Item is larger ({human_readable_size(len(item[1]))}) than the size of the buffer ({human_readable_size(self._maxsize)})"
+                f"Item is larger ({human_readable_size(len(item[1]))}) "
+                f"than the size of the buffer ({human_readable_size(self._maxsize)})"  # type: ignore
             )
 
         while self.full(item):
-            putter = self._loop.create_future()
-            self._putters.append(putter)
+            putter = self._loop.create_future()  # type: ignore
+            self._putters.append(putter)  # type: ignore
             try:
                 await putter
-            except:
+            except:  # noqa: E722
                 putter.cancel()  # Just in case putter is not done yet.
                 try:
                     # Clean self._putters from canceled putters.
-                    self._putters.remove(putter)
+                    self._putters.remove(putter)  # type: ignore
                 except ValueError:
                     # The putter could be removed from self._putters by a
                     # previous get_nowait call.
@@ -422,11 +432,11 @@ class VideoQueue(asyncio.Queue):
                 if not self.full(item) and not putter.cancelled():
                     # We were woken up by get_nowait(), but can't take
                     # the call.  Wake up the next in line.
-                    self._wakeup_next(self._putters)
+                    self._wakeup_next(self._putters)  # type: ignore
                 raise
         return self.put_nowait(item)
 
-    def put_nowait(self, item: bytes):
+    def put_nowait(self, item: tuple[Event, bytes]):
         """Put an item into the queue without blocking.
 
         If no free slot is immediately available, raise QueueFull.
@@ -434,12 +444,12 @@ class VideoQueue(asyncio.Queue):
         if self.full(item):
             raise asyncio.QueueFull
         self._put(item)
-        self._unfinished_tasks += 1
-        self._finished.clear()
-        self._wakeup_next(self._getters)
+        self._unfinished_tasks += 1  # type: ignore
+        self._finished.clear()  # type: ignore
+        self._wakeup_next(self._getters)  # type: ignore
 
 
 async def wait_until(dt):
-    # sleep until the specified datetime
+    """Sleep until the specified datetime."""
     now = datetime.now()
     await asyncio.sleep((dt - now).total_seconds())

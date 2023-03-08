@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests for `unifi_protect_backup` package."""
 
-import pytest
+import pytest  # type: ignore
 
 # from click.testing import CliRunner
 

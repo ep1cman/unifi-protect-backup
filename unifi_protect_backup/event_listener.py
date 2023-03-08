@@ -1,3 +1,5 @@
+# noqa: D100
+
 import asyncio
 import logging
 from time import sleep
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class EventListener:
-    """Listens to the unifi protect websocket for new events to backup"""
+    """Listens to the unifi protect websocket for new events to backup."""
 
     def __init__(
         self,
@@ -21,6 +23,14 @@ class EventListener:
         detection_types: List[str],
         ignore_cameras: List[str],
     ):
+        """Init.
+
+        Args:
+            event_queue (asyncio.Queue): Queue to place events to backup on
+            protect (ProtectApiClient): UniFI Protect API client to use
+            detection_types (List[str]): Desired Event detection types to look for
+            ignore_cameras (List[str]): Cameras IDs to ignore events from
+        """
         self._event_queue: asyncio.Queue = event_queue
         self._protect: ProtectApiClient = protect
         self._unsub = None
@@ -28,7 +38,7 @@ class EventListener:
         self.ignore_cameras: List[str] = ignore_cameras
 
     async def start(self):
-        """Main Loop"""
+        """Main Loop."""
         logger.debug("Subscribed to websocket")
         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
 
@@ -71,7 +81,7 @@ class EventListener:
 
         # TODO: Will this even work? I think it will block the async loop
         while self._event_queue.full():
-            logger.extra_debug("Event queue full, waiting 1s...")
+            logger.extra_debug("Event queue full, waiting 1s...")  # type: ignore
             sleep(1)
 
         self._event_queue.put_nowait(msg.new_obj)
@@ -85,8 +95,7 @@ class EventListener:
         logger.debug(f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})")
 
     async def _check_websocket_and_reconnect(self):
-        """Checks for websocket disconnect and triggers a reconnect"""
-
+        """Checks for websocket disconnect and triggers a reconnect."""
         logger.extra_debug("Checking the status of the websocket...")
         if self._protect.check_ws():
             logger.extra_debug("Websocket is connected.")

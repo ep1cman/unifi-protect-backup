@@ -1,9 +1,12 @@
+"""A 'singleton' module for registering apprise notifiers."""
+
 import apprise
 
 notifier = apprise.Apprise()
 
 
 def add_notification_service(url):
+    """Add apprise URI with support for tags e.g. TAG1,TAG2=PROTOCOL://settings."""
     config = apprise.AppriseConfig()
     config.add_config(url, format='text')
 

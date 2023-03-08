@@ -1,8 +1,11 @@
+# noqa: D100
+
 import asyncio
 import json
 import logging
 import shutil
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import pytz
 from aiohttp.client_exceptions import ClientPayloadError
@@ -21,7 +24,7 @@ from unifi_protect_backup.utils import (
 
 
 async def get_video_length(video: bytes) -> float:
-    """Uses ffprobe to get the length of the video file passed in as a byte stream"""
+    """Uses ffprobe to get the length of the video file passed in as a byte stream."""
     returncode, stdout, stderr = await run_command(
         'ffprobe -v quiet -show_streams -select_streams v:0 -of json -', video
     )
@@ -34,11 +37,19 @@ async def get_video_length(video: bytes) -> float:
 
 
 class VideoDownloader:
-    """Downloads event video clips from Unifi Protect"""
+    """Downloads event video clips from Unifi Protect."""
 
     def __init__(
         self, protect: ProtectApiClient, download_queue: asyncio.Queue, upload_queue: VideoQueue, color_logging: bool
     ):
+        """Init.
+
+        Args:
+            protect (ProtectApiClient): UniFi Protect API client to use
+            download_queue (asyncio.Queue): Queue to get event details from
+            upload_queue (VideoQueue): Queue to place downloaded videos on
+            color_logging (bool):  Whether or not to add color to logging output
+        """
         self._protect: ProtectApiClient = protect
         self.download_queue: asyncio.Queue = download_queue
         self.upload_queue: VideoQueue = upload_queue
@@ -57,7 +68,7 @@ class VideoDownloader:
             self._has_ffprobe = False
 
     async def start(self):
-        """Main loop"""
+        """Main loop."""
         self.logger.info("Starting Downloader")
         while True:
             try:
@@ -113,11 +124,14 @@ class VideoDownloader:
             except Exception as e:
                 self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
 
-    async def _download(self, event: Event) -> bytes:
-        """Downloads the video clip for the given event"""
+    async def _download(self, event: Event) -> Optional[bytes]:
+        """Downloads the video clip for the given event."""
         self.logger.debug("  Downloading video...")
         for x in range(5):
             try:
+                assert isinstance(event.camera_id, str)
+                assert isinstance(event.start, datetime)
+                assert isinstance(event.end, datetime)
                 video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
                 assert isinstance(video, bytes)
                 break
@@ -126,15 +140,16 @@ class VideoDownloader:
                 await asyncio.sleep(1)
         else:
             self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
-            return
+            return None
 
         self.logger.debug(f"  Downloaded video size: {human_readable_size(len(video))}s")
         return video
 
     async def _check_video_length(self, video, duration):
-        """Check if the downloaded event is at least the length of the event, warn otherwise
+        """Check if the downloaded event is at least the length of the event, warn otherwise.
 
-        It is expected for events to regularly be slightly longer than the event specified"""
+        It is expected for events to regularly be slightly longer than the event specified
+        """
         try:
             downloaded_duration = await get_video_length(video)
             msg = f"  Downloaded video length: {downloaded_duration:.3f}s" f"({downloaded_duration - duration:+.3f}s)"
@@ -143,4 +158,4 @@ class VideoDownloader:
             else:
                 self.logger.debug(msg)
         except SubprocessException as e:
-            self.logger.warning("    `ffprobe` failed")
+            self.logger.warning("    `ffprobe` failed", exc_info=e)

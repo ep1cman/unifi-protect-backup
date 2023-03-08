@@ -1,3 +1,5 @@
+# noqa: D100
+
 import asyncio
 import logging
 from datetime import datetime
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class MissingEventChecker:
-    """Periodically checks if any unifi protect events exist within the retention period that are not backed up"""
+    """Periodically checks if any unifi protect events exist within the retention period that are not backed up."""
 
     def __init__(
         self,
@@ -28,6 +30,19 @@ class MissingEventChecker:
         ignore_cameras: List[str],
         interval: int = 60 * 5,
     ) -> None:
+        """Init.
+
+        Args:
+            protect (ProtectApiClient): UniFi Protect API client to use
+            db (aiosqlite.Connection): Async SQLite database to check for missing events
+            download_queue (asyncio.Queue): Download queue to check for on-going downloads
+            downloader (VideoDownloader): Downloader to check for on-going downloads
+            uploader (VideoUploader): Uploader to check for on-going uploads
+            retention (relativedelta): Retention period to limit search window
+            detection_types (List[str]): Detection types wanted to limit search
+            ignore_cameras (List[str]): Ignored camera IDs to limit search
+            interval (int): How frequently, in seconds, to check for missing events,
+        """
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
         self._download_queue: asyncio.Queue = download_queue
@@ -39,7 +54,7 @@ class MissingEventChecker:
         self.interval: int = interval
 
     async def start(self):
-        """main loop"""
+        """Main loop."""
         logger.info("Starting Missing Event Checker")
         while True:
             try:
@@ -102,15 +117,19 @@ class MissingEventChecker:
                     event = unifi_events[event_id]
                     if event.type != EventType.SMART_DETECT:
                         missing_logger(
-                            f" Adding missing event to backup queue: {event.id} ({event.type}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
+                            f" Adding missing event to backup queue: {event.id} ({event.type})"
+                            f" ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} -"
+                            f" {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
                         )
                     else:
                         missing_logger(
-                            f" Adding missing event to backup queue: {event.id} ({', '.join(event.smart_detect_types)}) ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} - {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
+                            f" Adding missing event to backup queue: {event.id} ({', '.join(event.smart_detect_types)})"
+                            f" ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} -"
+                            f" {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
                         )
                     await self._download_queue.put(event)
 
             except Exception as e:
-                logger.error(f"Unexpected exception occurred during missing event check:", exc_info=e)
+                logger.error("Unexpected exception occurred during missing event check:", exc_info=e)
 
             await asyncio.sleep(self.interval)

@@ -1,9 +1,7 @@
 """Console script for unifi_protect_backup."""
 
-import asyncio
-
 import click
-from aiorun import run
+from aiorun import run  # type: ignore
 
 from unifi_protect_backup import __version__
 from unifi_protect_backup.unifi_protect_backup_core import UnifiProtectBackup
@@ -149,7 +147,7 @@ The following notification tags are available (corresponding to the respective l
 
     ERROR, WARNING, INFO, DEBUG, EXTRA_DEBUG, WEBSOCKET_DATA
 
-If no tags are specified, it defaults to ERROR 
+If no tags are specified, it defaults to ERROR
 
 More details about supported platforms can be found here: https://github.com/caronc/apprise""",
 )
