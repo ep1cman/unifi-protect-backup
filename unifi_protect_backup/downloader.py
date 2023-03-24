@@ -163,10 +163,10 @@ class VideoDownloader:
         """Downloads the video clip for the given event."""
         self.logger.debug("  Downloading video...")
         for x in range(5):
+            assert isinstance(event.camera_id, str)
+            assert isinstance(event.start, datetime)
+            assert isinstance(event.end, datetime)
             try:
-                assert isinstance(event.camera_id, str)
-                assert isinstance(event.start, datetime)
-                assert isinstance(event.end, datetime)
                 video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
                 assert isinstance(video, bytes)
                 break
