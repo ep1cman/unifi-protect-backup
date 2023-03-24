@@ -183,6 +183,8 @@ Options:
                                   
                                   More details about supported platforms can be found here:
                                   https://github.com/caronc/apprise
+  --skip-missing                  If set, events which are 'missing' at the start will be ignored. 
+                                  Subsequent missing events will be downloaded (e.g. a missed event)  [default: False]
   --help                          Show this message and exit.
 ```
 
@@ -204,6 +206,7 @@ always take priority over environment variables):
 - `COLOR_LOGGING`
 - `PURGE_INTERVAL`
 - `APPRISE_NOTIFIERS`
+- `SKIP_MISSING`
 
 ## File path formatting
 
@@ -221,6 +224,12 @@ The following fields are provided to the format string:
   - *camera_name:* The name of the camera that generated this event
 
 You can optionally format the `event.start`/`event.end` timestamps as per the [`strftime` format](https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior) by appending it after a `:` e.g to get just the date without the time: `{event.start:%Y-%m-%d}`
+
+## Skipping initially missing events
+If you prefer to avoid backing up the entire backlog of events, and would instead prefer to back up events that occur from 
+now on, you can use the `--skip-missing` flag. This does not enable the periodic check for missing event (e.g. one that was missed by a disconnection) but instead marks all missing events at start-up as backed up.
+
+If you use this feature it is advised that your run the tool once with this flag, then stop it once the database has been created and the events are ignored. Keeping this flag set permanently could cause events to be missed if the tool crashes and is restarted etc.
 
 # A note about `rclone` backends and disk wear
 This tool attempts to not write the downloaded files to disk to minimise disk wear, and instead streams them directly to 

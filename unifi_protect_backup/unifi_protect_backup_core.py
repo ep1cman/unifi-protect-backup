@@ -66,6 +66,7 @@ class UnifiProtectBackup:
         download_buffer_size: int,
         purge_interval: str,
         apprise_notifiers: str,
+        skip_missing: bool,
         sqlite_path: str = "events.sqlite",
         color_logging=False,
         port: int = 443,
@@ -93,6 +94,7 @@ class UnifiProtectBackup:
             download_buffer_size (int): How many bytes big the download buffer should be
             purge_interval (str): How often to check for files to delete
             apprise_notifiers (str): Apprise URIs for notifications
+            skip_missing (bool): If initial missing events should be ignored
             sqlite_path (str): Path where to find/create sqlite database
             color_logging (bool): Whether to add color to logging output or not
         """
@@ -123,6 +125,7 @@ class UnifiProtectBackup:
         logger.debug(f"  download_buffer_size={human_readable_size(download_buffer_size)}")
         logger.debug(f"  {purge_interval=}")
         logger.debug(f"  {apprise_notifiers=}")
+        logger.debug(f"  {skip_missing=}")
 
         self.rclone_destination = rclone_destination
         self.retention = parse_rclone_retention(retention)
@@ -152,6 +155,7 @@ class UnifiProtectBackup:
         self._db = None
         self._download_buffer_size = download_buffer_size
         self._purge_interval = parse_rclone_retention(purge_interval)
+        self._skip_missing = skip_missing
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -245,6 +249,9 @@ class UnifiProtectBackup:
                 self.detection_types,
                 self.ignore_cameras,
             )
+            if self._skip_missing:
+                logger.info("Ignoring missing events")
+                await missing.ignore_missing()
             tasks.append(missing.start())
 
             logger.info("Starting Tasks...")

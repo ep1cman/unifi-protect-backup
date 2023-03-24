@@ -151,6 +151,17 @@ If no tags are specified, it defaults to ERROR
 
 More details about supported platforms can be found here: https://github.com/caronc/apprise""",
 )
+@click.option(
+    '--skip-missing',
+    default=False,
+    show_default=True,
+    is_flag=True,
+    envvar='SKIP_MISSING',
+    help="""\b
+If set, events which are 'missing' at the start will be ignored.
+Subsequent missing events will be downloaded (e.g. a missed event)
+""",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     event_listener = UnifiProtectBackup(**kwargs)
