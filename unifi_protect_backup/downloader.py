@@ -7,11 +7,13 @@ import shutil
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import aiosqlite
 import pytz
 from aiohttp.client_exceptions import ClientPayloadError
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType
+from expiring_dict import ExpiringDict
 
 from unifi_protect_backup.utils import (
     SubprocessException,
@@ -40,20 +42,28 @@ class VideoDownloader:
     """Downloads event video clips from Unifi Protect."""
 
     def __init__(
-        self, protect: ProtectApiClient, download_queue: asyncio.Queue, upload_queue: VideoQueue, color_logging: bool
+        self,
+        protect: ProtectApiClient,
+        db: aiosqlite.Connection,
+        download_queue: asyncio.Queue,
+        upload_queue: VideoQueue,
+        color_logging: bool,
     ):
         """Init.
 
         Args:
             protect (ProtectApiClient): UniFi Protect API client to use
+            db (aiosqlite.Connection): Async SQLite database to check for missing events
             download_queue (asyncio.Queue): Queue to get event details from
             upload_queue (VideoQueue): Queue to place downloaded videos on
             color_logging (bool):  Whether or not to add color to logging output
         """
         self._protect: ProtectApiClient = protect
+        self._db: aiosqlite.Connection = db
         self.download_queue: asyncio.Queue = download_queue
         self.upload_queue: VideoQueue = upload_queue
         self.current_event = None
+        self._failures = ExpiringDict(60 * 60 * 12)  # Time to live = 12h
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
@@ -111,7 +121,32 @@ class VideoDownloader:
 
                 video = await self._download(event)
                 if video is None:
+                    # Increment failure count
+                    if not event.id in self._failures:
+                        self._failures[event.id] = 1
+                    else:
+                        self._failures[event.id] += 1
+                    self.logger.warning(f"Event failed download attempt {self._failures[event.id]}")
+
+                    if self._failures[event.id] >= 10:
+                        self.logger.error(
+                            "Event has failed to download 10 times in a row. Permanently ignoring this event"
+                        )
+
+                        # ignore event
+                        self.logger.extra_debug(f"Ignoring event '{event.id}'")
+                        await self._db.execute(
+                            "INSERT INTO events VALUES "
+                            f"('{event.id}', '{event.type}', '{event.camera_id}',"
+                            f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
+                        )
+                        await self._db.commit()
+
                     continue
+
+                # Remove successfully downloaded event from failures list
+                elif event.id in self._failures:
+                    del self._failures[event.id]
 
                 # Get the actual length of the downloaded video using ffprobe
                 if self._has_ffprobe:

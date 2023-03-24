@@ -210,7 +210,7 @@ class UnifiProtectBackup:
 
             # Create downloader task
             #   This will download video files to its buffer
-            downloader = VideoDownloader(self._protect, download_queue, upload_queue, self.color_logging)
+            downloader = VideoDownloader(self._protect, self._db, download_queue, upload_queue, self.color_logging)
             tasks.append(downloader.start())
 
             # Create upload task

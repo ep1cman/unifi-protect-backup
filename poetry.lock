@@ -696,6 +696,21 @@ files = [
 ]
 
 [[package]]
+name = "expiring-dict"
+version = "1.1.0"
+description = "Python dict with TTL support for auto-expiring caches"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "expiring-dict-1.1.0.tar.gz", hash = "sha256:3c404adb1e4369468cb7e51bfbc9c470d7e2e863efe2a1c75d4ed706d0dce1a6"},
+    {file = "expiring_dict-1.1.0-py3-none-any.whl", hash = "sha256:586f6c5c0e5f111d5237f3fffcdefcfa813fb1e4340f9e3ef819bc70d3cc36cb"},
+]
+
+[package.dependencies]
+sortedcontainers = "*"
+
+[[package]]
 name = "filelock"
 version = "3.9.0"
 description = "A platform independent file lock."
@@ -2021,6 +2036,18 @@ files = [
 ]
 
 [[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
+    {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
+]
+
+[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -2394,4 +2421,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<4.0"
-content-hash = "403929920e1f93f1267d3ffc57b3586451d6c880407c2e399be10f8f028315dd"
+content-hash = "5deb339fab9bbf61b295ef5ee811d233f573f6473d83aab5e3951c7216fb2897"
