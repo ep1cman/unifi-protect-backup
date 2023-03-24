@@ -206,7 +206,7 @@ class UnifiProtectBackup:
             # Create downloader task
             #   This will download video files to its buffer
             downloader = VideoDownloader(self._protect, download_queue, upload_queue, self.color_logging)
-            tasks.append(asyncio.create_task(downloader.start()))
+            tasks.append(downloader.start())
 
             # Create upload task
             #   This will upload the videos in the downloader's buffer to the rclone remotes and log it in the database
@@ -219,18 +219,18 @@ class UnifiProtectBackup:
                 self._db,
                 self.color_logging,
             )
-            tasks.append(asyncio.create_task(uploader.start()))
+            tasks.append(uploader.start())
 
             # Create event listener task
             #   This will connect to the unifi protect websocket and listen for events. When one is detected it will
             #   be added to the queue of events to download
             event_listener = EventListener(download_queue, self._protect, self.detection_types, self.ignore_cameras)
-            tasks.append(asyncio.create_task(event_listener.start()))
+            tasks.append(event_listener.start())
 
             # Create purge task
             #   This will, every midnight, purge old backups from the rclone remotes and database
             purge = Purge(self._db, self.retention, self.rclone_destination, self._purge_interval)
-            tasks.append(asyncio.create_task(purge.start()))
+            tasks.append(purge.start())
 
             # Create missing event task
             #   This will check all the events within the retention period, if any have been missed and not backed up
@@ -245,10 +245,10 @@ class UnifiProtectBackup:
                 self.detection_types,
                 self.ignore_cameras,
             )
-            tasks.append(asyncio.create_task(missing.start()))
+            tasks.append(missing.start())
 
-            logger.info("Starting...")
-            await asyncio.gather(*tasks)
+            logger.info("Starting Tasks...")
+            await asyncio.gather(*[asyncio.create_task(task) for task in tasks])
 
         except asyncio.CancelledError:
             if self._protect is not None:
