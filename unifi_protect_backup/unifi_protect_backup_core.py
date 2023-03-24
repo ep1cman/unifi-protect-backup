@@ -165,7 +165,8 @@ class UnifiProtectBackup:
         """
         try:
             logger.info("Starting...")
-            await notifications.notifier.async_notify("Starting UniFi Protect Backup")
+            if notifications.notifier.servers:
+                await notifications.notifier.async_notify("Starting UniFi Protect Backup")
 
             # Ensure `rclone` is installed and properly configured
             logger.info("Checking rclone configuration...")
