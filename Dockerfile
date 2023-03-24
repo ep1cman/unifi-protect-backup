@@ -9,6 +9,9 @@ WORKDIR /app
 
 COPY dist/unifi_protect_backup-0.9.0.tar.gz sdist.tar.gz
 
+# https://github.com/rust-lang/cargo/issues/2808
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true 
+
 RUN \
     echo "**** install build packages ****" && \
     apk add --no-cache --virtual=build-dependencies \
@@ -17,7 +20,8 @@ RUN \
     jpeg-dev \
     zlib-dev \
     python3-dev \
-    cargo && \
+    cargo \
+    git && \
     echo "**** install packages ****" && \
     apk add --no-cache \
     rclone \
