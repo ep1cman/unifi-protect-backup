@@ -10,10 +10,10 @@ from typing import Optional
 import aiosqlite
 import pytz
 from aiohttp.client_exceptions import ClientPayloadError
+from expiring_dict import ExpiringDict  # type: ignore
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType
-from expiring_dict import ExpiringDict
 
 from unifi_protect_backup.utils import (
     SubprocessException,
@@ -122,7 +122,7 @@ class VideoDownloader:
                 video = await self._download(event)
                 if video is None:
                     # Increment failure count
-                    if not event.id in self._failures:
+                    if event.id not in self._failures:
                         self._failures[event.id] = 1
                     else:
                         self._failures[event.id] += 1
