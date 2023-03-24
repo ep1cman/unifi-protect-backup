@@ -4,18 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.8]- 2022-12-30
+## [0.9.0] - 2023-03-24
+### Added
+- The ability to send logging out via apprise notifications
+- Color logging is now optional
+- Events are now permanently ignored if they fail to download 10 times
+
+## [0.8.8] - 2022-12-30
 ### Added
 - Added ability to configure purge interval
 
 ### Fixed
 - Purge interval returned to previous default of once a day
 
-## [0.8.7]- 2022-12-11
+## [0.8.7] - 2022-12-11
 ### Fixed
 - Fix improper unpacking of upload events
 
-## [0.8.6]- 2022-12-10
+## [0.8.6] - 2022-12-10
 ### Fixed
 - check that current event is not none before trying to get it it’s ID
 - downloader/uploaded clear their current event once it’s been processed
