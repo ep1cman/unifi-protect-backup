@@ -98,11 +98,15 @@ class UnifiProtectBackup:
             sqlite_path (str): Path where to find/create sqlite database
             color_logging (bool): Whether to add color to logging output or not
         """
-        for notifier in apprise_notifiers:
-            notifications.add_notification_service(notifier)
-
         self.color_logging = color_logging
         setup_logging(verbose, self.color_logging)
+
+        for notifier in apprise_notifiers:
+            try:
+                notifications.add_notification_service(notifier)
+            except Exception as e:
+                logger.error(f"Error occurred when setting up logger `{notifier}`")
+                raise
 
         logger.debug("Config:")
         logger.debug(f"  {address=}")
