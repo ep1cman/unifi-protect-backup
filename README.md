@@ -259,6 +259,45 @@ To make this persist reboots add the following to `/etc/fstab`:
 tmpfs /mnt/tmpfs tmpfs nosuid,nodev,noatime 0 0
 ```
 
+# Running Backup Tool as a Service (LINUX ONLY)
+You can create a service that will run the docker or local version of this backup tool. The service can be configured to launch on boot. This is likely the preferred way you want to execute the tool once you have it completely configured and tested so it is continiously running.
+
+First create a service configuration file. You can replace `protectbackup` in the filename below with the name you wish to use for your service, if you change it remember to change the other locations in the following scripts as well.
+
+```
+sudo nano /lib/systemd/system/protectbackup.service
+```
+
+Next edit the content and fill in the 4 placeholders indicated by {}, replace these placeholders (including the leading `{` and trailing `}` characters) with the values you are using.
+
+```
+[Unit]
+Description=Unifi Protect Backup
+
+[Service]
+User={your machine username}
+Group={your machine user group, could be the same as the username}
+Restart=on-abort
+WorkingDirectory=/home/{your machine username}
+ExecStart={put your complete docker or local command here}
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Now enable the service and then start the service.
+
+```
+sudo systemctl enable protectbackup.service
+sudo systemctl start protectbackup.service
+```
+
+To check the status of the service use this command.
+
+```
+sudo systemctl status protectbackup.service --no-pager
+```
+
 # Debugging
 
 If you need to debug your rclone setup, you can invoke rclone directly like so:
