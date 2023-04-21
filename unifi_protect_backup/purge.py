@@ -12,9 +12,9 @@ from unifi_protect_backup.utils import run_command, wait_until
 logger = logging.getLogger(__name__)
 
 
-async def delete_file(file_path):
+async def delete_file(file_path, rclone_purge_args):
     """Deletes `file_path` via rclone."""
-    returncode, stdout, stderr = await run_command(f'rclone delete -vv "{file_path}"')
+    returncode, stdout, stderr = await run_command(f'rclone delete -vv "{file_path}" {rclone_purge_args}')
     if returncode != 0:
         logger.error(f" Failed to delete file: '{file_path}'")
 
@@ -34,6 +34,7 @@ class Purge:
         db: aiosqlite.Connection,
         retention: relativedelta,
         rclone_destination: str,
+        rclone_purge_args: str,
         interval: relativedelta = relativedelta(days=1),
     ):
         """Init.
@@ -43,10 +44,12 @@ class Purge:
             retention (relativedelta): How long clips should be kept
             rclone_destination (str): What rclone destination the clips are stored in
             interval (relativedelta): How often to purge old clips
+            rclone_purge_args (str): Optional extra arguments to pass to `rclone delete` directly.
         """
         self._db: aiosqlite.Connection = db
         self.retention: relativedelta = retention
         self.rclone_destination: str = rclone_destination
+        self.rclone_purge_args: str = rclone_purge_args
         self.interval: relativedelta = interval
 
     async def start(self):
@@ -68,7 +71,7 @@ class Purge:
                         async with self._db.execute(f"SELECT * FROM backups WHERE id = '{event_id}'") as backup_cursor:
                             async for _, remote, file_path in backup_cursor:
                                 logger.debug(f" Deleted: {remote}:{file_path}")
-                                await delete_file(f"{remote}:{file_path}")
+                                await delete_file(f"{remote}:{file_path}", self.rclone_purge_args)
                                 deleted_a_file = True
 
                         # delete event from database
