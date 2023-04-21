@@ -34,8 +34,8 @@ class Purge:
         db: aiosqlite.Connection,
         retention: relativedelta,
         rclone_destination: str,
-        rclone_purge_args: str,
         interval: relativedelta = relativedelta(days=1),
+        rclone_purge_args: str = "",
     ):
         """Init.
 
@@ -49,8 +49,8 @@ class Purge:
         self._db: aiosqlite.Connection = db
         self.retention: relativedelta = retention
         self.rclone_destination: str = rclone_destination
-        self.rclone_purge_args: str = rclone_purge_args
         self.interval: relativedelta = interval
+        self.rclone_purge_args: str = rclone_purge_args
 
     async def start(self):
         """Main loop - runs forever."""
