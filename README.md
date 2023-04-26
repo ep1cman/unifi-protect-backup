@@ -79,7 +79,7 @@ If you do not already have a `rclone.conf` file you can create one as follows:
 ```
 $ docker run -it --rm -v $PWD:/root/.config/rclone --entrypoint rclone ghcr.io/ep1cman/unifi-protect-backup config
 ```
-Follow the interactive configuration proceed, this will create a `rclone.conf`
+Follow the interactive configuration process, this will create a `rclone.conf`
 file in your current directory.
 
 Finally, start the container:
