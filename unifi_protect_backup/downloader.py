@@ -119,14 +119,16 @@ class VideoDownloader:
                     self.logger.debug(f"  Sleeping ({sleep_time}s) to ensure clip is ready to download...")
                     await asyncio.sleep(sleep_time)
 
-                video = await self._download(event)
-                if video is None:
+                try:
+                    video = await self._download(event)
+                    assert video is not None
+                except Exception as e:
                     # Increment failure count
                     if event.id not in self._failures:
                         self._failures[event.id] = 1
                     else:
                         self._failures[event.id] += 1
-                    self.logger.warning(f"Event failed download attempt {self._failures[event.id]}")
+                    self.logger.warning(f"Event failed download attempt {self._failures[event.id]}", exc_info=e)
 
                     if self._failures[event.id] >= 10:
                         self.logger.error(
@@ -134,7 +136,6 @@ class VideoDownloader:
                         )
 
                         # ignore event
-                        self.logger.extra_debug(f"Ignoring event '{event.id}'")
                         await self._db.execute(
                             "INSERT INTO events VALUES "
                             f"('{event.id}', '{event.type}', '{event.camera_id}',"
@@ -145,7 +146,7 @@ class VideoDownloader:
                     continue
 
                 # Remove successfully downloaded event from failures list
-                elif event.id in self._failures:
+                if event.id in self._failures:
                     del self._failures[event.id]
 
                 # Get the actual length of the downloaded video using ffprobe
