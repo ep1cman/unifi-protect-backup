@@ -107,7 +107,7 @@ class UnifiProtectBackup:
             try:
                 notifications.add_notification_service(notifier)
             except Exception as e:
-                logger.error(f"Error occurred when setting up logger `{notifier}`")
+                logger.error(f"Error occurred when setting up logger `{notifier}`", exc_info=e)
                 raise
 
         logger.debug("Config:")
@@ -242,7 +242,9 @@ class UnifiProtectBackup:
 
             # Create purge task
             #   This will, every midnight, purge old backups from the rclone remotes and database
-            purge = Purge(self._db, self.retention, self.rclone_destination, self._purge_interval, self.rclone_purge_args)
+            purge = Purge(
+                self._db, self.retention, self.rclone_destination, self._purge_interval, self.rclone_purge_args
+            )
             tasks.append(purge.start())
 
             # Create missing event task
