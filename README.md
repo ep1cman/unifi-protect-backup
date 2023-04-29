@@ -127,6 +127,10 @@ Options:
   --rclone-args TEXT              Optional extra arguments to pass to `rclone rcat` directly.
                                   Common usage for this would be to set a bandwidth limit, for
                                   example.
+  --rclone-purge-args TEXT        Optional extra arguments to pass to `rclone delete` directly.
+                                  Common usage for this would be to execute a permanent delete
+                                  instead of using the recycle bin on a destination.
+                                  Google Drive example: `--drive-use-trash=false`
   --detection-types TEXT          A comma separated list of which types of detections to backup.
                                   Valid options are: `motion`, `person`, `vehicle`, `ring`
                                   [default: motion,person,vehicle,ring]
@@ -198,6 +202,7 @@ always take priority over environment variables):
 - `RCLONE_RETENTION`
 - `RCLONE_DESTINATION`
 - `RCLONE_ARGS`
+- `RCLONE_PURGE_ARGS`
 - `IGNORE_CAMERAS`
 - `DETECTION_TYPES`
 - `FILE_STRUCTURE_FORMAT`

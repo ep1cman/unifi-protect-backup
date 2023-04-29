@@ -58,6 +58,14 @@ def _parse_detection_types(ctx, param, value):
     "be to set a bandwidth limit, for example.",
 )
 @click.option(
+    '--rclone-purge-args',
+    default='',
+    envvar='RCLONE_PURGE_ARGS',
+    help="Optional extra arguments to pass to `rclone delete` directly. Common usage for this would "
+    "be to execute a permanent delete instead of using the recycle bin on a destination. "
+    "Google Drive example: `--drive-use-trash=false`",
+)
+@click.option(
     '--detection-types',
     envvar='DETECTION_TYPES',
     default=','.join(DETECTION_TYPES),
