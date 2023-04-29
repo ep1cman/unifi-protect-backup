@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added optional argument string to pass directly to the `rclone delete` command used to purge video files
 
+### Fixed
+- Fixed download errors not counting as failures
+
 ## [0.9.0] - 2023-03-24
 ### Added
 - The ability to send logging out via apprise notifications
