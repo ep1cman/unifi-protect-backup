@@ -87,6 +87,8 @@ class MissingEventChecker:
             event = unifi_events[event_id]
             if event.start is None or event.end is None:
                 return False  # This event is still on-going
+            if event.camera_id in self.ignore_cameras:
+                return False
             if event.type is EventType.MOTION and "motion" not in self.detection_types:
                 return False
             if event.type is EventType.RING and "ring" not in self.detection_types:
