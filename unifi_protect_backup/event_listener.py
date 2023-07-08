@@ -100,6 +100,7 @@ class EventListener:
         if self._protect.check_ws():
             logger.extra_debug("Websocket is connected.")
         else:
+            self._protect.connect_event.clear()
             logger.warning("Lost connection to Unifi Protect.")
 
             # Unsubscribe, close the session.
@@ -125,4 +126,5 @@ class EventListener:
                 # Back off for a little while
                 await asyncio.sleep(10)
 
+            self._protect.connect_event.set()
             logger.info("Re-established connection to Unifi Protect and to the websocket.")

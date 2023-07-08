@@ -193,6 +193,11 @@ class UnifiProtectBackup:
             else:
                 raise ConnectionError("Failed to connect to UniFi Protect after 10 attempts")
 
+            # Add a lock to the protect client that can be used to prevent code accessing the client when it has
+            # lost connection
+            self._protect.connect_event = asyncio.Event()
+            self._protect.connect_event.set()
+
             # Get a mapping of camera ids -> names
             logger.info("Found cameras:")
             for camera in self._protect.bootstrap.cameras.values():

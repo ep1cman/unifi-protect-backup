@@ -286,6 +286,9 @@ async def get_camera_name(protect: ProtectApiClient, id: str):
 
     If the camera ID is not know, it tries refreshing the cached data
     """
+    # Wait for unifi protect to be connected
+    await protect.connect_event.wait()
+
     try:
         return protect.bootstrap.cameras[id].name
     except KeyError:

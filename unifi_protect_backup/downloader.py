@@ -82,6 +82,9 @@ class VideoDownloader:
         self.logger.info("Starting Downloader")
         while True:
             try:
+                # Wait for unifi protect to be connected
+                await self._protect.connect_event.wait()
+
                 event = await self.download_queue.get()
                 self.current_event = event
                 self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})

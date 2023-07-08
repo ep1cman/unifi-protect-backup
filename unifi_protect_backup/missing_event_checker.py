@@ -123,6 +123,9 @@ class MissingEventChecker:
         logger.info("Starting Missing Event Checker")
         while True:
             try:
+                # Wait for unifi protect to be connected
+                await self._protect.connect_event.wait()
+
                 logger.extra_debug("Running check for missing events...")
 
                 wanted_events = await self._get_missing_events()
