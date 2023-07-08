@@ -202,6 +202,21 @@ requests = "*"
 requests-oauthlib = "*"
 
 [[package]]
+name = "async-lru"
+version = "2.0.3"
+description = "Simple LRU cache for asyncio"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "async-lru-2.0.3.tar.gz", hash = "sha256:b714c9d1415fca4e264da72a9e2abc66880ce7430e03a973341f88ea4c0d4869"},
+    {file = "async_lru-2.0.3-py3-none-any.whl", hash = "sha256:00c0a8899c20b9c88663a47732689ff98189c9fa08ad9f734d7722f934d250b1"},
+]
+
+[package.dependencies]
+typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
+
+[[package]]
 name = "async-timeout"
 version = "4.0.2"
 description = "Timeout context manager for asyncio programs"
@@ -2421,4 +2436,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<4.0"
-content-hash = "5deb339fab9bbf61b295ef5ee811d233f573f6473d83aab5e3951c7216fb2897"
+content-hash = "42a25af6210e11892bc9e94fb4a4565e06f9dfe9239a8f277f4970e85de72218"

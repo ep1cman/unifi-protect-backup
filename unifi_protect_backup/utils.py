@@ -10,6 +10,7 @@ from apprise import NotifyType
 from dateutil.relativedelta import relativedelta
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
+from async_lru import alru_cache
 
 from unifi_protect_backup import notifications
 
@@ -277,6 +278,9 @@ def human_readable_to_float(num: str):
     return value * multiplier
 
 
+# Cached so that actions like uploads can continue when the connection to the api is lost
+# No max size, and a 6 hour ttl
+@alru_cache(None, ttl=60 * 60 * 6)
 async def get_camera_name(protect: ProtectApiClient, id: str):
     """Returns the name for the camera with the given ID.
 
