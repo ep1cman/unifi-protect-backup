@@ -63,7 +63,8 @@ class UnifiProtectBackup:
         apprise_notifiers: str,
         skip_missing: bool,
         sqlite_path: str = "events.sqlite",
-        color_logging=False,
+        color_logging: bool = False,
+        download_rate_limit: float = None,
         port: int = 443,
     ):
         """Will configure logging settings and the Unifi Protect API (but not actually connect).
@@ -93,6 +94,7 @@ class UnifiProtectBackup:
             skip_missing (bool): If initial missing events should be ignored
             sqlite_path (str): Path where to find/create sqlite database
             color_logging (bool): Whether to add color to logging output or not
+            download_rate_limit (float): Limit how events can be downloaded in one minute. Disabled by default",
         """
         self.color_logging = color_logging
         setup_logging(verbose, self.color_logging)
@@ -127,6 +129,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {purge_interval=}")
         logger.debug(f"  {apprise_notifiers=}")
         logger.debug(f"  {skip_missing=}")
+        logger.debug(f"  {download_rate_limit=} events per minute")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
@@ -158,6 +161,7 @@ class UnifiProtectBackup:
         self._download_buffer_size = download_buffer_size
         self._purge_interval = purge_interval
         self._skip_missing = skip_missing
+        self._download_rate_limit = download_rate_limit
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -217,7 +221,9 @@ class UnifiProtectBackup:
 
             # Create downloader task
             #   This will download video files to its buffer
-            downloader = VideoDownloader(self._protect, self._db, download_queue, upload_queue, self.color_logging)
+            downloader = VideoDownloader(
+                self._protect, self._db, download_queue, upload_queue, self.color_logging, self._download_rate_limit
+            )
             tasks.append(downloader.start())
 
             # Create upload task

@@ -189,6 +189,8 @@ Options:
                                   https://github.com/caronc/apprise
   --skip-missing                  If set, events which are 'missing' at the start will be ignored. 
                                   Subsequent missing events will be downloaded (e.g. a missed event)  [default: False]
+  --download-rate-limit FLOAT     Limit how events can be downloaded in one minute. Disabled by
+                                  default
   --help                          Show this message and exit.
 ```
 
@@ -212,6 +214,7 @@ always take priority over environment variables):
 - `PURGE_INTERVAL`
 - `APPRISE_NOTIFIERS`
 - `SKIP_MISSING`
+- `DOWNLOAD_RATELIMIT`
 
 ## File path formatting
 

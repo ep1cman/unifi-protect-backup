@@ -11,6 +11,7 @@ import aiosqlite
 import pytz
 from aiohttp.client_exceptions import ClientPayloadError
 from expiring_dict import ExpiringDict  # type: ignore
+from aiolimiter import AsyncLimiter
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType
@@ -48,6 +49,7 @@ class VideoDownloader:
         download_queue: asyncio.Queue,
         upload_queue: VideoQueue,
         color_logging: bool,
+        download_rate_limit: float,
     ):
         """Init.
 
@@ -57,6 +59,7 @@ class VideoDownloader:
             download_queue (asyncio.Queue): Queue to get event details from
             upload_queue (VideoQueue): Queue to place downloaded videos on
             color_logging (bool):  Whether or not to add color to logging output
+            download_rate_limit (float): Limit how events can be downloaded in one minute",
         """
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
@@ -64,6 +67,8 @@ class VideoDownloader:
         self.upload_queue: VideoQueue = upload_queue
         self.current_event = None
         self._failures = ExpiringDict(60 * 60 * 12)  # Time to live = 12h
+        self._download_rate_limit = download_rate_limit
+        self._limiter = AsyncLimiter(self._download_rate_limit) if self._download_rate_limit is not None else None
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
@@ -81,6 +86,10 @@ class VideoDownloader:
         """Main loop."""
         self.logger.info("Starting Downloader")
         while True:
+            if self._limiter:
+                self.logger.debug("Waiting for rate limit")
+                await self._limiter.acquire()
+
             try:
                 # Wait for unifi protect to be connected
                 await self._protect.connect_event.wait()

@@ -195,6 +195,14 @@ If set, events which are 'missing' at the start will be ignored.
 Subsequent missing events will be downloaded (e.g. a missed event)
 """,
 )
+@click.option(
+    '--download-rate-limit',
+    default=None,
+    show_default=True,
+    envvar='DOWNLOAD_RATELIMIT',
+    type=float,
+    help="Limit how events can be downloaded in one minute. Disabled by default",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     event_listener = UnifiProtectBackup(**kwargs)
