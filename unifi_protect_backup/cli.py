@@ -47,8 +47,8 @@ def _parse_detection_types(ctx, param, value):
     default='7d',
     show_default=True,
     envvar='RCLONE_RETENTION',
-    help="How long should event clips be backed up for. Format as per the `--max-age` argument of "
-    "`rclone` (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
+    help="How long should event clips be backed up for. Format as per the `rclone1 time option format "
+    "(https://rclone.org/docs/#time-option)",
 )
 @click.option(
     '--rclone-args',

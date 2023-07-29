@@ -339,7 +339,7 @@ def parse_rclone_retention(retention: str) -> relativedelta:
         days=matches.get("d", 0),
         weeks=matches.get("w", 0),
         months=matches.get("M", 0),
-        years=matches.get("Y", 0),
+        years=matches.get("y", 0),
     )
 
 
