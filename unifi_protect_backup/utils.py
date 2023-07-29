@@ -7,7 +7,6 @@ from datetime import datetime
 from typing import List, Optional
 
 from apprise import NotifyType
-from dateutil.relativedelta import relativedelta
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from async_lru import alru_cache
@@ -326,21 +325,6 @@ class SubprocessException(Exception):
     def __str__(self):
         """Turns exception into a human readable form."""
         return f"Return Code: {self.returncode}\nStdout:\n{self.stdout}\nStderr:\n{self.stderr}"
-
-
-def parse_rclone_retention(retention: str) -> relativedelta:
-    """Parses the rclone `retention` parameter into a relativedelta which can then be used to calculate datetimes."""
-    matches = {k: int(v) for v, k in re.findall(r"([\d]+)(ms|s|m|h|d|w|M|y)", retention)}
-    return relativedelta(
-        microseconds=matches.get("ms", 0) * 1000,
-        seconds=matches.get("s", 0),
-        minutes=matches.get("m", 0),
-        hours=matches.get("h", 0),
-        days=matches.get("d", 0),
-        weeks=matches.get("w", 0),
-        months=matches.get("M", 0),
-        years=matches.get("y", 0),
-    )
 
 
 async def run_command(cmd: str, data=None):

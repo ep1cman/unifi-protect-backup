@@ -1,7 +1,10 @@
 """Console script for unifi_protect_backup."""
 
+import re
+
 import click
 from aiorun import run  # type: ignore
+from dateutil.relativedelta import relativedelta
 
 from unifi_protect_backup import __version__
 from unifi_protect_backup.unifi_protect_backup_core import UnifiProtectBackup
@@ -20,6 +23,26 @@ def _parse_detection_types(ctx, param, value):
             raise click.BadOptionUsage("detection-types", f"`{t}` is not an available detection type.", ctx)
 
     return types
+
+
+def parse_rclone_retention(ctx, param, retention) -> relativedelta:
+    """Parses the rclone `retention` parameter into a relativedelta which can then be used to calculate datetimes."""
+    matches = {k: int(v) for v, k in re.findall(r"([\d]+)(ms|s|m|h|d|w|M|y)", retention)}
+
+    # Check that we matched the whole string
+    if len(retention) != len(''.join([f"{v}{k}" for k, v in matches.items()])):
+        raise click.BadParameter("See here for expected format: https://rclone.org/docs/#time-option")
+
+    return relativedelta(
+        microseconds=matches.get("ms", 0) * 1000,
+        seconds=matches.get("s", 0),
+        minutes=matches.get("m", 0),
+        hours=matches.get("h", 0),
+        days=matches.get("d", 0),
+        weeks=matches.get("w", 0),
+        months=matches.get("M", 0),
+        years=matches.get("y", 0),
+    )
 
 
 @click.command(context_settings=dict(max_content_width=100))
@@ -49,6 +72,7 @@ def _parse_detection_types(ctx, param, value):
     envvar='RCLONE_RETENTION',
     help="How long should event clips be backed up for. Format as per the `rclone1 time option format "
     "(https://rclone.org/docs/#time-option)",
+    callback=parse_rclone_retention,
 )
 @click.option(
     '--rclone-args',
@@ -139,6 +163,7 @@ all warnings, and websocket data
     envvar='PURGE_INTERVAL',
     help="How frequently to check for file to purge.\n\nNOTE: Can create a lot of API calls, so be careful if "
     "your cloud provider charges you per api call",
+    callback=parse_rclone_retention,
 )
 @click.option(
     '--apprise-notifier',

@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Callable, List
 
 import aiosqlite
+from dateutil.relativedelta import relativedelta
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.types import ModelType
 
@@ -18,14 +19,7 @@ from unifi_protect_backup import (
     VideoUploader,
     notifications,
 )
-from unifi_protect_backup.utils import (
-    SubprocessException,
-    VideoQueue,
-    human_readable_size,
-    parse_rclone_retention,
-    run_command,
-    setup_logging,
-)
+from unifi_protect_backup.utils import SubprocessException, VideoQueue, human_readable_size, run_command, setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +51,7 @@ class UnifiProtectBackup:
         password: str,
         verify_ssl: bool,
         rclone_destination: str,
-        retention: str,
+        retention: relativedelta,
         rclone_args: str,
         rclone_purge_args: str,
         detection_types: List[str],
@@ -65,7 +59,7 @@ class UnifiProtectBackup:
         file_structure_format: str,
         verbose: int,
         download_buffer_size: int,
-        purge_interval: str,
+        purge_interval: relativedelta,
         apprise_notifiers: str,
         skip_missing: bool,
         sqlite_path: str = "events.sqlite",
@@ -135,7 +129,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {skip_missing=}")
 
         self.rclone_destination = rclone_destination
-        self.retention = parse_rclone_retention(retention)
+        self.retention = retention
         self.rclone_args = rclone_args
         self.rclone_purge_args = rclone_purge_args
         self.file_structure_format = file_structure_format
@@ -162,7 +156,7 @@ class UnifiProtectBackup:
         self._sqlite_path = sqlite_path
         self._db = None
         self._download_buffer_size = download_buffer_size
-        self._purge_interval = parse_rclone_retention(purge_interval)
+        self._purge_interval = purge_interval
         self._skip_missing = skip_missing
 
     async def start(self):
