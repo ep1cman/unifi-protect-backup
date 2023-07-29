@@ -7,9 +7,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from apprise import NotifyType
+from async_lru import alru_cache
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
-from async_lru import alru_cache
 
 from unifi_protect_backup import notifications
 
@@ -286,7 +286,7 @@ async def get_camera_name(protect: ProtectApiClient, id: str):
     If the camera ID is not know, it tries refreshing the cached data
     """
     # Wait for unifi protect to be connected
-    await protect.connect_event.wait()
+    await protect.connect_event.wait()  # type: ignore
 
     try:
         return protect.bootstrap.cameras[id].name
