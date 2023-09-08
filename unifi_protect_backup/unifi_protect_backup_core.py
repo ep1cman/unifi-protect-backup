@@ -181,7 +181,7 @@ class UnifiProtectBackup:
             # Start the pyunifiprotect connection by calling `update`
             logger.info("Connecting to Unifi Protect...")
 
-            for attempts in range(1):
+            for attempts in range(10):
                 try:
                     await self._protect.update()
                     break
