@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2023-10-07
+### Fixed
+- Errors caused by latest unifi protect version by bumping the version of pyunifiprotect used
+- Queries for events are now chunked into groups of 500 which should help stop this tool crashing large
+  unifi protect instances.
+
 ## [0.9.4] - 2023-07-29
 ### Fixed
 - Time period parsing, 'Y' -> 'y'
