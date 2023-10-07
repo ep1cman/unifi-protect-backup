@@ -55,53 +55,70 @@ class MissingEventChecker:
         self.interval: int = interval
 
     async def _get_missing_events(self) -> List[Event]:
-        # Get list of events that need to be backed up from unifi protect
-        unifi_events = await self._protect.get_events(
-            start=datetime.now() - self.retention,
-            end=datetime.now(),
-            types=[EventType.MOTION, EventType.SMART_DETECT, EventType.RING],
-        )
-        unifi_events = {event.id: event for event in unifi_events}
+        start_time = datetime.now() - self.retention
+        end_time = datetime.now()
+        chunk_size = 500
 
-        # Get list of events that have been backed up from the database
+        while True:
+            # Get list of events that need to be backed up from unifi protect
+            logger.extra_debug(f"Fetching events for interval: {start_time} - {end_time}")
+            events_chunk = await self._protect.get_events(
+                start=start_time,
+                end=end_time,
+                types=[EventType.MOTION, EventType.SMART_DETECT, EventType.RING],
+                limit=chunk_size,
+            )
 
-        # events(id, type, camera_id, start, end)
-        async with self._db.execute("SELECT * FROM events") as cursor:
-            rows = await cursor.fetchall()
-            db_event_ids = {row[0] for row in rows}
+            start_time = events_chunk[-1].end
+            unifi_events = {event.id: event for event in events_chunk}
 
-        # Prevent re-adding events currently in the download/upload queue
-        downloading_event_ids = {event.id for event in self._downloader.download_queue._queue}  # type: ignore
-        current_download = self._downloader.current_event
-        if current_download is not None:
-            downloading_event_ids.add(current_download.id)
+            # Get list of events that have been backed up from the database
 
-        uploading_event_ids = {event.id for event, video in self._uploader.upload_queue._queue}  # type: ignore
-        current_upload = self._uploader.current_event
-        if current_upload is not None:
-            uploading_event_ids.add(current_upload.id)
+            # events(id, type, camera_id, start, end)
+            async with self._db.execute("SELECT * FROM events") as cursor:
+                rows = await cursor.fetchall()
+                db_event_ids = {row[0] for row in rows}
 
-        missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids | uploading_event_ids)
+            # Prevent re-adding events currently in the download/upload queue
+            downloading_event_ids = {event.id for event in self._downloader.download_queue._queue}  # type: ignore
+            current_download = self._downloader.current_event
+            if current_download is not None:
+                downloading_event_ids.add(current_download.id)
 
-        def wanted_event_type(event_id):
-            event = unifi_events[event_id]
-            if event.start is None or event.end is None:
-                return False  # This event is still on-going
-            if event.camera_id in self.ignore_cameras:
-                return False
-            if event.type is EventType.MOTION and "motion" not in self.detection_types:
-                return False
-            if event.type is EventType.RING and "ring" not in self.detection_types:
-                return False
-            elif event.type is EventType.SMART_DETECT:
-                for event_smart_detection_type in event.smart_detect_types:
-                    if event_smart_detection_type not in self.detection_types:
-                        return False
-            return True
+            uploading_event_ids = {event.id for event, video in self._uploader.upload_queue._queue}  # type: ignore
+            current_upload = self._uploader.current_event
+            if current_upload is not None:
+                uploading_event_ids.add(current_upload.id)
 
-        wanted_event_ids = set(filter(wanted_event_type, missing_event_ids))
+            missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids | uploading_event_ids)
 
-        return [unifi_events[id] for id in wanted_event_ids]
+            # Exclude events of unwanted types
+            def wanted_event_type(event_id):
+                event = unifi_events[event_id]
+                if event.start is None or event.end is None:
+                    return False  # This event is still on-going
+                if event.camera_id in self.ignore_cameras:
+                    return False
+                if event.type is EventType.MOTION and "motion" not in self.detection_types:
+                    return False
+                if event.type is EventType.RING and "ring" not in self.detection_types:
+                    return False
+                elif event.type is EventType.SMART_DETECT:
+                    for event_smart_detection_type in event.smart_detect_types:
+                        if event_smart_detection_type not in self.detection_types:
+                            return False
+                return True
+
+            wanted_event_ids = set(filter(wanted_event_type, missing_event_ids))
+
+            # Yeild events one by one to allow the async loop to start other task while
+            # waiting on the full list of events
+            for id in wanted_event_ids:
+                yield unifi_events[id]
+
+            # Last chunk was in-complete, we can stop now
+            if len(events_chunk) < chunk_size:
+                break
 
     async def ignore_missing(self):
         """Ignore missing events by adding them to the event table."""
@@ -123,28 +140,24 @@ class MissingEventChecker:
         logger.info("Starting Missing Event Checker")
         while True:
             try:
+                shown_warning = False
+
                 # Wait for unifi protect to be connected
                 await self._protect.connect_event.wait()
 
-                logger.extra_debug("Running check for missing events...")
+                logger.debug("Running check for missing events...")
 
-                wanted_events = await self._get_missing_events()
+                async for event in self._get_missing_events():
+                    if not shown_warning:
+                        logger.warning(f" Found missing events, adding to backup queue")
+                        shown_warning = True
 
-                logger.debug(f" Undownloaded events of wanted types: {len(wanted_events)}")
-
-                if len(wanted_events) > 20:
-                    logger.warning(f" Adding {len(wanted_events)} missing events to backup queue")
-                    missing_logger = logger.extra_debug
-                else:
-                    missing_logger = logger.warning
-
-                for event in wanted_events:
                     if event.type != EventType.SMART_DETECT:
                         event_name = f"{event.id} ({event.type})"
                     else:
                         event_name = f"{event.id} ({', '.join(event.smart_detect_types)})"
 
-                    missing_logger(
+                    logger.extra_debug(
                         f" Adding missing event to backup queue: {event_name}"
                         f" ({event.start.strftime('%Y-%m-%dT%H-%M-%S')} -"
                         f" {event.end.strftime('%Y-%m-%dT%H-%M-%S')})"
