@@ -23,13 +23,13 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.9.0,<4.0"
 click = "8.0.1"
-pyunifiprotect = "^4.0.11"
-aiorun = "^2022.11.1"
+pyunifiprotect = "^4.21.0"
+aiorun = "^2023.7.2"
 aiosqlite = "^0.17.0"
 python-dateutil = "^2.8.2"
-apprise = "^1.3.0"
+apprise = "^1.5.0"
 expiring-dict = "^1.1.0"
-async-lru = "^2.0.3"
+async-lru = "^2.0.4"
 aiolimiter = "^1.1.0"
 
 [tool.poetry.group.dev]
