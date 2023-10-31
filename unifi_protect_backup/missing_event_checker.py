@@ -69,6 +69,9 @@ class MissingEventChecker:
                 limit=chunk_size,
             )
 
+            if not events_chunk:
+                break  # There were no events to backup
+
             start_time = events_chunk[-1].end
             unifi_events = {event.id: event for event in events_chunk}
 
