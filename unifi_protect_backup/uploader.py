@@ -9,7 +9,14 @@ import aiosqlite
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 
-from unifi_protect_backup.utils import VideoQueue, get_camera_name, human_readable_size, run_command, setup_event_logger
+from unifi_protect_backup.utils import (
+    VideoQueue,
+    get_camera_name,
+    human_readable_size,
+    run_command,
+    setup_event_logger,
+    SubprocessException,
+)
 
 
 class VideoUploader:
@@ -74,10 +81,13 @@ class VideoUploader:
                 destination = await self._generate_file_path(event)
                 self.logger.debug(f" Destination: {destination}")
 
-                await self._upload_video(video, destination, self._rclone_args)
-                await self._update_database(event, destination)
+                try:
+                    await self._upload_video(video, destination, self._rclone_args)
+                    await self._update_database(event, destination)
+                    self.logger.debug("Uploaded")
+                except SubprocessException:
+                    self.logger.error(f" Failed to upload file: '{destination}'")
 
-                self.logger.debug("Uploaded")
                 self.current_event = None
 
             except Exception as e:
@@ -99,7 +109,7 @@ class VideoUploader:
         """
         returncode, stdout, stderr = await run_command(f'rclone rcat -vv {rclone_args} "{destination}"', video)
         if returncode != 0:
-            self.logger.error(f" Failed to upload file: '{destination}'")
+            raise SubprocessException(stdout, stderr, returncode)
 
     async def _update_database(self, event: Event, destination: str):
         """Add the backed up event to the database along with where it was backed up to."""
