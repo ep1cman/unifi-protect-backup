@@ -1,7 +1,7 @@
 # To build run:
 # make docker
 
-FROM ghcr.io/linuxserver/baseimage-alpine:3.16
+FROM ghcr.io/linuxserver/baseimage-alpine:edge
 
 LABEL maintainer="ep1cman"
 
@@ -29,7 +29,7 @@ RUN \
     py3-pip \
     python3 && \
     echo "**** install unifi-protect-backup ****" && \
-    pip install --no-cache-dir sdist.tar.gz && \
+    pip install --no-cache-dir --break-system-packages sdist.tar.gz && \
     echo "**** cleanup ****" && \
     apk del --purge \
     build-dependencies && \
