@@ -125,11 +125,9 @@ class MissingEventChecker:
 
     async def ignore_missing(self):
         """Ignore missing events by adding them to the event table."""
-        wanted_events = await self._get_missing_events()
+        logger.info(f" Ignoring missing events")
 
-        logger.info(f" Ignoring {len(wanted_events)} missing events")
-
-        for event in wanted_events:
+        async for event in self._get_missing_events():
             logger.extra_debug(f"Ignoring event '{event.id}'")
             await self._db.execute(
                 "INSERT INTO events VALUES "
