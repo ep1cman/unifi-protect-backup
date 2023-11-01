@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2023-11-01
+### Fixed
+- Event type enum conversion string was no longer converting to the enum value, this is now done explicitly.
+
 ## [0.10.0] - 2023-11-01
 ### Added
 - Command line option to skip events longer than a given length (default 2 hours)
