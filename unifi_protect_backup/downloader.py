@@ -114,9 +114,9 @@ class VideoDownloader:
                 self.logger.debug(f"Video Download Buffer: {output_queue_current_size}/{output_queue_max_size}")
                 self.logger.debug(f"  Camera: {await get_camera_name(self._protect, event.camera_id)}")
                 if event.type == EventType.SMART_DETECT:
-                    self.logger.debug(f"  Type: {event.type} ({', '.join(event.smart_detect_types)})")
+                    self.logger.debug(f"  Type: {event.type.value} ({', '.join(event.smart_detect_types)})")
                 else:
-                    self.logger.debug(f"  Type: {event.type}")
+                    self.logger.debug(f"  Type: {event.type.value}")
                 self.logger.debug(f"  Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')} ({event.start.timestamp()})")
                 self.logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')} ({event.end.timestamp()})")
                 duration = (event.end - event.start).total_seconds()
@@ -198,7 +198,7 @@ class VideoDownloader:
         self.logger.warning("Ignoring event")
         await self._db.execute(
             "INSERT INTO events VALUES "
-            f"('{event.id}', '{event.type}', '{event.camera_id}',"
+            f"('{event.id}', '{event.type.value}', '{event.camera_id}',"
             f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
         )
         await self._db.commit()

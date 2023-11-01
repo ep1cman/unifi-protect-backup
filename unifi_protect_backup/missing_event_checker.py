@@ -131,7 +131,7 @@ class MissingEventChecker:
             logger.extra_debug(f"Ignoring event '{event.id}'")
             await self._db.execute(
                 "INSERT INTO events VALUES "
-                f"('{event.id}', '{event.type}', '{event.camera_id}',"
+                f"('{event.id}', '{event.type.value}', '{event.camera_id}',"
                 f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
             )
         await self._db.commit()
@@ -154,7 +154,7 @@ class MissingEventChecker:
                         shown_warning = True
 
                     if event.type != EventType.SMART_DETECT:
-                        event_name = f"{event.id} ({event.type})"
+                        event_name = f"{event.id} ({event.type.value})"
                     else:
                         event_name = f"{event.id} ({', '.join(event.smart_detect_types)})"
 

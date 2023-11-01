@@ -117,7 +117,7 @@ class VideoUploader:
         assert isinstance(event.end, datetime)
         await self._db.execute(
             "INSERT INTO events VALUES "
-            f"('{event.id}', '{event.type}', '{event.camera_id}',"
+            f"('{event.id}', '{event.type.value}', '{event.camera_id}',"
             f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
         )
 
@@ -157,9 +157,9 @@ class VideoUploader:
         format_context = {
             "event": event,
             "duration_seconds": (event.end - event.start).total_seconds(),
-            "detection_type": f"{event.type} ({' '.join(event.smart_detect_types)})"
+            "detection_type": f"{event.type.value} ({' '.join(event.smart_detect_types)})"
             if event.smart_detect_types
-            else f"{event.type}",
+            else f"{event.type.value}",
             "camera_name": await get_camera_name(self._protect, event.camera_id),
         }
 
