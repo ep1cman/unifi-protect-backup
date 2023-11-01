@@ -203,6 +203,14 @@ Subsequent missing events will be downloaded (e.g. a missed event)
     type=float,
     help="Limit how events can be downloaded in one minute. Disabled by default",
 )
+@click.option(
+    '--max-event-length',
+    default=2 * 60 * 60,
+    show_default=True,
+    envvar='MAX_EVENT_LENGTH',
+    type=int,
+    help="Only download events shorter than this maximum length, in seconds",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     event_listener = UnifiProtectBackup(**kwargs)

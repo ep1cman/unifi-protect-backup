@@ -50,6 +50,7 @@ class VideoDownloader:
         upload_queue: VideoQueue,
         color_logging: bool,
         download_rate_limit: float,
+        max_event_length: timedelta,
     ):
         """Init.
 
@@ -60,6 +61,7 @@ class VideoDownloader:
             upload_queue (VideoQueue): Queue to place downloaded videos on
             color_logging (bool):  Whether or not to add color to logging output
             download_rate_limit (float): Limit how events can be downloaded in one minute",
+            max_event_length (timedelta): Maximum length in seconds for an event to be considered valid and downloaded
         """
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
@@ -68,6 +70,7 @@ class VideoDownloader:
         self.current_event = None
         self._failures = ExpiringDict(60 * 60 * 12)  # Time to live = 12h
         self._download_rate_limit = download_rate_limit
+        self._max_event_length = max_event_length
         self._limiter = AsyncLimiter(self._download_rate_limit) if self._download_rate_limit is not None else None
 
         self.base_logger = logging.getLogger(__name__)
@@ -95,6 +98,7 @@ class VideoDownloader:
                 await self._protect.connect_event.wait()
 
                 event = await self.download_queue.get()
+
                 self.current_event = event
                 self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
 
@@ -117,6 +121,11 @@ class VideoDownloader:
                 self.logger.debug(f"  End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')} ({event.end.timestamp()})")
                 duration = (event.end - event.start).total_seconds()
                 self.logger.debug(f"  Duration: {duration}s")
+
+                # Skip invalid events
+                if not self._valid_event(event):
+                    await self._ignore_event(event)
+                    continue
 
                 # Unifi protect does not return full video clips if the clip is requested too soon.
                 # There are two issues at play here:
@@ -146,15 +155,7 @@ class VideoDownloader:
                         self.logger.error(
                             "Event has failed to download 10 times in a row. Permanently ignoring this event"
                         )
-
-                        # ignore event
-                        await self._db.execute(
-                            "INSERT INTO events VALUES "
-                            f"('{event.id}', '{event.type}', '{event.camera_id}',"
-                            f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
-                        )
-                        await self._db.commit()
-
+                        await self._ignore_event(event)
                     continue
 
                 # Remove successfully downloaded event from failures list
@@ -193,6 +194,15 @@ class VideoDownloader:
         self.logger.debug(f"  Downloaded video size: {human_readable_size(len(video))}s")
         return video
 
+    async def _ignore_event(self, event):
+        self.logger.warning("Ignoring event")
+        await self._db.execute(
+            "INSERT INTO events VALUES "
+            f"('{event.id}', '{event.type}', '{event.camera_id}',"
+            f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
+        )
+        await self._db.commit()
+
     async def _check_video_length(self, video, duration):
         """Check if the downloaded event is at least the length of the event, warn otherwise.
 
@@ -207,3 +217,11 @@ class VideoDownloader:
                 self.logger.debug(msg)
         except SubprocessException as e:
             self.logger.warning("    `ffprobe` failed", exc_info=e)
+
+    def _valid_event(self, event):
+        duration = event.end - event.start
+        if duration > self._max_event_length:
+            self.logger.warning(f"Event longer ({duration}) than max allowed length {self._max_event_length}")
+            return False
+
+        return True

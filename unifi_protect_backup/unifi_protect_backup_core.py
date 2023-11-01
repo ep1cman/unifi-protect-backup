@@ -3,7 +3,7 @@ import asyncio
 import logging
 import os
 import shutil
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Callable, List
 
 import aiosqlite
@@ -62,6 +62,7 @@ class UnifiProtectBackup:
         purge_interval: relativedelta,
         apprise_notifiers: str,
         skip_missing: bool,
+        max_event_length: int,
         sqlite_path: str = "events.sqlite",
         color_logging: bool = False,
         download_rate_limit: float = None,
@@ -95,6 +96,7 @@ class UnifiProtectBackup:
             sqlite_path (str): Path where to find/create sqlite database
             color_logging (bool): Whether to add color to logging output or not
             download_rate_limit (float): Limit how events can be downloaded in one minute. Disabled by default",
+            max_event_length (int): Maximum length in seconds for an event to be considered valid and downloaded
         """
         self.color_logging = color_logging
         setup_logging(verbose, self.color_logging)
@@ -130,6 +132,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {apprise_notifiers=}")
         logger.debug(f"  {skip_missing=}")
         logger.debug(f"  {download_rate_limit=} events per minute")
+        logger.debug(f"  {max_event_length=}s")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
@@ -162,6 +165,7 @@ class UnifiProtectBackup:
         self._purge_interval = purge_interval
         self._skip_missing = skip_missing
         self._download_rate_limit = download_rate_limit
+        self._max_event_length = timedelta(seconds=max_event_length)
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -222,7 +226,13 @@ class UnifiProtectBackup:
             # Create downloader task
             #   This will download video files to its buffer
             downloader = VideoDownloader(
-                self._protect, self._db, download_queue, upload_queue, self.color_logging, self._download_rate_limit
+                self._protect,
+                self._db,
+                download_queue,
+                upload_queue,
+                self.color_logging,
+                self._download_rate_limit,
+                self._max_event_length,
             )
             tasks.append(downloader.start())
 

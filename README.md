@@ -191,6 +191,8 @@ Options:
                                   Subsequent missing events will be downloaded (e.g. a missed event)  [default: False]
   --download-rate-limit FLOAT     Limit how events can be downloaded in one minute. Disabled by
                                   default
+  --max-event-length INTEGER      Only download events shorter than this maximum length, in
+                                  seconds  [default: 7200]
   --help                          Show this message and exit.
 ```
 
@@ -215,6 +217,7 @@ always take priority over environment variables):
 - `APPRISE_NOTIFIERS`
 - `SKIP_MISSING`
 - `DOWNLOAD_RATELIMIT`
+- `MAX_EVENT_LENGTH`
 
 ## File path formatting
 
