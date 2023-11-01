@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2023-11-01
+### Added
+- Command line option to skip events longer than a given length (default 2 hours)
+- Docker image is now based on alpine edge giving access to the latest version of rclone
+### Fixed
+- Failed uploads no longer write to the database, meaning they will be retried
+- Fixed issue with chunked event fetch during initial ignore of events
+- Fixed error when no events were fetched for the retention period
+
 ## [0.9.5] - 2023-10-07
 ### Fixed
 - Errors caused by latest unifi protect version by bumping the version of pyunifiprotect used
