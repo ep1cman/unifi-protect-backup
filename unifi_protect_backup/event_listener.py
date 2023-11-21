@@ -61,7 +61,7 @@ class EventListener:
             return
         if msg.new_obj.camera_id in self.ignore_cameras:
             return
-        if msg.new_obj.end is None:
+        if 'end' not in msg.changed_data:
             return
         if msg.new_obj.type not in [EventType.MOTION, EventType.SMART_DETECT, EventType.RING]:
             return
