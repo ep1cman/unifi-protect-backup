@@ -1791,21 +1791,21 @@ files = [
 
 [[package]]
 name = "pyunifiprotect"
-version = "4.21.0"
+version = "4.22.0"
 description = "Unofficial UniFi Protect Python API and CLI"
 category = "main"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "pyunifiprotect-4.21.0-py3-none-any.whl", hash = "sha256:6a67a3a4b15576695d140f80de2d97890d0be8d3b1a0c0bc1effde1fd646880e"},
-    {file = "pyunifiprotect-4.21.0.tar.gz", hash = "sha256:d21f5144f16037fd11f192db52ab0cd99db8fb1f8670abc2afb1c0fa04cdb9de"},
+    {file = "pyunifiprotect-4.22.0-py3-none-any.whl", hash = "sha256:21eab9e40a349c9b550715c34728c64fdac7d5d0f2de71644645dff804df04c4"},
+    {file = "pyunifiprotect-4.22.0.tar.gz", hash = "sha256:53b3c6b11f02605ff774343797f6468ed35fa9c0c99c6957c578c9871f47d449"},
 ]
 
 [package.dependencies]
 aiofiles = "*"
 aiohttp = "*"
 aioshutil = "*"
-async-timeout = "*"
+async-timeout = {version = "*", markers = "python_version < \"3.11\""}
 dateparser = "*"
 orjson = "*"
 packaging = "*"
@@ -1816,7 +1816,7 @@ typer = {version = ">0.6", extras = ["all"]}
 
 [package.extras]
 backup = ["aiosqlite", "asyncify", "av", "sqlalchemy[asyncio]"]
-dev = ["base36", "black", "build", "coverage[toml]", "flake8", "flake8-docstrings", "ipython", "mike", "mkdocs-git-revision-date-localized-plugin", "mkdocs-include-markdown-plugin", "mkdocs-material", "mkdocstrings[python]", "mypy", "pip-tools", "pydocstyle", "pylint", "pylint-strict-informational", "pyproject-flake8", "pytest", "pytest-asyncio", "pytest-benchmark", "pytest-cov", "pytest-sugar", "pytest-timeout (>=1.2.1)", "pytest-xdist", "sqlalchemy[asyncio,mypy]", "termcolor", "types-aiofiles", "types-dateparser", "types-pillow", "types-pyjwt", "types-termcolor", "tzdata"]
+dev = ["base36", "black", "build", "coverage[toml]", "ipython", "isort", "mike", "mkdocs-git-revision-date-localized-plugin", "mkdocs-include-markdown-plugin", "mkdocs-material", "mkdocstrings[python]", "mypy", "pip-tools", "pydocstyle", "pytest", "pytest-asyncio", "pytest-benchmark", "pytest-cov", "pytest-sugar", "pytest-timeout (>=1.2.1)", "pytest-xdist[psutil]", "ruff", "sqlalchemy[asyncio,mypy]", "termcolor", "types-aiofiles", "types-dateparser", "types-pillow", "types-pyjwt", "types-termcolor", "tzdata"]
 full = ["aiosqlite", "asyncify", "av", "ipython", "python-dotenv", "sqlalchemy[asyncio]", "termcolor"]
 shell = ["ipython", "python-dotenv", "termcolor"]
 tz = ["tzdata"]
