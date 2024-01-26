@@ -1791,14 +1791,14 @@ files = [
 
 [[package]]
 name = "pyunifiprotect"
-version = "4.22.0"
+version = "4.23.2"
 description = "Unofficial UniFi Protect Python API and CLI"
 category = "main"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "pyunifiprotect-4.22.0-py3-none-any.whl", hash = "sha256:21eab9e40a349c9b550715c34728c64fdac7d5d0f2de71644645dff804df04c4"},
-    {file = "pyunifiprotect-4.22.0.tar.gz", hash = "sha256:53b3c6b11f02605ff774343797f6468ed35fa9c0c99c6957c578c9871f47d449"},
+    {file = "pyunifiprotect-4.23.2-py3-none-any.whl", hash = "sha256:6af35c422bbeecec6360f5c4d87ed09dee88eed84b373c98ab6639badcb911ba"},
+    {file = "pyunifiprotect-4.23.2.tar.gz", hash = "sha256:ab7dd45654e4a229d2860bcfa62a6672b2556757cf9dec653bd691824d9a5123"},
 ]
 
 [package.dependencies]
