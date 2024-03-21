@@ -137,6 +137,8 @@ Options:
   --ignore-camera TEXT            IDs of cameras for which events should not be backed up. Use
                                   multiple times to ignore multiple IDs. If being set as an
                                   environment variable the IDs should be separated by whitespace.
+                                  Alternatively, use a Unifi user with a role which has access
+                                  retricted to the subset of cameras that you wish to backup.
   --file-structure-format TEXT    A Python format string used to generate the file structure/name
                                   on the rclone remote.For details of the fields available, see
                                   the projects `README.md` file.  [default: {camera_name}/{event.s
@@ -241,6 +243,14 @@ If you prefer to avoid backing up the entire backlog of events, and would instea
 now on, you can use the `--skip-missing` flag. This does not enable the periodic check for missing event (e.g. one that was missed by a disconnection) but instead marks all missing events at start-up as backed up.
 
 If you use this feature it is advised that your run the tool once with this flag, then stop it once the database has been created and the events are ignored. Keeping this flag set permanently could cause events to be missed if the tool crashes and is restarted etc.
+
+## Ignoring cameras
+
+Cameras can be excluded from backups by either:
+- Using `--ignore-camera`, see [usage](#usage)
+  - IDs can be obtained by scanning the logs, starting at `Found cameras:` up to the next log line (currently `NVR TZ`). You can find this section of the logs by piping the logs in to this `sed` command
+    `sed -n '/Found cameras:/,/NVR TZ/p'`
+- Using a Unifi user with a role which has access retricted to the subset of cameras that you wish to backup.
 
 # A note about `rclone` backends and disk wear
 This tool attempts to not write the downloaded files to disk to minimise disk wear, and instead streams them directly to 
