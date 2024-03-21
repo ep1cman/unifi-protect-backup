@@ -248,7 +248,8 @@ If you use this feature it is advised that your run the tool once with this flag
 
 Cameras can be excluded from backups by either:
 - Using `--ignore-camera`, see [usage](#usage)
-  - IDs can be obtained by scanning the logs: `docker logs {container_id} 2>&1 | sed -n '/Found cameras:/,/NVR TZ/p'`
+  - IDs can be obtained by scanning the logs, starting at `Found cameras:` up to the next log line (currently `NVR TZ`). You can find this section of the logs by piping the logs in to this `sed` command
+    `sed -n '/Found cameras:/,/NVR TZ/p'`
 - Using a Unifi user with a role which has access retricted to the subset of cameras that you wish to backup.
 
 # A note about `rclone` backends and disk wear
