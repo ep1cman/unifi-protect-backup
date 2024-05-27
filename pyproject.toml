@@ -23,7 +23,7 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.9.0,<4.0"
 click = "8.0.1"
-pyunifiprotect = "^5.0.2"
+pyunifiprotect = "^6.0.1"
 aiorun = "^2023.7.2"
 aiosqlite = "^0.17.0"
 python-dateutil = "^2.8.2"
