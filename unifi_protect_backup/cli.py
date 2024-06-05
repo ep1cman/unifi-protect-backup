@@ -211,6 +211,19 @@ Subsequent missing events will be downloaded (e.g. a missed event)
     type=int,
     help="Only download events shorter than this maximum length, in seconds",
 )
+@click.option(
+    '--experimental-downloader',
+    'use_experimental_downloader',
+    default=False,
+    show_default=True,
+    is_flag=True,
+    envvar='EXPERIMENTAL_DOWNLOADER',
+    help="""\b
+If set, a new experimental download mechanism will be used to match
+what the web UI does. This might be more stable if you are experiencing
+a lot of failed downloads with the default downloader.
+""",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     event_listener = UnifiProtectBackup(**kwargs)

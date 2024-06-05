@@ -5,6 +5,7 @@ __email__ = 'sebastian@goscik.com'
 __version__ = '0.10.7'
 
 from .downloader import VideoDownloader
+from .downloader_experimental import VideoDownloaderExperimental
 from .event_listener import EventListener
 from .purge import Purge
 from .uploader import VideoUploader

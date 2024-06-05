@@ -1,4 +1,5 @@
 """Main module."""
+
 import asyncio
 import logging
 import os
@@ -16,6 +17,7 @@ from unifi_protect_backup import (
     MissingEventChecker,
     Purge,
     VideoDownloader,
+    VideoDownloaderExperimental,
     VideoUploader,
     notifications,
 )
@@ -67,6 +69,7 @@ class UnifiProtectBackup:
         color_logging: bool = False,
         download_rate_limit: float = None,
         port: int = 443,
+        use_experimental_downloader: bool = False,
     ):
         """Will configure logging settings and the Unifi Protect API (but not actually connect).
 
@@ -97,6 +100,7 @@ class UnifiProtectBackup:
             color_logging (bool): Whether to add color to logging output or not
             download_rate_limit (float): Limit how events can be downloaded in one minute. Disabled by default",
             max_event_length (int): Maximum length in seconds for an event to be considered valid and downloaded
+            use_experimental_downloader (bool): Use the new experimental downloader (the same method as used by the webUI)
         """
         self.color_logging = color_logging
         setup_logging(verbose, self.color_logging)
@@ -133,6 +137,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {skip_missing=}")
         logger.debug(f"  {download_rate_limit=} events per minute")
         logger.debug(f"  {max_event_length=}s")
+        logger.debug(f"  {use_experimental_downloader=}")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
@@ -166,6 +171,7 @@ class UnifiProtectBackup:
         self._skip_missing = skip_missing
         self._download_rate_limit = download_rate_limit
         self._max_event_length = timedelta(seconds=max_event_length)
+        self._use_experimental_downloader = use_experimental_downloader
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -225,7 +231,12 @@ class UnifiProtectBackup:
 
             # Create downloader task
             #   This will download video files to its buffer
-            downloader = VideoDownloader(
+            if self._use_experimental_downloader:
+                downloader_cls = VideoDownloaderExperimental
+            else:
+                downloader_cls = VideoDownloader
+
+            downloader = downloader_cls(
                 self._protect,
                 self._db,
                 download_queue,
