@@ -50,6 +50,9 @@ ENV TZ=UTC
 ENV IGNORE_CAMERAS=""
 ENV SQLITE_PATH=/config/database/events.sqlite
 
+# Fixes issue where `platformdirs` is unable to properly detect the user directory
+ENV XDG_CACHE_HOME=/config
+
 COPY docker_root/ /
 
 RUN mkdir -p /config/database /config/rclone
