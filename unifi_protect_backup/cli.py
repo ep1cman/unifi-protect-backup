@@ -70,8 +70,8 @@ def parse_rclone_retention(ctx, param, retention) -> relativedelta:
     default='7d',
     show_default=True,
     envvar='RCLONE_RETENTION',
-    help="How long should event clips be backed up for. Format as per the `rclone1 time option format "
-    "(https://rclone.org/docs/#time-option)",
+    help="How long should event clips be backed up for. Format as per the `--max-age` argument of `rclone` "
+    "(https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
     callback=parse_rclone_retention,
 )
 @click.option(
@@ -104,12 +104,14 @@ def parse_rclone_retention(ctx, param, retention) -> relativedelta:
     multiple=True,
     envvar="IGNORE_CAMERAS",
     help="IDs of cameras for which events should not be backed up. Use multiple times to ignore "
-    "multiple IDs. If being set as an environment variable the IDs should be separated by whitespace.",
+    "multiple IDs. If being set as an environment variable the IDs should be separated by whitespace. "
+    "Alternatively, use a Unifi user with a role which has access restricted to the subset of cameras "
+    "that you wish to backup.",
 )
 @click.option(
     '--file-structure-format',
     envvar='FILE_STRUCTURE_FORMAT',
-    default="{camera_name}/{event.start:%Y-%m-%d}/{event.start:%Y-%m-%dT%H-%M-%S} {detection_type}.mp4",
+    default="{camera_name}/{event.start:%Y-%m-%d}/{event.end:%Y-%m-%dT%H-%M-%S} {detection_type}.mp4",
     show_default=True,
     help="A Python format string used to generate the file structure/name on the rclone remote."
     "For details of the fields available, see the projects `README.md` file.",

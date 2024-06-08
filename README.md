@@ -48,7 +48,7 @@ In order to connect to your unifi protect instance, you will first need to setup
 
 ## Installation
 
-*The prefered way to run this tool is using a container*
+*The preferred way to run this tool is using a container*
 
 ### Docker Container
 You can run this tool as a container if you prefer with the following command.
@@ -129,8 +129,8 @@ Options:
                                   example.
   --rclone-purge-args TEXT        Optional extra arguments to pass to `rclone delete` directly.
                                   Common usage for this would be to execute a permanent delete
-                                  instead of using the recycle bin on a destination.
-                                  Google Drive example: `--drive-use-trash=false`
+                                  instead of using the recycle bin on a destination. Google Drive
+                                  example: `--drive-use-trash=false`
   --detection-types TEXT          A comma separated list of which types of detections to backup.
                                   Valid options are: `motion`, `person`, `vehicle`, `ring`
                                   [default: motion,person,vehicle,ring]
@@ -138,7 +138,7 @@ Options:
                                   multiple times to ignore multiple IDs. If being set as an
                                   environment variable the IDs should be separated by whitespace.
                                   Alternatively, use a Unifi user with a role which has access
-                                  retricted to the subset of cameras that you wish to backup.
+                                  restricted to the subset of cameras that you wish to backup.
   --file-structure-format TEXT    A Python format string used to generate the file structure/name
                                   on the rclone remote.For details of the fields available, see
                                   the projects `README.md` file.  [default: {camera_name}/{event.s
@@ -189,12 +189,15 @@ Options:
                                   
                                   More details about supported platforms can be found here:
                                   https://github.com/caronc/apprise
-  --skip-missing                  If set, events which are 'missing' at the start will be ignored. 
+  --skip-missing                  If set, events which are 'missing' at the start will be ignored.
                                   Subsequent missing events will be downloaded (e.g. a missed event)  [default: False]
   --download-rate-limit FLOAT     Limit how events can be downloaded in one minute. Disabled by
                                   default
   --max-event-length INTEGER      Only download events shorter than this maximum length, in
                                   seconds  [default: 7200]
+  --experimental-downloader       If set, a new experimental download mechanism will be used to match
+                                  what the web UI does. This might be more stable if you are experiencing
+                                  a lot of failed downloads with the default downloader.  [default: False]
   --help                          Show this message and exit.
 ```
 
@@ -220,6 +223,7 @@ always take priority over environment variables):
 - `SKIP_MISSING`
 - `DOWNLOAD_RATELIMIT`
 - `MAX_EVENT_LENGTH`
+- `EXPERIMENTAL_DOWNLOADER`
 
 ## File path formatting
 
@@ -250,7 +254,7 @@ Cameras can be excluded from backups by either:
 - Using `--ignore-camera`, see [usage](#usage)
   - IDs can be obtained by scanning the logs, starting at `Found cameras:` up to the next log line (currently `NVR TZ`). You can find this section of the logs by piping the logs in to this `sed` command
     `sed -n '/Found cameras:/,/NVR TZ/p'`
-- Using a Unifi user with a role which has access retricted to the subset of cameras that you wish to backup.
+- Using a Unifi user with a role which has access restricted to the subset of cameras that you wish to backup.
 
 # A note about `rclone` backends and disk wear
 This tool attempts to not write the downloaded files to disk to minimise disk wear, and instead streams them directly to 
@@ -281,7 +285,7 @@ tmpfs /mnt/tmpfs tmpfs nosuid,nodev,noatime 0 0
 ```
 
 # Running Backup Tool as a Service (LINUX ONLY)
-You can create a service that will run the docker or local version of this backup tool. The service can be configured to launch on boot. This is likely the preferred way you want to execute the tool once you have it completely configured and tested so it is continiously running.
+You can create a service that will run the docker or local version of this backup tool. The service can be configured to launch on boot. This is likely the preferred way you want to execute the tool once you have it completely configured and tested so it is continuously running.
 
 First create a service configuration file. You can replace `protectbackup` in the filename below with the name you wish to use for your service, if you change it remember to change the other locations in the following scripts as well.
 
