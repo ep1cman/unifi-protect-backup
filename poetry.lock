@@ -1850,7 +1850,7 @@ files = [
 
 [[package]]
 name = "pyunifiprotect"
-version = "6.0.2.dev5+gd3ae72d"
+version = "0.1.dev870+gd967bca"
 description = "Unofficial UniFi Protect Python API and CLI"
 category = "main"
 optional = false
@@ -1882,9 +1882,9 @@ tz = ["tzdata"]
 
 [package.source]
 type = "git"
-url = "https://github.com/cyberpower678/pyunifiprotect.git"
-reference = "HEAD"
-resolved_reference = "d3ae72df52611462745e543566334bce4210b5cb"
+url = "https://github.com/ep1cman/pyunifiprotect.git"
+reference = "experimental"
+resolved_reference = "d967bca2c65e0aa6a7363afb6367c3745c076747"
 
 [[package]]
 name = "pywin32-ctypes"
@@ -2391,14 +2391,14 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.12.1"
+version = "4.12.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "typing_extensions-4.12.1-py3-none-any.whl", hash = "sha256:6024b58b69089e5a89c347397254e35f1bf02a907728ec7fee9bf0fe837d203a"},
-    {file = "typing_extensions-4.12.1.tar.gz", hash = "sha256:915f5e35ff76f56588223f15fdd5938f9a1cf9195c0de25130c627e4d597f6d1"},
+    {file = "typing_extensions-4.12.2-py3-none-any.whl", hash = "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"},
+    {file = "typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"},
 ]
 
 [[package]]
@@ -2593,4 +2593,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<4.0"
-content-hash = "a05c7d8b3a9d1fde0f5cae1834c1d1ea0eb8df7272c739db14b7a876be31551b"
+content-hash = "3d83ca4be38027c7efcc7337dc271f6d9c072cf088f00da04ba117d4f12a7e45"

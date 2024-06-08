@@ -30,7 +30,7 @@ apprise = "^1.5.0"
 expiring-dict = "^1.1.0"
 async-lru = "^2.0.4"
 aiolimiter = "^1.1.0"
-pyunifiprotect = {git = "https://github.com/cyberpower678/pyunifiprotect.git"}
+pyunifiprotect = {git = "https://github.com/ep1cman/pyunifiprotect.git", rev = "experimental"}
 
 [tool.poetry.group.dev]
 optional = true
