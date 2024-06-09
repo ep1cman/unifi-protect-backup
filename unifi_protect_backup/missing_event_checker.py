@@ -89,9 +89,9 @@ class MissingEventChecker:
                 downloading_event_ids.add(current_download.id)
 
             uploading_event_ids = {event.id for event, video in self._uploader.upload_queue._queue}  # type: ignore
-            current_upload = self._uploader.current_event
-            if current_upload is not None:
-                uploading_event_ids.add(current_upload.id)
+            for current_upload in self._uploader.current_events:
+                if current_upload is not None:
+                    uploading_event_ids.add(current_upload.id)
 
             missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids | uploading_event_ids)
 
