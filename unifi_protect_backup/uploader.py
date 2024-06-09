@@ -3,6 +3,8 @@
 import logging
 import pathlib
 import re
+import os
+import asyncio
 from datetime import datetime
 
 import aiosqlite
@@ -52,11 +54,37 @@ class VideoUploader:
         self._rclone_args: str = rclone_args
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
-        self.current_event = None
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
         self.logger = logging.LoggerAdapter(self.base_logger, {'event': ''})
+    async def _upload_worker(self, semaphore):
+        async with semaphore:
+            while True:
+                try:
+                    event, video = await self.upload_queue.get()
+                    
+                    logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
+
+                    logger.info(f"Uploading event: {event.id}")
+                    logger.debug(
+                        f" Remaining Upload Queue: {self.upload_queue.qsize_files()}"
+                        f" ({human_readable_size(self.upload_queue.qsize())})"
+                    )
+
+                    destination = await self._generate_file_path(event)
+                    logger.debug(f" Destination: {destination}")
+
+                    try:
+                        await self._upload_video(video, destination, self._rclone_args)
+                        await self._update_database(event, destination)
+                        logger.debug("Uploaded")
+                    except SubprocessException:
+                        logger.error(f" Failed to upload file: '{destination}'")
+
+                except Exception as e:
+                    logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+                    
 
     async def start(self):
         """Main loop.
@@ -65,33 +93,12 @@ class VideoUploader:
         using rclone, finally it updates the database
         """
         self.logger.info("Starting Uploader")
-        while True:
-            try:
-                event, video = await self.upload_queue.get()
-                self.current_event = event
 
-                self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
-
-                self.logger.info(f"Uploading event: {event.id}")
-                self.logger.debug(
-                    f" Remaining Upload Queue: {self.upload_queue.qsize_files()}"
-                    f" ({human_readable_size(self.upload_queue.qsize())})"
-                )
-
-                destination = await self._generate_file_path(event)
-                self.logger.debug(f" Destination: {destination}")
-
-                try:
-                    await self._upload_video(video, destination, self._rclone_args)
-                    await self._update_database(event, destination)
-                    self.logger.debug("Uploaded")
-                except SubprocessException:
-                    self.logger.error(f" Failed to upload file: '{destination}'")
-
-                self.current_event = None
-
-            except Exception as e:
-                self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+        rclone_transfers = int(os.getenv('RCLONE_TRANSFERS', '1'))
+        semaphore = asyncio.Semaphore(rclone_transfers)
+        
+        workers = [self._upload_worker(semaphore) for _ in range(rclone_transfers)]
+        await asyncio.gather(*tasks)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
         """Upload video using rclone.
