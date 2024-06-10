@@ -54,15 +54,17 @@ class VideoUploader:
         self._rclone_args: str = rclone_args
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
+        self.current_events = []
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
         self.logger = logging.LoggerAdapter(self.base_logger, {'event': ''})
-    async def _upload_worker(self, semaphore):
+    async def _upload_worker(self, semaphore, worker_id):
         async with semaphore:
             while True:
                 try:
                     event, video = await self.upload_queue.get()
+                    self.current_events[worker_id] = event
                     
                     logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
 
@@ -84,7 +86,8 @@ class VideoUploader:
 
                 except Exception as e:
                     logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
-                    
+
+                self.current_events[worker_id] = None
 
     async def start(self):
         """Main loop.
@@ -94,10 +97,11 @@ class VideoUploader:
         """
         self.logger.info("Starting Uploader")
 
+        self.current_events = [None] * rclone_transfers
         rclone_transfers = int(os.getenv('RCLONE_TRANSFERS', '1'))
         semaphore = asyncio.Semaphore(rclone_transfers)
         
-        workers = [self._upload_worker(semaphore) for _ in range(rclone_transfers)]
+        workers = [self._upload_worker(semaphore, i) for i in range(rclone_transfers)]
         await asyncio.gather(*tasks)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
