@@ -97,12 +97,12 @@ class VideoUploader:
         """
         self.logger.info("Starting Uploader")
 
-        self.current_events = [None] * rclone_transfers
         rclone_transfers = int(os.getenv('RCLONE_TRANSFERS', '1'))
+        self.current_events = [None] * rclone_transfers
         semaphore = asyncio.Semaphore(rclone_transfers)
         
         workers = [self._upload_worker(semaphore, i) for i in range(rclone_transfers)]
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*workers)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
         """Upload video using rclone.
