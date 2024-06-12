@@ -9,8 +9,8 @@ from typing import Callable, List
 
 import aiosqlite
 from dateutil.relativedelta import relativedelta
-from pyunifiprotect import ProtectApiClient
-from pyunifiprotect.data.types import ModelType
+from uiprotect import ProtectApiClient
+from uiprotect.data.types import ModelType
 
 from unifi_protect_backup import (
     EventListener,
@@ -188,7 +188,7 @@ class UnifiProtectBackup:
             logger.info("Checking rclone configuration...")
             await self._check_rclone()
 
-            # Start the pyunifiprotect connection by calling `update`
+            # Start the uiprotect connection by calling `update`
             logger.info("Connecting to Unifi Protect...")
 
             for attempts in range(10):

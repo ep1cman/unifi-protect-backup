@@ -8,8 +8,8 @@ from typing import List, Optional
 
 from apprise import NotifyType
 from async_lru import alru_cache
-from pyunifiprotect import ProtectApiClient
-from pyunifiprotect.data.nvr import Event
+from uiprotect import ProtectApiClient
+from uiprotect.data.nvr import Event
 
 from unifi_protect_backup import notifications
 
