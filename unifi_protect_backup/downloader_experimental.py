@@ -10,8 +10,8 @@ from typing import Optional
 import aiosqlite
 import pytz
 from aiohttp.client_exceptions import ClientPayloadError
-from expiring_dict import ExpiringDict  # type: ignore
 from aiolimiter import AsyncLimiter
+from expiring_dict import ExpiringDict  # type: ignore
 from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 from pyunifiprotect.data.types import EventType

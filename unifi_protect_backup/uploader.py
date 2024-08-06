@@ -10,12 +10,12 @@ from pyunifiprotect import ProtectApiClient
 from pyunifiprotect.data.nvr import Event
 
 from unifi_protect_backup.utils import (
+    SubprocessException,
     VideoQueue,
     get_camera_name,
     human_readable_size,
     run_command,
     setup_event_logger,
-    SubprocessException,
 )
 
 
