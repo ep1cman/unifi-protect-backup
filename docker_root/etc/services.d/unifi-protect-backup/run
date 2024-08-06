@@ -2,6 +2,8 @@
 
 
 export RCLONE_CONFIG=/config/rclone/rclone.conf
+export XDG_CACHE_HOME=/config
+
 echo $VERBOSITY
 [[ -n "$VERBOSITY" ]] && export VERBOSITY_ARG=-$VERBOSITY || export VERBOSITY_ARG=""
 

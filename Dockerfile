@@ -10,7 +10,7 @@ WORKDIR /app
 COPY dist/unifi_protect_backup-0.11.0.tar.gz sdist.tar.gz
 
 # https://github.com/rust-lang/cargo/issues/2808
-ENV CARGO_NET_GIT_FETCH_WITH_CLI=true 
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 RUN \
     echo "**** install build packages ****" && \
@@ -51,7 +51,7 @@ ENV IGNORE_CAMERAS=""
 ENV SQLITE_PATH=/config/database/events.sqlite
 
 # Fixes issue where `platformdirs` is unable to properly detect the user directory
-ENV XDG_CACHE_HOME=/config
+ENV XDG_CONFIG_HOME=/config
 
 COPY docker_root/ /
 
