@@ -28,7 +28,7 @@ retention period.
 - Automatic pruning of old clips
 
 ## Requirements
-- Python 3.9+
+- Python 3.10+
 - Unifi Protect version 1.20 or higher (as per [`pyunifiprotect`](https://github.com/briis/pyunifiprotect))
 - `rclone` installed with at least one remote configured.
 
