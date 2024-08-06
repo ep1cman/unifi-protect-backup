@@ -30,7 +30,7 @@ apprise = "^1.5.0"
 expiring-dict = "^1.1.0"
 async-lru = "^2.0.4"
 aiolimiter = "^1.1.0"
-pyunifiprotect = {git = "https://github.com/ep1cman/pyunifiprotect.git", rev = "experimental"}
+uiprotect = "^5.4.0"
 
 [tool.poetry.group.dev.dependencies]
 black  = "^22.10.0"

@@ -29,7 +29,7 @@ retention period.
 
 ## Requirements
 - Python 3.10+
-- Unifi Protect version 1.20 or higher (as per [`pyunifiprotect`](https://github.com/briis/pyunifiprotect))
+- Unifi Protect version 1.20 or higher (as per [`uiprotect`](https://github.com/uilibs/uiprotect))
 - `rclone` installed with at least one remote configured.
 
 # Setup
@@ -235,7 +235,7 @@ If you wish for the clips to be structured differently you can do this using the
 option. It uses standard [python format string syntax](https://docs.python.org/3/library/string.html#formatstrings).
 
 The following fields are provided to the format string:
-  - *event:* The `Event` object as per https://github.com/briis/pyunifiprotect/blob/master/pyunifiprotect/data/nvr.py
+  - *event:* The `Event` object as per https://github.com/uilibs/uiprotect/blob/main/src/uiprotect/data/nvr.py
   - *duration_seconds:* The duration of the event in seconds
   - *detection_type:* A nicely formatted list of the event detection type and the smart detection types (if any)
   - *camera_name:* The name of the camera that generated this event
@@ -355,7 +355,7 @@ docker run \
 </a>
 
 
-- Heavily utilises [`pyunifiprotect`](https://github.com/briis/pyunifiprotect) by [@briis](https://github.com/briis/)
+- Heavily utilises [`uiprotect`](https://github.com/uilibs/uiprotect)
 - All the cloud functionality is provided by [`rclone`](https://rclone.org/)
 - This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter) and the [waynerv/cookiecutter-pypackage](https://github.com/waynerv/cookiecutter-pypackage) project template.
 

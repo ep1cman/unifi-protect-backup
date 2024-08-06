@@ -538,6 +538,31 @@ files = [
 ]
 
 [[package]]
+name = "convertertools"
+version = "0.5.0"
+description = "Tools for converting python data types"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "convertertools-0.5.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:b723a3486f6250d5d738a31591776cbb20378177030a29f0e4fda56d7b99e795"},
+    {file = "convertertools-0.5.0-cp311-cp311-manylinux_2_17_i686.manylinux_2_5_i686.manylinux1_i686.manylinux2014_i686.whl", hash = "sha256:fbf4a533608c525dfbbd9b931e290dd679a74a2d6630f0f2e04d1fa44b33f3b0"},
+    {file = "convertertools-0.5.0-cp311-cp311-manylinux_2_17_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8069e4c6bc908b370bfdb9129af5011d40c0704bda265a8f56345001d0478e6b"},
+    {file = "convertertools-0.5.0-cp311-cp311-musllinux_1_2_i686.whl", hash = "sha256:cfea4d24a8e988db79b2213124dafdd3d12dc3209c7d1d4d7205a21631bb8888"},
+    {file = "convertertools-0.5.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:e89fbb97f5f2945e11da457c5888f50ca006f9930a3d8d3a932091403cbea36b"},
+    {file = "convertertools-0.5.0-cp311-cp311-win32.whl", hash = "sha256:03e2816ea8bd481e0816d27b55a37ba90c01ae9df105d654a1a0e213c6fe425a"},
+    {file = "convertertools-0.5.0-cp311-cp311-win_amd64.whl", hash = "sha256:1b7e7dfd3daae6c44e9376297adc9920bd75791ad8de32ebb2f70dcee263e460"},
+    {file = "convertertools-0.5.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:4a8630056eb0d1250177fec1176b1bf9cf6e92eec7973cb78f238b802cc2003c"},
+    {file = "convertertools-0.5.0-cp312-cp312-manylinux_2_17_i686.manylinux_2_5_i686.manylinux1_i686.manylinux2014_i686.whl", hash = "sha256:e259aca6b4b9b7a30df25be2d2dafd7985c98fd6ce5f8eb5a43874e5ee1b6016"},
+    {file = "convertertools-0.5.0-cp312-cp312-manylinux_2_17_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2014_x86_64.whl", hash = "sha256:24fd3d2c71beb77502ceaab9bb99c3d28b18f071e3856e7c39a62c631173fc7e"},
+    {file = "convertertools-0.5.0-cp312-cp312-manylinux_2_36_x86_64.whl", hash = "sha256:021ff984d888b110040ea86a12ff8d02aa29a6f1b603bf88cd42b990f16e5f4e"},
+    {file = "convertertools-0.5.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:723e34b5859c2f7bb1892fe6be71e4d98a89cedd3f9e219b4cb70eb0d94a869a"},
+    {file = "convertertools-0.5.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:714dd41ef8bdcba5a9a20c3dc55d604b83b80b603da9ed9ca379893634792eca"},
+    {file = "convertertools-0.5.0-cp312-cp312-win32.whl", hash = "sha256:cefe9f4be7c600f1e27c1354e8dfd192bcd59f058f99ab93ca1c49abffbae687"},
+    {file = "convertertools-0.5.0-cp312-cp312-win_amd64.whl", hash = "sha256:4ac2ae852cc6c3e0e3d75fe80276fdecd1889155141364a5c75128c9ff249c29"},
+    {file = "convertertools-0.5.0.tar.gz", hash = "sha256:477812a307adf368805da5ee2cbc2fe984ed305d76164fe3fbc2a9f9baf4c3f0"},
+]
+
+[[package]]
 name = "coverage"
 version = "7.6.1"
 description = "Code coverage measurement for Python"
@@ -1824,43 +1849,6 @@ files = [
 ]
 
 [[package]]
-name = "pyunifiprotect"
-version = "0.1.dev1+gd967bca"
-description = "Unofficial UniFi Protect Python API and CLI"
-optional = false
-python-versions = ">=3.9"
-files = []
-develop = false
-
-[package.dependencies]
-aiofiles = ">=23.2.0"
-aiohttp = "*"
-aioshutil = "*"
-async-timeout = {version = "*", markers = "python_version < \"3.11\""}
-dateparser = "*"
-orjson = "*"
-packaging = "*"
-pillow = "*"
-platformdirs = "*"
-pydantic = "!=1.9.1"
-pyjwt = "*"
-typer = {version = ">0.6", extras = ["all"]}
-yarl = ">=1.9"
-
-[package.extras]
-backup = ["aiosqlite", "asyncify", "av", "sqlalchemy[asyncio]"]
-dev = ["base36", "black", "build", "coverage[toml]", "ipython (<8.19)", "isort", "mike", "mkdocs-git-revision-date-localized-plugin", "mkdocs-include-markdown-plugin", "mkdocs-material", "mkdocstrings[python]", "mypy", "pydocstyle", "pytest", "pytest-asyncio", "pytest-benchmark", "pytest-cov", "pytest-sugar", "pytest-timeout (>=1.2.1)", "pytest-xdist[psutil]", "ruff", "sqlalchemy[asyncio,mypy]", "termcolor", "types-aiofiles", "types-dateparser", "types-pillow", "types-pyjwt", "types-termcolor", "tzdata"]
-full = ["aiosqlite", "asyncify", "av", "ipython (<8.19)", "python-dotenv", "sqlalchemy[asyncio]", "termcolor"]
-shell = ["ipython (<8.19)", "python-dotenv", "termcolor"]
-tz = ["tzdata"]
-
-[package.source]
-type = "git"
-url = "https://github.com/ep1cman/pyunifiprotect.git"
-reference = "experimental"
-resolved_reference = "d967bca2c65e0aa6a7363afb6367c3745c076747"
-
-[[package]]
 name = "pywin32-ctypes"
 version = "0.2.2"
 description = "A (partial) reimplementation of pywin32 using ctypes/cffi"
@@ -2379,6 +2367,34 @@ tzdata = {version = "*", markers = "platform_system == \"Windows\""}
 devenv = ["check-manifest", "pytest (>=4.3)", "pytest-cov", "pytest-mock (>=3.3)", "zest.releaser"]
 
 [[package]]
+name = "uiprotect"
+version = "5.4.0"
+description = "Python API for Unifi Protect (Unofficial)"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "uiprotect-5.4.0-py3-none-any.whl", hash = "sha256:c24c3199f39c16bfe1d57e504510c9aef22af6a83d055c53cb65f3953bdaae45"},
+    {file = "uiprotect-5.4.0.tar.gz", hash = "sha256:e4dd21474cc94b069e62e7ee290c9d14ecc140ca4dc156edb9bf145f74c1b831"},
+]
+
+[package.dependencies]
+aiofiles = ">=23"
+aiohttp = ">=3.9.0"
+aioshutil = ">=1.3"
+async-timeout = ">=3.0.1"
+convertertools = ">=0.5.0"
+dateparser = ">=1.1.0"
+orjson = ">=3.9.15"
+packaging = ">=23"
+pillow = ">=10"
+platformdirs = ">=4"
+pydantic = ">=1.10.17"
+pyjwt = ">=2.6"
+rich = ">=10"
+typer = ">=0.12.3"
+yarl = ">=1.9"
+
+[[package]]
 name = "urllib3"
 version = "2.2.2"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -2536,4 +2552,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10.0,<4.0"
-content-hash = "1ff9d3d60f950e1b2cacd7de891cb09613753ad823f2b331c63da2b6b2623b5e"
+content-hash = "53fce5b0d32ced7a1081e9745408b16f0a3b6df31140ddae28952cee27b1492f"
