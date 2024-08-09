@@ -294,7 +294,7 @@ async def get_camera_name(protect: ProtectApiClient, id: str):
         # Refresh cameras
         logger.debug(f"Unknown camera id: '{id}', checking API")
 
-        await protect.update(force=True)
+        await protect.update()
 
         try:
             name = protect.bootstrap.cameras[id].name
@@ -377,7 +377,7 @@ class VideoQueue(asyncio.Queue):
         self._queue.append(item)  # type: ignore
         self._bytes_sum += len(item[1])
 
-    def full(self, item: tuple[Event, bytes] = None):
+    def full(self, item: tuple[Event, bytes] | None = None):
         """Return True if there are maxsize bytes in the queue.
 
         optionally if `item` is provided, it will return False if there is enough space to

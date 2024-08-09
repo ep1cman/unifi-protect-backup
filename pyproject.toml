@@ -36,7 +36,7 @@ uiprotect = "^5.4.0"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^0.900"
+mypy = "^1.11.1"
 types-pytz = "^2021.3.5"
 types-cryptography = "^3.3.18"
 types-python-dateutil = "^2.8.19.10"

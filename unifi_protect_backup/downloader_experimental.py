@@ -85,6 +85,8 @@ class VideoDownloaderExperimental:
         else:
             self._has_ffprobe = False
 
+        raise RuntimeError("The `uiprotect` library is currently missing the features for this to work.")
+
     async def start(self):
         """Main loop."""
         self.logger.info("Starting Downloader")
@@ -149,7 +151,10 @@ class VideoDownloaderExperimental:
                         self._failures[event.id] = 1
                     else:
                         self._failures[event.id] += 1
-                    self.logger.warning(f"Event failed download attempt {self._failures[event.id]}", exc_info=e)
+                    self.logger.warning(
+                        f"Event failed download attempt {self._failures[event.id]}",
+                        exc_info=e,
+                    )
 
                     if self._failures[event.id] >= 10:
                         self.logger.error(
@@ -171,7 +176,10 @@ class VideoDownloaderExperimental:
                 self.current_event = None
 
             except Exception as e:
-                self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+                self.logger.error(
+                    f"Unexpected exception occurred, abandoning event {event.id}:",
+                    exc_info=e,
+                )
 
     async def _download(self, event: Event) -> Optional[bytes]:
         """Downloads the video clip for the given event."""
@@ -181,8 +189,12 @@ class VideoDownloaderExperimental:
             assert isinstance(event.start, datetime)
             assert isinstance(event.end, datetime)
             try:
-                prepared_video_file = await self._protect.prepare_camera_video(event.camera_id, event.start, event.end)
-                video = await self._protect.download_camera_video(event.camera_id, prepared_video_file["fileName"])
+                prepared_video_file = await self._protect.prepare_camera_video(  # type: ignore
+                    event.camera_id, event.start, event.end
+                )
+                video = await self._protect.download_camera_video(  # type: ignore
+                    event.camera_id, prepared_video_file["fileName"]
+                )
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:

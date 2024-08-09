@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import List
+from typing import AsyncIterator, List
 
 import aiosqlite
 from dateutil.relativedelta import relativedelta
@@ -54,14 +54,14 @@ class MissingEventChecker:
         self.ignore_cameras: List[str] = ignore_cameras
         self.interval: int = interval
 
-    async def _get_missing_events(self) -> List[Event]:
+    async def _get_missing_events(self) -> AsyncIterator[Event]:
         start_time = datetime.now() - self.retention
         end_time = datetime.now()
         chunk_size = 500
 
         while True:
             # Get list of events that need to be backed up from unifi protect
-            logger.extra_debug(f"Fetching events for interval: {start_time} - {end_time}")
+            logger.extra_debug(f"Fetching events for interval: {start_time} - {end_time}")  # type: ignore
             events_chunk = await self._protect.get_events(
                 start=start_time,
                 end=end_time,
@@ -72,6 +72,7 @@ class MissingEventChecker:
             if not events_chunk:
                 break  # There were no events to backup
 
+            assert events_chunk[-1].end is not None
             start_time = events_chunk[-1].end
             unifi_events = {event.id: event for event in events_chunk}
 
@@ -166,6 +167,9 @@ class MissingEventChecker:
                     await self._download_queue.put(event)
 
             except Exception as e:
-                logger.error("Unexpected exception occurred during missing event check:", exc_info=e)
+                logger.error(
+                    "Unexpected exception occurred during missing event check:",
+                    exc_info=e,
+                )
 
             await asyncio.sleep(self.interval)

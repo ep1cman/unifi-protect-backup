@@ -21,7 +21,13 @@ from unifi_protect_backup import (
     VideoUploader,
     notifications,
 )
-from unifi_protect_backup.utils import SubprocessException, VideoQueue, human_readable_size, run_command, setup_logging
+from unifi_protect_backup.utils import (
+    SubprocessException,
+    VideoQueue,
+    human_readable_size,
+    run_command,
+    setup_logging,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +73,7 @@ class UnifiProtectBackup:
         max_event_length: int,
         sqlite_path: str = "events.sqlite",
         color_logging: bool = False,
-        download_rate_limit: float = None,
+        download_rate_limit: float | None = None,
         port: int = 443,
         use_experimental_downloader: bool = False,
     ):
@@ -196,7 +202,10 @@ class UnifiProtectBackup:
                     await self._protect.update()
                     break
                 except Exception as e:
-                    logger.warning(f"Failed to connect to UniFi Protect, retrying in {attempts}s...", exc_info=e)
+                    logger.warning(
+                        f"Failed to connect to UniFi Protect, retrying in {attempts}s...",
+                        exc_info=e,
+                    )
                     await asyncio.sleep(attempts)
             else:
                 raise ConnectionError("Failed to connect to UniFi Protect after 10 attempts")
@@ -269,7 +278,11 @@ class UnifiProtectBackup:
             # Create purge task
             #   This will, every midnight, purge old backups from the rclone remotes and database
             purge = Purge(
-                self._db, self.retention, self.rclone_destination, self._purge_interval, self.rclone_purge_args
+                self._db,
+                self.retention,
+                self.rclone_destination,
+                self._purge_interval,
+                self.rclone_purge_args,
             )
             tasks.append(purge.start())
 

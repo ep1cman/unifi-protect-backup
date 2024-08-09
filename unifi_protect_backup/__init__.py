@@ -12,10 +12,10 @@ from .uploader import VideoUploader
 from .missing_event_checker import MissingEventChecker
 
 __all__ = [
-    VideoDownloader,
-    VideoDownloaderExperimental,
-    EventListener,
-    Purge,
-    VideoUploader,
-    MissingEventChecker,
+    "VideoDownloader",
+    "VideoDownloaderExperimental",
+    "EventListener",
+    "Purge",
+    "VideoUploader",
+    "MissingEventChecker",
 ]
