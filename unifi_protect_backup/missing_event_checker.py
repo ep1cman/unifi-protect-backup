@@ -125,7 +125,7 @@ class MissingEventChecker:
 
     async def ignore_missing(self):
         """Ignore missing events by adding them to the event table."""
-        logger.info(f" Ignoring missing events")
+        logger.info(" Ignoring missing events")
 
         async for event in self._get_missing_events():
             logger.extra_debug(f"Ignoring event '{event.id}'")
@@ -150,7 +150,7 @@ class MissingEventChecker:
 
                 async for event in self._get_missing_events():
                     if not shown_warning:
-                        logger.warning(f" Found missing events, adding to backup queue")
+                        logger.warning(" Found missing events, adding to backup queue")
                         shown_warning = True
 
                     if event.type != EventType.SMART_DETECT:
