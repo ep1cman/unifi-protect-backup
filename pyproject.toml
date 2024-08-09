@@ -39,10 +39,9 @@ optional = true
 mypy = "^0.900"
 types-pytz = "^2021.3.5"
 types-cryptography = "^3.3.18"
-twine  = "^3.3.0"
+types-python-dateutil = "^2.8.19.10"
 bump2version = "^1.0.1"
 pre-commit = "^2.12.0"
-types-python-dateutil = "^2.8.19.10"
 ruff = "^0.5.7"
 
 [tool.poetry.group.test]
