@@ -59,7 +59,7 @@ Ready to contribute? Here's how to set up `unifi-protect-backup` for local devel
 4. Install dependencies and start your virtualenv:
 
     ```
-    $ poetry install -E test -E dev
+    $ poetry install --with dev,test
     $ poetry shell
     ```
 
@@ -78,11 +78,18 @@ Ready to contribute? Here's how to set up `unifi-protect-backup` for local devel
    $ poetry run unifi-protect-backup {args}
    ```
 
-7. When you're done making changes, check that your changes pass the
-   tests, including testing other Python versions, with tox:
+7. Install pre-commit git hooks to ensure all code commit to the repository
+   is formatted correctly and meets coding standards:
+
+   ```
+   $ poetry run pre-commit install
+   ```
+
+8. When you're done making changes, check that your changes pass the
+   tests:
 
     ```
-    $ poetry run tox
+    $ poetry run pytest
     ```
 
 8. Commit your changes and push your branch to GitHub:
