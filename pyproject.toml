@@ -13,7 +13,7 @@ classifiers=[
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
 ]
 packages = [
     { include = "unifi_protect_backup" },
@@ -21,7 +21,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9.0,<4.0"
+python = ">=3.10.0,<4.0"
 click = "8.0.1"
 aiorun = "^2023.7.2"
 aiosqlite = "^0.17.0"
@@ -30,7 +30,7 @@ apprise = "^1.5.0"
 expiring-dict = "^1.1.0"
 async-lru = "^2.0.4"
 aiolimiter = "^1.1.0"
-pyunifiprotect = {git = "https://github.com/ep1cman/pyunifiprotect.git", rev = "experimental"}
+uiprotect = "^5.4.0"
 
 [tool.poetry.group.dev]
 optional = true
@@ -64,7 +64,7 @@ unifi-protect-backup = 'unifi_protect_backup.cli:main'
 [tool.black]
 line-length = 120
 skip-string-normalization = true
-target-version = ['py39']
+target-version = ['py310']
 include = '\.pyi?$'
 exclude = '''
 /(

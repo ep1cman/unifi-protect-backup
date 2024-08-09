@@ -10,11 +10,11 @@ from typing import Optional
 import aiosqlite
 import pytz
 from aiohttp.client_exceptions import ClientPayloadError
-from expiring_dict import ExpiringDict  # type: ignore
 from aiolimiter import AsyncLimiter
-from pyunifiprotect import ProtectApiClient
-from pyunifiprotect.data.nvr import Event
-from pyunifiprotect.data.types import EventType
+from expiring_dict import ExpiringDict  # type: ignore
+from uiprotect import ProtectApiClient
+from uiprotect.data.nvr import Event
+from uiprotect.data.types import EventType
 
 from unifi_protect_backup.utils import (
     SubprocessException,
@@ -102,7 +102,7 @@ class VideoDownloader:
                 self.current_event = event
                 self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
 
-                # Fix timezones since pyunifiprotect sets all timestamps to UTC. Instead localize them to
+                # Fix timezones since uiprotect sets all timestamps to UTC. Instead localize them to
                 # the timezone of the unifi protect NVR.
                 event.start = event.start.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
                 event.end = event.end.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)

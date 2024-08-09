@@ -5,10 +5,10 @@ import logging
 from time import sleep
 from typing import List
 
-from pyunifiprotect.api import ProtectApiClient
-from pyunifiprotect.data.nvr import Event
-from pyunifiprotect.data.types import EventType
-from pyunifiprotect.data.websocket import WSAction, WSSubscriptionMessage
+from uiprotect.api import ProtectApiClient
+from uiprotect.data.nvr import Event
+from uiprotect.data.types import EventType
+from uiprotect.data.websocket import WSAction, WSSubscriptionMessage
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +111,7 @@ class EventListener:
                 logger.warning("Attempting reconnect...")
 
                 try:
-                    # Start the pyunifiprotect connection by calling `update`
+                    # Start the uiprotect connection by calling `update`
                     await self._protect.close_session()
                     self._protect._bootstrap = None
                     await self._protect.update(force=True)

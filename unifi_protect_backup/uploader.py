@@ -6,16 +6,16 @@ import re
 from datetime import datetime
 
 import aiosqlite
-from pyunifiprotect import ProtectApiClient
-from pyunifiprotect.data.nvr import Event
+from uiprotect import ProtectApiClient
+from uiprotect.data.nvr import Event
 
 from unifi_protect_backup.utils import (
+    SubprocessException,
     VideoQueue,
     get_camera_name,
     human_readable_size,
     run_command,
     setup_event_logger,
-    SubprocessException,
 )
 
 
@@ -138,7 +138,7 @@ class VideoUploader:
 
         Provides the following fields to the format string:
           event: The `Event` object as per
-                 https://github.com/briis/pyunifiprotect/blob/master/pyunifiprotect/data/nvr.py
+                 https://github.com/briis/uiprotect/blob/master/uiprotect/data/nvr.py
           duration_seconds: The duration of the event in seconds
           detection_type: A nicely formatted list of the event detection type and the smart detection types (if any)
           camera_name: The name of the camera that generated this event
