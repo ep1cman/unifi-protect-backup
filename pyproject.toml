@@ -36,11 +36,6 @@ uiprotect = "^5.4.0"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-black  = "^22.10.0"
-isort  = "^5.8.0"
-flake8  = "^3.9.2"
-flake8-docstrings = "^1.6.0"
-virtualenv  = "^20.2.2"
 mypy = "^0.900"
 types-pytz = "^2021.3.5"
 types-cryptography = "^3.3.18"
@@ -48,6 +43,7 @@ twine  = "^3.3.0"
 bump2version = "^1.0.1"
 pre-commit = "^2.12.0"
 types-python-dateutil = "^2.8.19.10"
+ruff = "^0.5.7"
 
 [tool.poetry.group.test]
 optional = true
@@ -61,36 +57,13 @@ tox-asdf = "^0.1.0"
 [tool.poetry.scripts]
 unifi-protect-backup = 'unifi_protect_backup.cli:main'
 
-[tool.black]
+[tool.ruff]
 line-length = 120
-skip-string-normalization = true
-target-version = ['py310']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+target-version = "py310"
 
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-line_length = 120
-skip_gitignore = true
-# you can skip files as below
-#skip_glob = docs/conf.py
+[tool.ruff.lint]
+
+[tool.ruff.format]
 
 [tool.mypy]
 allow_redefinition=true
