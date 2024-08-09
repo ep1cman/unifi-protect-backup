@@ -120,3 +120,5 @@ data/
 .envrc
 clips/
 *.sqlite
+.tool-versions
+docker-compose.yml
