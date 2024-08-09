@@ -29,14 +29,14 @@ from unifi_protect_backup.utils import (
 async def get_video_length(video: bytes) -> float:
     """Uses ffprobe to get the length of the video file passed in as a byte stream."""
     returncode, stdout, stderr = await run_command(
-        'ffprobe -v quiet -show_streams -select_streams v:0 -of json -', video
+        "ffprobe -v quiet -show_streams -select_streams v:0 -of json -", video
     )
 
     if returncode != 0:
         raise SubprocessException(stdout, stderr, returncode)
 
     json_data = json.loads(stdout)
-    return float(json_data['streams'][0]['duration'])
+    return float(json_data["streams"][0]["duration"])
 
 
 class VideoDownloaderExperimental:
@@ -75,10 +75,10 @@ class VideoDownloaderExperimental:
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
-        self.logger = logging.LoggerAdapter(self.base_logger, {'event': ''})
+        self.logger = logging.LoggerAdapter(self.base_logger, {"event": ""})
 
         # Check if `ffprobe` is available
-        ffprobe = shutil.which('ffprobe')
+        ffprobe = shutil.which("ffprobe")
         if ffprobe is not None:
             self.logger.debug(f"ffprobe found: {ffprobe}")
             self._has_ffprobe = True
@@ -100,7 +100,7 @@ class VideoDownloaderExperimental:
                 event = await self.download_queue.get()
 
                 self.current_event = event
-                self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
+                self.logger = logging.LoggerAdapter(self.base_logger, {"event": f" [{event.id}]"})
 
                 # Fix timezones since uiprotect sets all timestamps to UTC. Instead localize them to
                 # the timezone of the unifi protect NVR.
@@ -182,7 +182,7 @@ class VideoDownloaderExperimental:
             assert isinstance(event.end, datetime)
             try:
                 prepared_video_file = await self._protect.prepare_camera_video(event.camera_id, event.start, event.end)
-                video = await self._protect.download_camera_video(event.camera_id, prepared_video_file['fileName'])
+                video = await self._protect.download_camera_video(event.camera_id, prepared_video_file["fileName"])
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:

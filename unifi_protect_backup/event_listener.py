@@ -61,7 +61,7 @@ class EventListener:
             return
         if msg.new_obj.camera_id in self.ignore_cameras:
             return
-        if 'end' not in msg.changed_data:
+        if "end" not in msg.changed_data:
             return
         if msg.new_obj.type not in [EventType.MOTION, EventType.SMART_DETECT, EventType.RING]:
             return
@@ -89,8 +89,8 @@ class EventListener:
         # Unifi protect has started sending the event id in the websocket as a {event_id}-{camera_id} but when the
         # API is queried they only have {event_id}. Keeping track of these both of these would be complicated so
         # instead we fudge the ID here to match what the API returns
-        if '-' in msg.new_obj.id:
-            msg.new_obj.id = msg.new_obj.id.split('-')[0]
+        if "-" in msg.new_obj.id:
+            msg.new_obj.id = msg.new_obj.id.split("-")[0]
 
         logger.debug(f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})")
 

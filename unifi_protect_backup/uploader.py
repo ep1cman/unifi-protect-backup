@@ -56,7 +56,7 @@ class VideoUploader:
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
-        self.logger = logging.LoggerAdapter(self.base_logger, {'event': ''})
+        self.logger = logging.LoggerAdapter(self.base_logger, {"event": ""})
 
     async def start(self):
         """Main loop.
@@ -70,7 +70,7 @@ class VideoUploader:
                 event, video = await self.upload_queue.get()
                 self.current_event = event
 
-                self.logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
+                self.logger = logging.LoggerAdapter(self.base_logger, {"event": f" [{event.id}]"})
 
                 self.logger.info(f"Uploading event: {event.id}")
                 self.logger.debug(
@@ -164,6 +164,6 @@ class VideoUploader:
         }
 
         file_path = self._file_structure_format.format(**format_context)
-        file_path = re.sub(r'[^\w\-_\.\(\)/ ]', '', file_path)  # Sanitize any invalid chars
+        file_path = re.sub(r"[^\w\-_\.\(\)/ ]", "", file_path)  # Sanitize any invalid chars
 
         return pathlib.Path(f"{self._rclone_destination}/{file_path}")

@@ -64,7 +64,6 @@ class Purge:
                     f"SELECT * FROM events WHERE end < {retention_oldest_time}"
                 ) as event_cursor:
                     async for event_id, event_type, camera_id, event_start, event_end in event_cursor:
-
                         logger.info(f"Purging event: {event_id}.")
 
                         # For every backup for this event
@@ -86,5 +85,5 @@ class Purge:
                 logger.error("Unexpected exception occurred during purge:", exc_info=e)
 
             next_purge_time = datetime.now() + self.interval
-            logger.extra_debug(f'sleeping until {next_purge_time}')
+            logger.extra_debug(f"sleeping until {next_purge_time}")
             await wait_until(next_purge_time)

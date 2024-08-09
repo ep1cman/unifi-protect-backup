@@ -212,8 +212,8 @@ class UnifiProtectBackup:
                 logger.info(f" - {camera.id}: {camera.name}")
 
             # Print timezone info for debugging
-            logger.debug(f'NVR TZ: {self._protect.bootstrap.nvr.timezone}')
-            logger.debug(f'Local TZ: {datetime.now(timezone.utc).astimezone().tzinfo}')
+            logger.debug(f"NVR TZ: {self._protect.bootstrap.nvr.timezone}")
+            logger.debug(f"Local TZ: {datetime.now(timezone.utc).astimezone().tzinfo}")
 
             tasks = []
 
@@ -313,7 +313,7 @@ class UnifiProtectBackup:
             ValueError: The given rclone destination is for a remote that is not configured
 
         """
-        rclone = shutil.which('rclone')
+        rclone = shutil.which("rclone")
         if not rclone:
             raise RuntimeError("`rclone` is not installed on this system")
         logger.debug(f"rclone found: {rclone}")

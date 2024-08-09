@@ -50,11 +50,11 @@ def add_logging_level(levelName: str, levelNum: int, methodName: Optional[str] =
         methodName = levelName.lower()
 
     if hasattr(logging, levelName):
-        raise AttributeError('{} already defined in logging module'.format(levelName))
+        raise AttributeError("{} already defined in logging module".format(levelName))
     if hasattr(logging, methodName):
-        raise AttributeError('{} already defined in logging module'.format(methodName))
+        raise AttributeError("{} already defined in logging module".format(methodName))
     if hasattr(logging.getLoggerClass(), methodName):
-        raise AttributeError('{} already defined in logger class'.format(methodName))
+        raise AttributeError("{} already defined in logger class".format(methodName))
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -84,19 +84,19 @@ def add_color_to_record_levelname(record):
     """Colorizes logging level names."""
     levelno = record.levelno
     if levelno >= logging.CRITICAL:
-        color = '\x1b[31;1m'  # RED
+        color = "\x1b[31;1m"  # RED
     elif levelno >= logging.ERROR:
-        color = '\x1b[31;1m'  # RED
+        color = "\x1b[31;1m"  # RED
     elif levelno >= logging.WARNING:
-        color = '\x1b[33;1m'  # YELLOW
+        color = "\x1b[33;1m"  # YELLOW
     elif levelno >= logging.INFO:
-        color = '\x1b[32;1m'  # GREEN
+        color = "\x1b[32;1m"  # GREEN
     elif levelno >= logging.DEBUG:
-        color = '\x1b[36;1m'  # CYAN
+        color = "\x1b[36;1m"  # CYAN
     elif levelno >= logging.EXTRA_DEBUG:
-        color = '\x1b[35;1m'  # MAGENTA
+        color = "\x1b[35;1m"  # MAGENTA
     else:
-        color = '\x1b[0m'
+        color = "\x1b[0m"
 
     return f"{color}{record.levelname}\x1b[0m"
 
@@ -174,7 +174,7 @@ class AppriseStreamHandler(logging.StreamHandler):
 def create_logging_handler(format, color_logging):
     """Constructs apprise logging handler for the given format."""
     date_format = "%Y-%m-%d %H:%M:%S"
-    style = '{'
+    style = "{"
 
     sh = AppriseStreamHandler(color_logging)
     formatter = logging.Formatter(format, date_format, style)
@@ -203,11 +203,11 @@ def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers
 
     """
     add_logging_level(
-        'EXTRA_DEBUG',
+        "EXTRA_DEBUG",
         logging.DEBUG - 1,
     )
     add_logging_level(
-        'WEBSOCKET_DATA',
+        "WEBSOCKET_DATA",
         logging.DEBUG - 2,
     )
 
@@ -337,9 +337,9 @@ async def run_command(cmd: str, data=None):
     )
     stdout, stderr = await proc.communicate(data)
     stdout = stdout.decode()
-    stdout_indented = '\t' + stdout.replace('\n', '\n\t').strip()
+    stdout_indented = "\t" + stdout.replace("\n", "\n\t").strip()
     stderr = stderr.decode()
-    stderr_indented = '\t' + stderr.replace('\n', '\n\t').strip()
+    stderr_indented = "\t" + stderr.replace("\n", "\n\t").strip()
 
     if proc.returncode != 0:
         logger.error(f"Failed to run: '{cmd}")
