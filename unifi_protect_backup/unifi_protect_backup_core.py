@@ -197,7 +197,7 @@ class UnifiProtectBackup:
             # Start the uiprotect connection by calling `update`
             logger.info("Connecting to Unifi Protect...")
 
-            delay = 5         # Start with a 5 second delay
+            delay = 5  # Start with a 5 second delay
             max_delay = 3600  # 1 hour in seconds
 
             for attempts in range(20):
@@ -213,7 +213,6 @@ class UnifiProtectBackup:
                     delay = min(max_delay, delay * 2)  # Double the delay but do not exceed max_delay
             else:
                 raise ConnectionError("Failed to connect to UniFi Protect after 20 attempts")
-
 
             # Add a lock to the protect client that can be used to prevent code accessing the client when it has
             # lost connection
