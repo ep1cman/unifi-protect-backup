@@ -65,7 +65,7 @@ class MissingEventChecker:
             events_chunk = await self._protect.get_events(
                 start=start_time,
                 end=end_time,
-                types=[EventType.MOTION, EventType.SMART_DETECT, EventType.RING],
+                types=[EventType.MOTION, EventType.SMART_DETECT, EventType.RING, EventType.SMART_DETECT_LINE],
                 limit=chunk_size,
             )
 
@@ -106,6 +106,8 @@ class MissingEventChecker:
                 if event.type is EventType.MOTION and "motion" not in self.detection_types:
                     return False
                 if event.type is EventType.RING and "ring" not in self.detection_types:
+                    return False
+                if event.type is EventType.SMART_DETECT_LINE and "line" not in self.detection_types:
                     return False
                 elif event.type is EventType.SMART_DETECT:
                     for event_smart_detection_type in event.smart_detect_types:
