@@ -6,6 +6,7 @@ from time import sleep
 from typing import List
 
 from uiprotect.api import ProtectApiClient
+from uiprotect.websocket import WebsocketState
 from uiprotect.data.nvr import Event
 from uiprotect.data.types import EventType
 from uiprotect.data.websocket import WSAction, WSSubscriptionMessage
@@ -34,12 +35,15 @@ class EventListener:
         self._event_queue: asyncio.Queue = event_queue
         self._protect: ProtectApiClient = protect
         self._unsub = None
+        self._unsub_websocketstate = None
         self.detection_types: List[str] = detection_types
         self.ignore_cameras: List[str] = ignore_cameras
+        self._websocket_state: WebsocketState = WebsocketState.DISCONNECTED
 
     async def start(self):
         """Main Loop."""
         logger.debug("Subscribed to websocket")
+        self._unsub_websocket_state = self._protect.subscribe_websocket_state(self._websocket_state_callback)
         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
 
         while True:
@@ -94,10 +98,24 @@ class EventListener:
 
         logger.debug(f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})")
 
+    def _websocket_state_callback(self, state: WebsocketState) -> None:
+        """Callback for websocket state messages.
+
+        Flags the websocket for reconnection
+
+        Args:
+            msg (WebsocketState): new state of the websocket
+        """
+        logger.websocket_data(state)  # type: ignore
+
+        self._websocket_state = state
+
+        logger.debug(f"Change of Websocket State to {state}")
+
     async def _check_websocket_and_reconnect(self):
         """Checks for websocket disconnect and triggers a reconnect."""
         logger.extra_debug("Checking the status of the websocket...")
-        if self._protect.check_ws():
+        if self._websocket_state:
             logger.extra_debug("Websocket is connected.")
         else:
             self._protect.connect_event.clear()
@@ -115,7 +133,7 @@ class EventListener:
                     await self._protect.close_session()
                     self._protect._bootstrap = None
                     await self._protect.update(force=True)
-                    if self._protect.check_ws():
+                    if self._websocket_state:
                         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
                         break
                     else:
