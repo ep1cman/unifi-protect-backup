@@ -97,7 +97,7 @@ class EventListener:
     async def _check_websocket_and_reconnect(self):
         """Checks for websocket disconnect and triggers a reconnect."""
         logger.extra_debug("Checking the status of the websocket...")
-        if self._protect.check_ws():
+        if self._protect.is_authenticated():
             logger.extra_debug("Websocket is connected.")
         else:
             self._protect.connect_event.clear()
@@ -115,7 +115,7 @@ class EventListener:
                     await self._protect.close_session()
                     self._protect._bootstrap = None
                     await self._protect.update(force=True)
-                    if self._protect.check_ws():
+                    if self._protect.is_authenticated():
                         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
                         break
                     else:
