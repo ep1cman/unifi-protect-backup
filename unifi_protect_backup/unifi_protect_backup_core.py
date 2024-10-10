@@ -197,18 +197,23 @@ class UnifiProtectBackup:
             # Start the uiprotect connection by calling `update`
             logger.info("Connecting to Unifi Protect...")
 
-            for attempts in range(10):
+            delay = 5         # Start with a 5 second delay
+            max_delay = 3600  # 1 hour in seconds
+
+            for attempts in range(20):
                 try:
                     await self._protect.update()
                     break
                 except Exception as e:
                     logger.warning(
-                        f"Failed to connect to UniFi Protect, retrying in {attempts}s...",
+                        f"Failed to connect to UniFi Protect, retrying in {delay}s...",
                         exc_info=e,
                     )
-                    await asyncio.sleep(attempts)
+                    await asyncio.sleep(delay)
+                    delay = min(max_delay, delay * 2)  # Double the delay but do not exceed max_delay
             else:
-                raise ConnectionError("Failed to connect to UniFi Protect after 10 attempts")
+                raise ConnectionError("Failed to connect to UniFi Protect after 20 attempts")
+
 
             # Add a lock to the protect client that can be used to prevent code accessing the client when it has
             # lost connection
