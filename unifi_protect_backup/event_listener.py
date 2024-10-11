@@ -63,13 +63,21 @@ class EventListener:
             return
         if "end" not in msg.changed_data:
             return
-        if msg.new_obj.type not in [EventType.MOTION, EventType.SMART_DETECT, EventType.RING]:
+        if msg.new_obj.type not in [
+            EventType.MOTION,
+            EventType.SMART_DETECT,
+            EventType.RING,
+            EventType.SMART_DETECT_LINE,
+        ]:
             return
         if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")  # type: ignore
             return
         if msg.new_obj.type is EventType.RING and "ring" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted ring event: {msg.new_obj.id}")  # type: ignore
+            return
+        if msg.new_obj.type is EventType.SMART_DETECT_LINE and "line" not in self.detection_types:
+            logger.extra_debug(f"Skipping unwanted line event: {msg.new_obj.id}")  # type: ignore
             return
         elif msg.new_obj.type is EventType.SMART_DETECT:
             for event_smart_detection_type in msg.new_obj.smart_detect_types:
