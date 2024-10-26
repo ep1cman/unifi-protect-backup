@@ -38,17 +38,12 @@ class EventListener:
         self._unsub_websocketstate = None
         self.detection_types: List[str] = detection_types
         self.ignore_cameras: List[str] = ignore_cameras
-        self._websocket_state: WebsocketState = WebsocketState.DISCONNECTED
 
     async def start(self):
         """Main Loop."""
         logger.debug("Subscribed to websocket")
         self._unsub_websocket_state = self._protect.subscribe_websocket_state(self._websocket_state_callback)
         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
-
-        while True:
-            await asyncio.sleep(60)
-            await self._check_websocket_and_reconnect()
 
     def _websocket_callback(self, msg: WSSubscriptionMessage) -> None:
         """Callback for "EVENT" websocket messages.
@@ -67,7 +62,11 @@ class EventListener:
             return
         if "end" not in msg.changed_data:
             return
-        if msg.new_obj.type not in [EventType.MOTION, EventType.SMART_DETECT, EventType.RING]:
+        if msg.new_obj.type not in [
+            EventType.MOTION,
+            EventType.SMART_DETECT,
+            EventType.RING,
+        ]:
             return
         if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")  # type: ignore
@@ -106,43 +105,7 @@ class EventListener:
         Args:
             msg (WebsocketState): new state of the websocket
         """
-        logger.websocket_data(state)  # type: ignore
-
-        self._websocket_state = state
-
-        logger.debug(f"Change of Websocket State to {state}")
-
-    async def _check_websocket_and_reconnect(self):
-        """Checks for websocket disconnect and triggers a reconnect."""
-        logger.extra_debug("Checking the status of the websocket...")
-        if self._websocket_state:
-            logger.extra_debug("Websocket is connected.")
-        else:
-            self._protect.connect_event.clear()
-            logger.warning("Lost connection to Unifi Protect.")
-
-            # Unsubscribe, close the session.
-            self._unsub()
-            await self._protect.close_session()
-
-            while True:
-                logger.warning("Attempting reconnect...")
-
-                try:
-                    # Start the uiprotect connection by calling `update`
-                    await self._protect.close_session()
-                    self._protect._bootstrap = None
-                    await self._protect.update(force=True)
-                    if self._websocket_state:
-                        self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
-                        break
-                    else:
-                        logger.error("Unable to establish connection to Unifi Protect")
-                except Exception as e:
-                    logger.error("Unexpected exception occurred while trying to reconnect:", exc_info=e)
-
-                # Back off for a little while
-                await asyncio.sleep(10)
-
-            self._protect.connect_event.set()
-            logger.info("Re-established connection to Unifi Protect and to the websocket.")
+        if state == WebsocketState.DISCONNECTED:
+            logger.error("Unifi Protect Websocket lost connection. Reconnecting...")
+        elif state == WebsocketState.CONNECTED:
+            logger.info("Unifi Protect Websocket connection restored")
