@@ -42,9 +42,7 @@ class EventListener:
     async def start(self):
         """Main Loop."""
         logger.debug("Subscribed to websocket")
-        self._unsub_websocket_state = self._protect.subscribe_websocket_state(
-            self._websocket_state_callback
-        )
+        self._unsub_websocket_state = self._protect.subscribe_websocket_state(self._websocket_state_callback)
         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
 
     def _websocket_callback(self, msg: WSSubscriptionMessage) -> None:
@@ -71,19 +69,13 @@ class EventListener:
             EventType.SMART_DETECT_LINE,
         ]:
             return
-        if (
-            msg.new_obj.type is EventType.MOTION
-            and "motion" not in self.detection_types
-        ):
+        if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")  # type: ignore
             return
         if msg.new_obj.type is EventType.RING and "ring" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted ring event: {msg.new_obj.id}")  # type: ignore
             return
-        if (
-            msg.new_obj.type is EventType.SMART_DETECT_LINE
-            and "line" not in self.detection_types
-        ):
+        if msg.new_obj.type is EventType.SMART_DETECT_LINE and "line" not in self.detection_types:
             logger.extra_debug(f"Skipping unwanted line event: {msg.new_obj.id}")  # type: ignore
             return
         elif msg.new_obj.type is EventType.SMART_DETECT:
@@ -107,9 +99,7 @@ class EventListener:
         if "-" in msg.new_obj.id:
             msg.new_obj.id = msg.new_obj.id.split("-")[0]
 
-        logger.debug(
-            f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})"
-        )
+        logger.debug(f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})")
 
     def _websocket_state_callback(self, state: WebsocketState) -> None:
         """Callback for websocket state messages.

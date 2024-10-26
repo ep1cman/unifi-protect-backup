@@ -65,7 +65,12 @@ class MissingEventChecker:
             events_chunk = await self._protect.get_events(
                 start=start_time,
                 end=end_time,
-                types=[EventType.MOTION, EventType.SMART_DETECT, EventType.RING, EventType.SMART_DETECT_LINE],
+                types=[
+                    EventType.MOTION,
+                    EventType.SMART_DETECT,
+                    EventType.RING,
+                    EventType.SMART_DETECT_LINE,
+                ],
                 limit=chunk_size,
             )
 
