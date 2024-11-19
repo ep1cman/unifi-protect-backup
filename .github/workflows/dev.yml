@@ -14,13 +14,6 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "test"
-  test:
-    # The type of runner that the job will run on
-    strategy:
-      matrix:
-        python-versions: [3.13]
-        os: [ubuntu-18.04]
-    runs-on: ${{ matrix.os }}
 
   dev_container:
     name: Create dev container
