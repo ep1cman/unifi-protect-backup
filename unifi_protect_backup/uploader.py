@@ -35,7 +35,6 @@ class VideoUploader:
         file_structure_format: str,
         db: aiosqlite.Connection,
         color_logging: bool,
-        rclone_parallel_uploads: int
     ):
         """Init.
 
@@ -99,7 +98,7 @@ class VideoUploader:
         """
         self.logger.info("Starting Uploader")
         
-        rclone_transfers = self.rclone_parallel_uploads
+        rclone_transfers = int(os.getenv('RCLONE_PARALLEL_UPLOADS', '1'))
         self.current_events = [None] * rclone_transfers
         semaphore = asyncio.Semaphore(rclone_transfers)
 

@@ -228,6 +228,7 @@ a lot of failed downloads with the default downloader.
 )
 @click.option(
     "--rclone-parallel-uploads",
+    "rclone-parallel-uploads",
     default=1,
     show_default=True,
     envvar="RCLONE_PARALLEL_UPLOADS",

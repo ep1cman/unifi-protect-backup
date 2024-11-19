@@ -75,8 +75,7 @@ class UnifiProtectBackup:
         color_logging: bool = False,
         download_rate_limit: float | None = None,
         port: int = 443,
-        use_experimental_downloader: bool = False,
-        rclone_parallel_uploads: int = 1,
+        use_experimental_downloader: bool = False
     ):
         """Will configure logging settings and the Unifi Protect API (but not actually connect).
 
@@ -270,8 +269,7 @@ class UnifiProtectBackup:
                 self.rclone_args,
                 self.file_structure_format,
                 self._db,
-                self.color_logging,
-                self.rclone_parallel_uploads
+                self.color_logging
             )
             tasks.append(uploader.start())
 
