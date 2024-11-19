@@ -226,14 +226,6 @@ what the web UI does. This might be more stable if you are experiencing
 a lot of failed downloads with the default downloader.
 """,
 )
-@click.option(
-    "--rclone-parallel-uploads",
-    "rclone-parallel-uploads",
-    default=1,
-    show_default=True,
-    envvar="RCLONE_PARALLEL_UPLOADS",
-    help="Number of parallel uploads",
-)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
     event_listener = UnifiProtectBackup(**kwargs)
