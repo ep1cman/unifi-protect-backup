@@ -54,7 +54,6 @@ class VideoUploader:
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
         self.current_event = None
-        self.rclone_parallel_uploads = rclone_parallel_uploads
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
