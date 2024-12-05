@@ -37,7 +37,7 @@ jobs:
           version: ${{ steps.tag_name.outputs.current_version }}
           path: ./CHANGELOG.md
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.12.8
 
