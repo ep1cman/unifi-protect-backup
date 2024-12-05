@@ -65,16 +65,23 @@ class MissingEventChecker:
             events_chunk = await self._protect.get_events(
                 start=start_time,
                 end=end_time,
-                types=[EventType.MOTION, EventType.SMART_DETECT, EventType.RING],
+                types=[
+                    EventType.MOTION,
+                    EventType.SMART_DETECT,
+                    EventType.RING,
+                    EventType.SMART_DETECT_LINE,
+                ],
                 limit=chunk_size,
             )
 
             if not events_chunk:
                 break  # There were no events to backup
 
-            assert events_chunk[-1].end is not None
-            start_time = events_chunk[-1].end
-            unifi_events = {event.id: event for event in events_chunk}
+            # Filter out on-going events
+            unifi_events = {event.id: event for event in events_chunk if event.end is not None}
+
+            # Next chunks start time should be the end of the oldest complete event in the current chunk
+            start_time = max([event.end for event in unifi_events.values()])
 
             # Get list of events that have been backed up from the database
 
@@ -106,6 +113,8 @@ class MissingEventChecker:
                 if event.type is EventType.MOTION and "motion" not in self.detection_types:
                     return False
                 if event.type is EventType.RING and "ring" not in self.detection_types:
+                    return False
+                if event.type is EventType.SMART_DETECT_LINE and "line" not in self.detection_types:
                     return False
                 elif event.type is EventType.SMART_DETECT:
                     for event_smart_detection_type in event.smart_detect_types:
