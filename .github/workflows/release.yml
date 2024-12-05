@@ -85,10 +85,3 @@ jobs:
           files: dist/*.whl
           draft: false
           prerelease: false
-
-      - name: publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          skip_existing: true
