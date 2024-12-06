@@ -174,7 +174,7 @@ class VideoUploader:
             "camera_name": await get_camera_name(self._protect, event.camera_id),
         }
 
-        file_path = self._file_structure_format.format(**format_context)
+        file_path = self._file_structure_format.format(**format_context).lower()
         file_path = re.sub(r"[^\w\-_\.\(\)/ ]", "", file_path)  # Sanitize any invalid chars
-
+        file_path = file_path.replace(" ", "_")
         return pathlib.Path(f"{self._rclone_destination}/{file_path}")
