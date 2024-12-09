@@ -175,8 +175,9 @@ class VideoDownloader:
 
     async def _download(self, event: Event) -> Optional[bytes]:
         """Downloads the video clip for the given event."""
-        self.logger.debug("  Downloading video...")
-        for x in range(5):
+
+        for x in range(3):
+            self.logger.debug("  Downloading video...")
             assert isinstance(event.camera_id, str)
             assert isinstance(event.start, datetime)
             assert isinstance(event.end, datetime)
@@ -191,9 +192,9 @@ class VideoDownloader:
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
                 self.logger.warning(f"    Failed download attempt {x+1}, retying in 1s", exc_info=e)
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
         else:
-            self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
+            self.logger.error(f"Download failed after 3 attempts, abandoning event {event.id}:")
             return None
 
         self.logger.debug(f"  Downloaded video size: {human_readable_size(len(video))}s")
