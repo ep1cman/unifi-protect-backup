@@ -181,16 +181,17 @@ class VideoDownloader:
             assert isinstance(event.camera_id, str)
             assert isinstance(event.start, datetime)
             assert isinstance(event.end, datetime)
-            diff = (event.end - event.start).total_seconds()
-            if diff > 600:
-                self.logger.info(f"  Event exceeds 10 mins. Ignoring event {event.id}")
-                return None
 
+            request_start_time = datetime.now()
             try:
                 video = await self._protect.get_camera_video(event.camera_id, event.start, event.end)
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
+                diff_seconds = (datetime.now() - request_start_time).total_seconds()
+                if  diff_seconds > 60:
+                    self.logger.error(f"Ignoring event. Total wait: {diff_seconds}. Camera: {await get_camera_name(self._protect, event.camera_id)}. Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')} ({event.start.timestamp()}) End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')} ({event.end.timestamp()})", exc_info=e)
+                    break
                 self.logger.warning(f"    Failed download attempt {x+1}, retying in 1s", exc_info=e)
                 await asyncio.sleep(1)
         else:
