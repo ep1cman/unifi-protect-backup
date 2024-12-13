@@ -176,7 +176,7 @@ class VideoDownloader:
     async def _download(self, event: Event) -> Optional[bytes]:
         """Downloads the video clip for the given event."""
 
-        for x in range(3):
+        for x in range(5):
             self.logger.debug("  Downloading video...")
             assert isinstance(event.camera_id, str)
             assert isinstance(event.start, datetime)
@@ -191,11 +191,12 @@ class VideoDownloader:
                 diff_seconds = (datetime.now() - request_start_time).total_seconds()
                 if  diff_seconds > 60:
                     self.logger.error(f"Ignoring event. Total wait: {diff_seconds}. Camera: {await get_camera_name(self._protect, event.camera_id)}. Start: {event.start.strftime('%Y-%m-%dT%H-%M-%S')} ({event.start.timestamp()}) End: {event.end.strftime('%Y-%m-%dT%H-%M-%S')} ({event.end.timestamp()})", exc_info=e)
+                    await self._ignore_event(event)
                     break
                 self.logger.warning(f"    Failed download attempt {x+1}, retying in 1s", exc_info=e)
                 await asyncio.sleep(1)
         else:
-            self.logger.error(f"Download failed after 3 attempts, abandoning event {event.id}:")
+            self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
             return None
 
         self.logger.debug(f"  Downloaded video size: {human_readable_size(len(video))}s")

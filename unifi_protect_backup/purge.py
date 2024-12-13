@@ -85,5 +85,5 @@ class Purge:
                 logger.error("Unexpected exception occurred during purge:", exc_info=e)
 
             next_purge_time = datetime.now() + self.interval
-            logger.extra_debug(f"sleeping until {next_purge_time}")
+            logger.debug(f"sleeping until {next_purge_time}")
             await wait_until(next_purge_time)
