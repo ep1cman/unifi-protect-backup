@@ -31,3 +31,7 @@ clean:
 docker:
 	poetry build
 	docker buildx build . --platform $(container_arches) -t $(container_name) --push
+
+docker-noplatform:
+	poetry build
+	docker buildx build . -t $(container_name) --push
