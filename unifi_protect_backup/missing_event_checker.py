@@ -29,6 +29,7 @@ class MissingEventChecker:
         retention: relativedelta,
         detection_types: List[str],
         ignore_cameras: List[str],
+        only_cameras: List[str],
         interval: int = 60 * 5,
     ) -> None:
         """Init.
@@ -42,6 +43,7 @@ class MissingEventChecker:
             retention (relativedelta): Retention period to limit search window
             detection_types (List[str]): Detection types wanted to limit search
             ignore_cameras (List[str]): Ignored camera IDs to limit search
+            only_cameras (List[str]): Included (ONLY) camera IDs to limit search
             interval (int): How frequently, in seconds, to check for missing events,
         """
         self._protect: ProtectApiClient = protect
@@ -52,6 +54,7 @@ class MissingEventChecker:
         self.retention: relativedelta = retention
         self.detection_types: List[str] = detection_types
         self.ignore_cameras: List[str] = ignore_cameras
+        self.only_cameras: List[str] = only_cameras
         self.interval: int = interval
 
     async def _get_missing_events(self) -> AsyncIterator[Event]:
@@ -109,6 +112,8 @@ class MissingEventChecker:
                 if event.start is None or event.end is None:
                     return False  # This event is still on-going
                 if event.camera_id in self.ignore_cameras:
+                    return False
+                if self.only_cameras is not None and event.camera_id not in self.only_cameras:
                     return False
                 if event.type is EventType.MOTION and "motion" not in self.detection_types:
                     return False

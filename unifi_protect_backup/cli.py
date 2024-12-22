@@ -109,6 +109,16 @@ def parse_rclone_retention(ctx, param, retention) -> relativedelta:
     "that you wish to backup.",
 )
 @click.option(
+    "--only-camera",
+    "only_cameras",
+    multiple=True,
+    envvar="ONLY_CAMERAS",
+    help="IDs of *ONLY* cameras for which events should be backed up. Use multiple times to include "
+    "multiple IDs. If being set as an environment variable the IDs should be separated by whitespace. "
+    "Alternatively, use a Unifi user with a role which has access restricted to the subset of cameras "
+    "that you wish to backup.",
+)
+@click.option(
     "--file-structure-format",
     envvar="FILE_STRUCTURE_FORMAT",
     default="{camera_name}/{event.start:%Y-%m-%d}/{event.end:%Y-%m-%dT%H-%M-%S} {detection_type}.mp4",

@@ -64,6 +64,7 @@ class UnifiProtectBackup:
         rclone_purge_args: str,
         detection_types: List[str],
         ignore_cameras: List[str],
+        only_cameras: List[str],
         file_structure_format: str,
         verbose: int,
         download_buffer_size: int,
@@ -96,6 +97,7 @@ class UnifiProtectBackup:
             rclone_purge_args (str): Optional extra arguments to pass to `rclone delete` directly.
             detection_types (List[str]): List of which detection types to backup.
             ignore_cameras (List[str]): List of camera IDs for which to not backup events.
+            only_cameras (List[str]): List of ONLY camera IDs for which to backup events.
             file_structure_format (str): A Python format string for output file path.
             verbose (int): How verbose to setup logging, see :func:`setup_logging` for details.
             download_buffer_size (int): How many bytes big the download buffer should be
@@ -133,6 +135,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {rclone_args=}")
         logger.debug(f"  {rclone_purge_args=}")
         logger.debug(f"  {ignore_cameras=}")
+        logger.debug(f"  {only_cameras=}")
         logger.debug(f"  {verbose=}")
         logger.debug(f"  {detection_types=}")
         logger.debug(f"  {file_structure_format=}")
@@ -166,6 +169,7 @@ class UnifiProtectBackup:
             subscribed_models={ModelType.EVENT},
         )
         self.ignore_cameras = ignore_cameras
+        self.only_cameras = only_cameras
         self._download_queue: asyncio.Queue = asyncio.Queue()
         self._unsub: Callable[[], None]
         self.detection_types = detection_types
@@ -276,7 +280,7 @@ class UnifiProtectBackup:
             # Create event listener task
             #   This will connect to the unifi protect websocket and listen for events. When one is detected it will
             #   be added to the queue of events to download
-            event_listener = EventListener(download_queue, self._protect, self.detection_types, self.ignore_cameras)
+            event_listener = EventListener(download_queue, self._protect, self.detection_types, self.ignore_cameras, self.only_cameras)
             tasks.append(event_listener.start())
 
             # Create purge task
@@ -302,6 +306,7 @@ class UnifiProtectBackup:
                 self.retention,
                 self.detection_types,
                 self.ignore_cameras,
+                self.only_cameras,
             )
             if self._skip_missing:
                 logger.info("Ignoring missing events")
