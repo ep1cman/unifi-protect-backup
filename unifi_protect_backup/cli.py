@@ -1,5 +1,6 @@
 """Console script for unifi_protect_backup."""
 
+import sys
 import re
 
 import click
@@ -238,9 +239,27 @@ a lot of failed downloads with the default downloader.
 )
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
-    event_listener = UnifiProtectBackup(**kwargs)
-    run(event_listener.start(), stop_on_unhandled_errors=True)
 
+    try:
+        # Validate things
+        if kwargs.get('only_cameras') and kwargs.get('ignore_cameras'):
+            click.echo(
+                "Error: --only-camera and --ignore-camera options are mutually exclusive. "
+                "Please use only one of these options.",
+                err=True
+            )
+            raise SystemExit(200) # throw 200 = arg error, service will not be restarted (docker)
+        
+        # Other validations could be here
+            
+        # Only create the event listener and run if validation passes    
+        event_listener = UnifiProtectBackup(**kwargs)
+        run(event_listener.start(), stop_on_unhandled_errors=True)
+    except SystemExit as e:
+        sys.exit(e.code)
+    except Exception as e:
+        click.echo(f"Error: {str(e)}", err=True)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()  # pragma: no cover
