@@ -131,6 +131,11 @@ Options:
                                   Common usage for this would be to execute a permanent delete
                                   instead of using the recycle bin on a destination. Google Drive
                                   example: `--drive-use-trash=false`
+  --postprocess-binary TEXT       Optional binary or executable script to run after having
+                                  downloaded a video. This can e.g. be a bash script with a CURL
+                                  command to post-process the video (detection, move, ...). The
+                                  script / binary receives the path where the video is persisted
+                                  as first and only argument.
   --detection-types TEXT          A comma separated list of which types of detections to backup.
                                   Valid options are: `motion`, `person`, `vehicle`, `ring`
                                   [default: motion,person,vehicle,ring]
@@ -212,6 +217,7 @@ always take priority over environment variables):
 - `RCLONE_DESTINATION`
 - `RCLONE_ARGS`
 - `RCLONE_PURGE_ARGS`
+- `POSTPROCESS_BINARY`
 - `IGNORE_CAMERAS`
 - `DETECTION_TYPES`
 - `FILE_STRUCTURE_FORMAT`
@@ -264,6 +270,37 @@ If you are using a storage medium with poor write durability e.g. an SD card on 
 such backends. 
 
 If you are running on a linux host you can setup `rclone` to use `tmpfs` (which is in RAM) to store its temp files, but this will significantly increase memory usage of the tool.
+
+## Prostprocessing
+
+To perform additional detection / cleaning / moving / ... on a video post downloading:
+- Use `--postprocess-binary` or env. var: `POSTPROCESS_BINARY`
+
+The binary / executable script receives a first argument with the storage location for the downloaded video. You can easily mount a script from a local filesystem to the container:
+
+```bash
+rm -r /tmp/unifi ; docker rmi ghcr.io/ep1cman/unifi-protect-backup ; poetry build && docker buildx build . -t ghcr.io/ep1cman/unifi-protect-backup ;
+ docker run --rm \
+  -e POSTPROCESS_BINARY='/postprocess.sh' \
+  -v '/My/Local/Folder/postprocess.sh':/postprocess.sh \
+  ghcr.io/ep1cman/unifi-protect-backup
+```
+
+The script can be as simple as this (to display the upload path inside the container):
+
+```bash
+#!/bin/bash
+echo "$1"
+```
+
+The logging output will show the stdout and stderr for the postprocess script/binary:
+
+```
+Uploaded
+ -- Postprocessing: 'local:/data/camname/date/vidname.pm4' returned status code: '0'
+    > STDOUT: /data/camname/date/vidname.pm4
+    > STDERR: 
+```
 
 ### Running Docker Container (LINUX ONLY)
 Add the following arguments to your docker run command:

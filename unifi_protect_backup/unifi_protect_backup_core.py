@@ -62,6 +62,7 @@ class UnifiProtectBackup:
         retention: relativedelta,
         rclone_args: str,
         rclone_purge_args: str,
+        postprocess_binary: str,
         detection_types: List[str],
         ignore_cameras: List[str],
         file_structure_format: str,
@@ -94,6 +95,7 @@ class UnifiProtectBackup:
             rclone_args (str): A bandwidth limit which is passed to the `--bwlimit` argument of
                                    `rclone` (https://rclone.org/docs/#bwlimit-bandwidth-spec)
             rclone_purge_args (str): Optional extra arguments to pass to `rclone delete` directly.
+            postprocess_binary (str): Optional path to a binary that gets called to postprocess, with download location as argument.
             detection_types (List[str]): List of which detection types to backup.
             ignore_cameras (List[str]): List of camera IDs for which to not backup events.
             file_structure_format (str): A Python format string for output file path.
@@ -132,6 +134,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {retention=}")
         logger.debug(f"  {rclone_args=}")
         logger.debug(f"  {rclone_purge_args=}")
+        logger.debug(f"  {postprocess_binary=}")
         logger.debug(f"  {ignore_cameras=}")
         logger.debug(f"  {verbose=}")
         logger.debug(f"  {detection_types=}")
@@ -149,6 +152,7 @@ class UnifiProtectBackup:
         self.retention = retention
         self.rclone_args = rclone_args
         self.rclone_purge_args = rclone_purge_args
+        self.postprocess_binary = postprocess_binary
         self.file_structure_format = file_structure_format
 
         self.address = address
@@ -270,6 +274,7 @@ class UnifiProtectBackup:
                 self.file_structure_format,
                 self._db,
                 self.color_logging,
+                self.postprocess_binary,
             )
             tasks.append(uploader.start())
 
