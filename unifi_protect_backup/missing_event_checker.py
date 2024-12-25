@@ -80,6 +80,9 @@ class MissingEventChecker:
             # Filter out on-going events
             unifi_events = {event.id: event for event in events_chunk if event.end is not None}
 
+            if not unifi_events:
+                break  # No completed events to process
+
             # Next chunks start time should be the end of the oldest complete event in the current chunk
             start_time = max([event.end for event in unifi_events.values()])
 
