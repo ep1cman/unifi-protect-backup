@@ -2,24 +2,17 @@
 
 name: release & publish workflow
 
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push events but only for the master branch
   push:
     tags:
       - 'v*'
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "release"
   release:
     name: Create Release
     runs-on: ubuntu-20.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Get version from tag
         id: tag_name
@@ -27,7 +20,6 @@ jobs:
           echo ::set-output name=current_version::${GITHUB_REF#refs/tags/v}
         shell: bash
 
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
       - name: Get Changelog Entry
@@ -39,7 +31,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.10
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
