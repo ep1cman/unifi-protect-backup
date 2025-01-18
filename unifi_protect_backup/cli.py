@@ -110,8 +110,8 @@ def parse_rclone_retention(ctx, param, retention) -> relativedelta:
     "that you wish to backup.",
 )
 @click.option(
-    "--only-camera",
-    "only_cameras",
+    "--camera",
+    "cameras",
     multiple=True,
     envvar="ONLY_CAMERAS",
     help="IDs of *ONLY* cameras for which events should be backed up. Use multiple times to include "
@@ -241,18 +241,16 @@ def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
 
     try:
-        # Validate things
-        if kwargs.get('only_cameras') and kwargs.get('ignore_cameras'):
+        # Validate only one of the camera select arguments was given
+        if kwargs.get("cameras") and kwargs.get("ignore_cameras"):
             click.echo(
-                "Error: --only-camera and --ignore-camera options are mutually exclusive. "
+                "Error: --camera and --ignore-camera options are mutually exclusive. "
                 "Please use only one of these options.",
-                err=True
+                err=True,
             )
-            raise SystemExit(200) # throw 200 = arg error, service will not be restarted (docker)
-        
-        # Other validations could be here
-            
-        # Only create the event listener and run if validation passes    
+            raise SystemExit(200)  # throw 200 = arg error, service will not be restarted (docker)
+
+        # Only create the event listener and run if validation passes
         event_listener = UnifiProtectBackup(**kwargs)
         run(event_listener.start(), stop_on_unhandled_errors=True)
     except SystemExit as e:
@@ -260,6 +258,7 @@ def main(**kwargs):
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()  # pragma: no cover

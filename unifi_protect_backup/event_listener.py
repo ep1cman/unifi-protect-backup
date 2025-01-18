@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from time import sleep
-from typing import List
+from typing import List, Optional
 
 from uiprotect.api import ProtectApiClient
 from uiprotect.websocket import WebsocketState
@@ -23,7 +23,7 @@ class EventListener:
         protect: ProtectApiClient,
         detection_types: List[str],
         ignore_cameras: List[str],
-        only_cameras: List[str],
+        cameras: Optional[List[str]] = None,
     ):
         """Init.
 
@@ -32,7 +32,7 @@ class EventListener:
             protect (ProtectApiClient): UniFI Protect API client to use
             detection_types (List[str]): Desired Event detection types to look for
             ignore_cameras (List[str]): Cameras IDs to ignore events from
-            only_cameras (List[str]): Cameras IDs to ONLY onclude events from
+            cameras (Optional[List[str]]): Cameras IDs to ONLY include events from
         """
         self._event_queue: asyncio.Queue = event_queue
         self._protect: ProtectApiClient = protect
@@ -40,7 +40,7 @@ class EventListener:
         self._unsub_websocketstate = None
         self.detection_types: List[str] = detection_types
         self.ignore_cameras: List[str] = ignore_cameras
-        self.only_cameras: List[str] = only_cameras
+        self.cameras: Optional[List[str]] = cameras
 
     async def start(self):
         """Main Loop."""
@@ -63,7 +63,7 @@ class EventListener:
             return
         if msg.new_obj.camera_id in self.ignore_cameras:
             return
-        if self.only_cameras is not None and msg.new_obj.camera_id not in self.only_cameras:
+        if self.cameras is not None and msg.new_obj.camera_id not in self.cameras:
             return
         if "end" not in msg.changed_data:
             return
