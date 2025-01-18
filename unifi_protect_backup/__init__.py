@@ -2,7 +2,7 @@
 
 __author__ = """sebastian.goscik"""
 __email__ = "sebastian@goscik.com"
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
 from .downloader import VideoDownloader
 from .downloader_experimental import VideoDownloaderExperimental
