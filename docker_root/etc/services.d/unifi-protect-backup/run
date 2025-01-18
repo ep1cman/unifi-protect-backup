@@ -1,11 +1,21 @@
 #!/usr/bin/with-contenv bash
 
-
 export RCLONE_CONFIG=/config/rclone/rclone.conf
 export XDG_CACHE_HOME=/config
 
 echo $VERBOSITY
 [[ -n "$VERBOSITY" ]] && export VERBOSITY_ARG=-$VERBOSITY || export VERBOSITY_ARG=""
 
-exec \
-    s6-setuidgid abc unifi-protect-backup ${VERBOSITY_ARG}
+# Run without exec to catch the exit code
+s6-setuidgid abc unifi-protect-backup ${VERBOSITY_ARG}
+exit_code=$?
+
+# If exit code is 200 (arg error), exit the container
+if [ $exit_code -eq 200 ]; then
+    # Send shutdown signal to s6
+    /run/s6/basedir/bin/halt
+    exit $exit_code
+fi
+
+# Otherwise, let s6 handle potential restart
+exit $exit_code

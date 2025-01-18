@@ -139,6 +139,11 @@ Options:
                                   environment variable the IDs should be separated by whitespace.
                                   Alternatively, use a Unifi user with a role which has access
                                   restricted to the subset of cameras that you wish to backup.
+   --camera TEXT                   IDs of *ONLY* cameras for which events should be backed up. Use
+                                  multiple times to include multiple IDs. If being set as an
+                                  environment variable the IDs should be separated by whitespace.
+                                  Alternatively, use a Unifi user with a role which has access
+                                  restricted to the subset of cameras that you wish to backup.
   --file-structure-format TEXT    A Python format string used to generate the file structure/name
                                   on the rclone remote.For details of the fields available, see
                                   the projects `README.md` file.  [default: {camera_name}/{event.s
@@ -213,6 +218,7 @@ always take priority over environment variables):
 - `RCLONE_ARGS`
 - `RCLONE_PURGE_ARGS`
 - `IGNORE_CAMERAS`
+- `CAMERAS`
 - `DETECTION_TYPES`
 - `FILE_STRUCTURE_FORMAT`
 - `SQLITE_PATH`
@@ -248,13 +254,45 @@ now on, you can use the `--skip-missing` flag. This does not enable the periodic
 
 If you use this feature it is advised that your run the tool once with this flag, then stop it once the database has been created and the events are ignored. Keeping this flag set permanently could cause events to be missed if the tool crashes and is restarted etc.
 
-## Ignoring cameras
+## Selecting cameras
 
-Cameras can be excluded from backups by either:
-- Using `--ignore-camera`, see [usage](#usage)
-  - IDs can be obtained by scanning the logs, starting at `Found cameras:` up to the next log line (currently `NVR TZ`). You can find this section of the logs by piping the logs in to this `sed` command
+By default unifi-protect-backup backs up clips from all cameras.
+If you want to limit the backups to certain cameras you can do that in one of two ways.
+
+Note: Camera IDs can be obtained by scanning the logs, by looking for `Found cameras:`. You can find this section of the logs by piping the logs in to this `sed` command
     `sed -n '/Found cameras:/,/NVR TZ/p'`
-- Using a Unifi user with a role which has access restricted to the subset of cameras that you wish to backup.
+
+### Back-up only specific cameras
+By using the `--camera` argument, you can specify the ID of the cameras you want to backup. If you want to backup more than one camera you can specify this argument more than once. If this argument is specified all other cameras will be ignored.
+
+#### Example:
+If you have three cameras:
+  - `CAMERA_ID_1`
+  - `CAMERA_ID_2`
+  - `CAMERA_ID_3`
+and run the following command:
+```
+$ unifi-protect-backup [...] --camera CAMERA_ID_1 --camera CAMERA_ID_2
+```
+Only `CAMERA_ID_1` and `CAMERA_ID_2` will be backed up.
+
+### Ignoring cameras
+
+By using the `--ignore-camera` argument, you can specify the ID of the cameras you *do not* want to backup. If you want to ignore more than one camera you can specify this argument more than once. If this argument is specified all cameras will be backed up except the ones specified
+
+#### Example:
+If you have three cameras:
+  - `CAMERA_ID_1`
+  - `CAMERA_ID_2`
+  - `CAMERA_ID_3`
+and run the following command:
+```
+$ unifi-protect-backup [...] --ignore-camera CAMERA_ID_1 --ignore-camera CAMERA_ID_2
+```
+Only `CAMERA_ID_3` will be backed up.
+
+### Note about unifi protect accounts
+It is possible to limit what cameras a unifi protect accounts can see. If an account does not have access to a camera this tool will never see it as available so it will not be impacted by the above arguments.
 
 # A note about `rclone` backends and disk wear
 This tool attempts to not write the downloaded files to disk to minimise disk wear, and instead streams them directly to 
