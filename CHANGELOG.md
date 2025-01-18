@@ -4,11 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.12.0] - 2024-08-06
-### Fixed
+## [0.12.0] - 2025-01-18
+### Added
 - Tool now targets UIProtect instead of pyunifiprotect which should help any lingering auth issues with Unifi OS 4.X
-- Python Version bumped to 3.10 (based on UIPortect need)
-- (had to make the dev and test dependencies required instead of extras to get poetry to work)
+- Python Version bumped to 3.10 (based on UIProtect need)
+- The ability to specify only specific cameras to backup
+- Re-enabled the experimental downloader after adding a monkey patch for UIProtect to include the unmerged code
+- Switched linter to `ruff`
+- Added support for SMART_DETECT_LINE events
+- 
+### Fixed
+- Unifi now returns unfinished events, this is now handled correctly
+- Login attempts now use an exponentially increasing delay to try work around aggressive rate limiting on logins
 
 ## [0.11.0] - 2024-06-08
 ### Added
