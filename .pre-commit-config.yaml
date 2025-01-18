@@ -27,3 +27,4 @@ repos:
           - types-pytz
           - types-cryptography
           - types-python-dateutil
+          - types-aiofiles

@@ -29,9 +29,17 @@ from unifi_protect_backup.utils import (
     setup_logging,
 )
 
+from unifi_protect_backup.uiprotect_patch import monkey_patch_experimental_downloader
+
 logger = logging.getLogger(__name__)
 
 # TODO: https://github.com/cjrh/aiorun#id6 (smart shield)
+
+
+# We have been waiting for a long time for this PR to get merged
+# https://github.com/uilibs/uiprotect/pull/249
+# Since it has not progressed, we will for now patch in the functionality ourselves
+monkey_patch_experimental_downloader()
 
 
 async def create_database(path: str):

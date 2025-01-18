@@ -85,8 +85,6 @@ class VideoDownloaderExperimental:
         else:
             self._has_ffprobe = False
 
-        raise RuntimeError("The `uiprotect` library is currently missing the features for this to work.")
-
     async def start(self):
         """Main loop."""
         self.logger.info("Starting Downloader")

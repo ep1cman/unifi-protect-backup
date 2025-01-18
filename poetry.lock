@@ -1945,6 +1945,17 @@ shellingham = ">=1.3.0"
 typing-extensions = ">=3.7.4.3"
 
 [[package]]
+name = "types-aiofiles"
+version = "24.1.0.20241221"
+description = "Typing stubs for aiofiles"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types_aiofiles-24.1.0.20241221-py3-none-any.whl", hash = "sha256:11d4e102af0627c02e8c1d17736caa3c39de1058bea37e2f4de6ef11a5b652ab"},
+    {file = "types_aiofiles-24.1.0.20241221.tar.gz", hash = "sha256:c40f6c290b0af9e902f7f3fa91213cf5bb67f37086fb21dc0ff458253586ad55"},
+]
+
+[[package]]
 name = "types-cryptography"
 version = "3.3.23.2"
 description = "Typing stubs for cryptography"
@@ -2181,4 +2192,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10.0,<4.0"
-content-hash = "8a0fade4b4b3a1806c9c2fc2527f71b1b8d807b5b6abfe9dc49ee79364eba7d4"
+content-hash = "2488bbbb25595c8758f278014438737e0f723e53b080244e36344fcd6081beea"
