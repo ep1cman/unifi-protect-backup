@@ -91,6 +91,12 @@ def parse_rclone_retention(ctx, param, retention) -> relativedelta:
     "Google Drive example: `--drive-use-trash=false`",
 )
 @click.option(
+    "--postprocess-binary",
+    default="",
+    envvar="POSTPROCESS_BINARY",
+    help="Optional path to binary to postprocess the processed video, gets video destination path as argument."
+)
+@click.option(
     "--detection-types",
     envvar="DETECTION_TYPES",
     default=",".join(DETECTION_TYPES),

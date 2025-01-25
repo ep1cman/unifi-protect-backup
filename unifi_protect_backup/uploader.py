@@ -34,6 +34,7 @@ class VideoUploader:
         file_structure_format: str,
         db: aiosqlite.Connection,
         color_logging: bool,
+        postprocess_binary: str,
     ):
         """Init.
 
@@ -45,11 +46,13 @@ class VideoUploader:
             file_structure_format (str): format string for how to structure the uploaded files
             db (aiosqlite.Connection): Async SQlite database connection
             color_logging (bool):  Whether or not to add color to logging output
+            postprocess_binary (str):  Optional postprocess binary path (output location as arg)
         """
         self._protect: ProtectApiClient = protect
         self.upload_queue: VideoQueue = upload_queue
         self._rclone_destination: str = rclone_destination
         self._rclone_args: str = rclone_args
+        self._postprocess_binary: str = postprocess_binary
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
         self.current_event = None
@@ -82,9 +85,16 @@ class VideoUploader:
                 self.logger.debug(f" Destination: {destination}")
 
                 try:
-                    await self._upload_video(video, destination, self._rclone_args)
+                    await self._upload_video(video, destination, self._rclone_args, self._postprocess_binary)
                     await self._update_database(event, destination)
                     self.logger.debug("Uploaded")
+
+                    # Postprocess
+                    if self._postprocess_binary:
+                        returncode_postprocess, stdout_postprocess, stderr_postprocess = await run_command(f'"{self._postprocess_binary}" "{destination}"')
+                        self.logger.debug(f" -- Postprocessing: '{destination}' returned status code: '{returncode_postprocess}'")
+                        self.logger.debug(f"    > STDOUT: {stdout_postprocess.strip()}")
+                        self.logger.debug(f"    > STDERR: {stderr_postprocess.strip()}")
                 except SubprocessException:
                     self.logger.error(f" Failed to upload file: '{destination}'")
 
@@ -93,7 +103,7 @@ class VideoUploader:
             except Exception as e:
                 self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
 
-    async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
+    async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str, postprocess_binary: str):
         """Upload video using rclone.
 
         In order to avoid writing to disk, the video file data is piped directly
@@ -103,6 +113,7 @@ class VideoUploader:
             video (bytes): The data to be written to the file
             destination (pathlib.Path): Where rclone should write the file
             rclone_args (str): Optional extra arguments to pass to `rclone`
+            postprocess_binary (str): Optional extra path to postprocessing binary
 
         Raises:
             RuntimeError: If rclone returns a non-zero exit code
