@@ -361,6 +361,19 @@ To check the status of the service use this command.
 sudo systemctl status protectbackup.service --no-pager
 ```
 
+# Running Backup Tool as a Service (Docker ONLY)
+If you are using Docker you can pass the flag to start the container automatically after a power cycle / reboot. The `restart` argument can be passed with the `unless-stopped` or `always` argument. See the Docker documentation, [Start containers automatically](https://docs.docker.com/engine/containers/start-containers-automatically/), for more information. This can be done in any environment, not just in Linux. If this is used then *do not* also configure this as a service as described in section "Running Backup Tool as a Service (LINUX ONLY)"
+
+## Example
+```
+docker run \
+  -e UFP_USERNAME='USERNAME' \
+  -e UFP_PASSWORD='PASSWORD' \
+  # ... other flags and arguments ...
+  --restart unless-stopped
+  ghcr.io/ep1cman/unifi-protect-backup
+```
+
 # Debugging
 
 If you need to debug your rclone setup, you can invoke rclone directly like so:
