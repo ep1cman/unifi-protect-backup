@@ -4,7 +4,8 @@ import logging
 import pathlib
 import re
 from datetime import datetime
-
+import os
+import asyncio
 import aiosqlite
 from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
@@ -52,11 +53,41 @@ class VideoUploader:
         self._rclone_args: str = rclone_args
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
-        self.current_event = None
+        self.current_events = []
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
         self.logger = logging.LoggerAdapter(self.base_logger, {"event": ""})
+
+    async def _upload_worker(self, semaphore, worker_id):
+        async with semaphore:
+            while True:
+                try:
+                    event, video = await self.upload_queue.get()
+                    self.current_events[worker_id] = event
+
+                    logger = logging.LoggerAdapter(self.base_logger, {'event': f' [{event.id}]'})
+
+                    logger.info(f"Uploading event: {event.id}")
+                    logger.debug(
+                        f" Remaining Upload Queue: {self.upload_queue.qsize_files()}"
+                        f" ({human_readable_size(self.upload_queue.qsize())})"
+                    )
+
+                    destination = await self._generate_file_path(event)
+                    logger.debug(f" Destination: {destination}")
+
+                    try:
+                        await self._upload_video(video, destination, self._rclone_args)
+                        await self._update_database(event, destination)
+                        logger.debug("Uploaded")
+                    except SubprocessException:
+                        logger.error(f" Failed to upload file: '{destination}'")
+
+                except Exception as e:
+                    logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+
+                self.current_events[worker_id] = None
 
     async def start(self):
         """Main loop.
@@ -65,33 +96,13 @@ class VideoUploader:
         using rclone, finally it updates the database
         """
         self.logger.info("Starting Uploader")
-        while True:
-            try:
-                event, video = await self.upload_queue.get()
-                self.current_event = event
+        
+        rclone_transfers = int(os.getenv('RCLONE_PARALLEL_UPLOADS', '1'))
+        self.current_events = [None] * rclone_transfers
+        semaphore = asyncio.Semaphore(rclone_transfers)
 
-                self.logger = logging.LoggerAdapter(self.base_logger, {"event": f" [{event.id}]"})
-
-                self.logger.info(f"Uploading event: {event.id}")
-                self.logger.debug(
-                    f" Remaining Upload Queue: {self.upload_queue.qsize_files()}"
-                    f" ({human_readable_size(self.upload_queue.qsize())})"
-                )
-
-                destination = await self._generate_file_path(event)
-                self.logger.debug(f" Destination: {destination}")
-
-                try:
-                    await self._upload_video(video, destination, self._rclone_args)
-                    await self._update_database(event, destination)
-                    self.logger.debug("Uploaded")
-                except SubprocessException:
-                    self.logger.error(f" Failed to upload file: '{destination}'")
-
-                self.current_event = None
-
-            except Exception as e:
-                self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+        workers = [self._upload_worker(semaphore, i) for i in range(rclone_transfers)]
+        await asyncio.gather(*workers)
 
     async def _upload_video(self, video: bytes, destination: pathlib.Path, rclone_args: str):
         """Upload video using rclone.
@@ -163,7 +174,7 @@ class VideoUploader:
             "camera_name": await get_camera_name(self._protect, event.camera_id),
         }
 
-        file_path = self._file_structure_format.format(**format_context)
+        file_path = self._file_structure_format.format(**format_context).lower()
         file_path = re.sub(r"[^\w\-_\.\(\)/ ]", "", file_path)  # Sanitize any invalid chars
-
+        file_path = file_path.replace(" ", "_")
         return pathlib.Path(f"{self._rclone_destination}/{file_path}")
