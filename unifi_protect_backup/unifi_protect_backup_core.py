@@ -85,6 +85,7 @@ class UnifiProtectBackup:
         download_rate_limit: float | None = None,
         port: int = 443,
         use_experimental_downloader: bool = False,
+        delete_all_old_files: bool = False,
     ):
         """Will configure logging settings and the Unifi Protect API (but not actually connect).
 
@@ -117,6 +118,7 @@ class UnifiProtectBackup:
             download_rate_limit (float): Limit how events can be downloaded in one minute. Disabled by default",
             max_event_length (int): Maximum length in seconds for an event to be considered valid and downloaded
             use_experimental_downloader (bool): Use the new experimental downloader (the same method as used by the webUI)
+            delete_all_old_files (bool): Whether to delete all old files, not just those in the database
         """
         self.color_logging = color_logging
         setup_logging(verbose, self.color_logging)
@@ -155,6 +157,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {download_rate_limit=} events per minute")
         logger.debug(f"  {max_event_length=}s")
         logger.debug(f"  {use_experimental_downloader=}")
+        logger.debug(f"  {delete_all_old_files=}")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
@@ -190,6 +193,7 @@ class UnifiProtectBackup:
         self._download_rate_limit = download_rate_limit
         self._max_event_length = timedelta(seconds=max_event_length)
         self._use_experimental_downloader = use_experimental_downloader
+        self._delete_all_old_files = delete_all_old_files
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -301,6 +305,7 @@ class UnifiProtectBackup:
                 self.rclone_destination,
                 self._purge_interval,
                 self.rclone_purge_args,
+                self._delete_all_old_files,
             )
             tasks.append(purge.start())
 

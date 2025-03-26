@@ -237,6 +237,18 @@ what the web UI does. This might be more stable if you are experiencing
 a lot of failed downloads with the default downloader.
 """,
 )
+@click.option(
+    "--delete-all-old-files",
+    "delete_all_old_files",
+    default=False,
+    show_default=True,
+    is_flag=True,
+    envvar="DELETE_ALL_OLD_FILES",
+    help="""\b
+If set, the application will delete ANY file at the destination which is older than 
+the retention period, not just the files that were uploaded by this application.
+""",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
 
