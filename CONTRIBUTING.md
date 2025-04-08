@@ -55,12 +55,11 @@ Ready to contribute? Here's how to set up `unifi-protect-backup` for local devel
     $ git clone git@github.com:your_name_here/unifi-protect-backup.git
     ```
 
-3. Ensure [poetry](https://python-poetry.org/docs/) is installed.
-4. Install dependencies and start your virtualenv:
+3. Ensure [uv](https://docs.astral.sh/uv/) is installed.
+4. Create virtual environment and install dependencies:
 
     ```
-    $ poetry install --with dev,test
-    $ poetry shell
+    $ uv install --dev
     ```
 
 5. Create a branch for local development:
@@ -75,21 +74,21 @@ Ready to contribute? Here's how to set up `unifi-protect-backup` for local devel
    be inside the `poetry shell` virtualenv or run it via poetry:
 
    ```
-   $ poetry run unifi-protect-backup {args}
+   $ uv run unifi-protect-backup {args}
    ```
 
 7. Install pre-commit git hooks to ensure all code commit to the repository
    is formatted correctly and meets coding standards:
 
    ```
-   $ poetry run pre-commit install
+   $ uv run pre-commit install
    ```
 
 8. When you're done making changes, check that your changes pass the
    tests:
 
     ```
-    $ poetry run pytest
+    $ uv run pytest
     ```
 
 8. Commit your changes and push your branch to GitHub:
@@ -117,7 +116,7 @@ Before you submit a pull request, check that it meets these guidelines:
 ## Tips
 
 ```
-$ poetry run pytest tests/test_unifi_protect_backup.py
+$ uv run pytest tests/test_unifi_protect_backup.py
 ```
 
 To run a subset of tests.
@@ -130,7 +129,7 @@ Make sure all your changes are committed (including an entry in CHANGELOG.md).
 Then run:
 
 ```
-$ poetry run bump2version patch # possible: major / minor / patch
+$ uv run bump2version patch # possible: major / minor / patch
 $ git push
 $ git push --tags
 ```

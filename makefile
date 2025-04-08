@@ -28,5 +28,5 @@ clean:
 	rm -rf coverage.xml .coverage
 
 docker:
-	poetry build
+	uv build
 	docker buildx build . --platform $(container_arches) -t $(container_name) --push

@@ -1,61 +1,61 @@
-[tool]
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "unifi_protect_backup"
 version = "0.12.0"
-homepage = "https://github.com/ep1cman/unifi-protect-backup"
 description = "Python tool to backup unifi event clips in realtime."
-authors = ["sebastian.goscik <sebastian@goscik.com>"]
 readme = "README.md"
-license =  "MIT"
-classifiers=[
-    'Development Status :: 5 - Production/Stable',
-    'Intended Audience :: Information Technology',
-    'License :: OSI Approved :: MIT License',
-    'Natural Language :: English',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.10',
+license = {text = "MIT"}
+authors = [
+    {name = "sebastian.goscik", email = "sebastian@goscik.com"}
 ]
-packages = [
-    { include = "unifi_protect_backup" },
-    { include = "tests", format = "sdist" },
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+]
+requires-python = ">=3.10.0,<4.0"
+dependencies = [
+    "click==8.0.1",
+    "aiorun>=2023.7.2",
+    "aiosqlite>=0.17.0",
+    "python-dateutil>=2.8.2",
+    "apprise>=1.5.0",
+    "expiring-dict>=1.1.0",
+    "async-lru>=2.0.4",
+    "aiolimiter>=1.1.0",
+    "uiprotect>=6.3.1"
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.10.0,<4.0"
-click = "8.0.1"
-aiorun = "^2023.7.2"
-aiosqlite = "^0.17.0"
-python-dateutil = "^2.8.2"
-apprise = "^1.5.0"
-expiring-dict = "^1.1.0"
-async-lru = "^2.0.4"
-aiolimiter = "^1.1.0"
-uiprotect = "^6.3.1"
+[project.urls]
+Homepage = "https://github.com/ep1cman/unifi-protect-backup"
 
-[tool.poetry.group.dev]
-optional = true
+[project.scripts]
+unifi-protect-backup = "unifi_protect_backup.cli:main"
 
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.11.1"
-types-pytz = "^2021.3.5"
-types-cryptography = "^3.3.18"
-types-python-dateutil = "^2.8.19.10"
-bump2version = "^1.0.1"
-pre-commit = "^2.12.0"
-ruff = "^0.5.7"
-types-aiofiles = "^24.1.0.20241221"
+[dependency-groups]
+dev = [
+    "mypy>=1.11.1",
+    "types-pytz>=2021.3.5",
+    "types-cryptography>=3.3.18",
+    "types-python-dateutil>=2.8.19.10",
+    "bump2version>=1.0.1",
+    "pre-commit>=2.12.0",
+    "ruff>=0.5.7",
+    "types-aiofiles>=24.1.0.20241221",
+    "pytest>=6.2.4",
+]
 
-[tool.poetry.group.test]
-optional = true
+[tool.hatch.build.targets.wheel]
+packages = ["unifi_protect_backup"]
 
-[tool.poetry.group.test.dependencies]
-pytest  = "^6.2.4"
-pytest-cov  = "^2.12.0"
-tox  = "^3.20.1"
-tox-asdf = "^0.1.0"
-
-[tool.poetry.scripts]
-unifi-protect-backup = 'unifi_protect_backup.cli:main'
+[tool.hatch.build.targets.sdist]
+include = ["unifi_protect_backup", "tests"]
 
 [tool.ruff]
 line-length = 120
@@ -66,11 +66,10 @@ target-version = "py310"
 [tool.ruff.format]
 
 [tool.mypy]
-allow_redefinition=true
+allow_redefinition = true
 exclude = [
     'unifi_protect_backup/uiprotect_patch.py'
 ]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv]
+default-groups = []

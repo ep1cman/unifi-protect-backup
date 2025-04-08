@@ -1,90 +1,88 @@
-# This is a basic workflow to help you get started with Actions
+name: Test and Build
 
-name: dev workflow
-
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push events but only for the dev branch
   push:
-    branches: [ dev ]
+    branches-ignore:  
+      - main
+  pull_request:
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "test"
   test:
     # The type of runner that the job will run on
     strategy:
       matrix:
-        python-versions: [3.9]
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        python-versions: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-versions }}
 
-      - name: Install dependencies
+      - name: Install uv
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry tox tox-gh-actions
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: test with tox
-        run:
-          tox
+      - name: Install dev dependencies
+        run: |
+          uv sync --dev
 
-      - name: list files
-        run: ls -l .
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files
 
-      - uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
-          files: coverage.xml
+      - name: Run pytest
+        run: uv run pytest
+      
+      - name: Build
+        run: uv build
 
   dev_container:
-    name: Create dev container
-    runs-on: ubuntu-20.04
-    if: github.event_name != 'pull_request'
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    name: Create dev container 
+    needs: test
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.10
+          python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install uv
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry tox tox-gh-actions
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Build wheels and source tarball
-        run: >-
-          poetry build
+      - name: Build
+        run: uv build
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-     
-      - name: Log in to container registry
-        uses: docker/login-action@v2
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push dev
-        uses: docker/build-push-action@v2
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
