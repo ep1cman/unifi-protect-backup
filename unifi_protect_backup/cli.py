@@ -247,6 +247,12 @@ a lot of failed downloads with the default downloader.
     type=int,
     help="Max number of parallel uploads to allow",
 )
+@click.option(
+    "--storage-quota",
+    envvar="STORAGE_QUOTA",
+    help='The maximum amount of storage to use for storing clips (you can use suffixes like "B", "KiB", "MiB", "GiB")',
+    callback=lambda ctx, param, value: int(human_readable_to_float(value)) if value is not None else None,
+)
 def main(**kwargs):
     """Python based tool for backing up Unifi Protect event clips as they occur."""
     try:

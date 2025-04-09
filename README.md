@@ -203,6 +203,8 @@ Options:
                                   what the web UI does. This might be more stable if you are experiencing
                                   a lot of failed downloads with the default downloader.  [default: False]
   --parallel-uploads INTEGER      Max number of parallel uploads to allow  [default: 1]
+  --storage-quota TEXT            The maximum amount of storage to use for storing clips (you can
+                                  use suffixes like "B", "KiB", "MiB", "GiB")
   --help                          Show this message and exit.
 ```
 
@@ -231,6 +233,7 @@ always take priority over environment variables):
 - `MAX_EVENT_LENGTH`
 - `EXPERIMENTAL_DOWNLOADER`
 - `PARALLEL_UPLOADS`
+- `STORAGE_QUOTA`
 
 ## File path formatting
 

@@ -4,6 +4,7 @@ import logging
 import pathlib
 import re
 from datetime import datetime
+import asyncio
 
 import aiosqlite
 from uiprotect import ProtectApiClient
@@ -45,6 +46,8 @@ class VideoUploader:
             file_structure_format (str): format string for how to structure the uploaded files
             db (aiosqlite.Connection): Async SQlite database connection
             color_logging (bool):  Whether or not to add color to logging output
+            upload_signal (asyncio.Event): Set by the uploader to signal an upload has occured
+
         """
         self._protect: ProtectApiClient = protect
         self.upload_queue: VideoQueue = upload_queue
@@ -53,6 +56,7 @@ class VideoUploader:
         self._file_structure_format: str = file_structure_format
         self._db: aiosqlite.Connection = db
         self.current_event = None
+        self._upload_signal = asyncio.Event()
 
         self.base_logger = logging.getLogger(__name__)
         setup_event_logger(self.base_logger, color_logging)
@@ -84,6 +88,7 @@ class VideoUploader:
                 try:
                     await self._upload_video(video, destination, self._rclone_args)
                     await self._update_database(event, destination)
+                    self._upload_signal.set()
                     self.logger.debug("Uploaded")
                 except SubprocessException:
                     self.logger.error(f" Failed to upload file: '{destination}'")

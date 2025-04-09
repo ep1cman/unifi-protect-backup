@@ -3,11 +3,13 @@
 import logging
 import time
 from datetime import datetime
+import json
+import asyncio
 
 import aiosqlite
 from dateutil.relativedelta import relativedelta
 
-from unifi_protect_backup.utils import run_command, wait_until
+from unifi_protect_backup.utils import run_command, wait_until, human_readable_size
 
 logger = logging.getLogger(__name__)
 
@@ -88,3 +90,96 @@ class Purge:
             next_purge_time = datetime.now() + self.interval
             logger.extra_debug(f"sleeping until {next_purge_time}")
             await wait_until(next_purge_time)
+
+
+async def get_utilisation(rclone_destination):
+    """Get storage utilisation of rclone destination.
+
+    Args:
+        rclone_destination (str): What rclone destination the clips are stored in
+
+    """
+    returncode, stdout, stderr = await run_command(f"rclone size {rclone_destination} --json")
+    if returncode != 0:
+        logger.error(f" Failed to get size of: '{rclone_destination}'")
+    return json.loads(stdout)["bytes"]
+
+
+class StorageQuotaPurge:
+    """Enforces maximum storage ultisation qutoa."""
+
+    def __init__(
+        self,
+        db: aiosqlite.Connection,
+        quota: int,
+        upload_event: asyncio.Event,
+        rclone_destination: str,
+        rclone_purge_args: str = "",
+    ):
+        """Init."""
+        self._db = db
+        self.quota = quota
+        self._upload_event = upload_event
+        self.rclone_destination = rclone_destination
+        self.rclone_purge_args = rclone_purge_args
+
+    async def start(self):
+        """Run main loop."""
+        while True:
+            try:
+                # Wait for the uploaders to tell us there has been an upload
+                await self._upload_event.wait()
+
+                deleted_a_file = False
+
+                # While we exceed the storage quota
+                utilisation = await get_utilisation(self.rclone_destination)
+                while utilisation > self.quota:
+                    # Get the oldest event
+                    async with self._db.execute("SELECT id FROM events ORDER BY end ASC LIMIT 1") as event_cursor:
+                        row = await event_cursor.fetchone()
+                        if row is None:
+                            logger.warning(
+                                "Storage quota exceeded, but there are no events in the database"
+                                " - Do you have stray files?"
+                            )
+                            break
+                        event_id = row[0]
+
+                        if (
+                            not deleted_a_file
+                        ):  # Only show this message once when the quota is exceeded till we drop below it again
+                            logger.info(
+                                f"Storage quota {human_readable_size(utilisation)}/{human_readable_size(self.quota)} "
+                                "exceeded, purging oldest events"
+                            )
+
+                        # Get all the backups for this event
+                        async with self._db.execute(f"SELECT * FROM backups WHERE id = '{event_id}'") as backup_cursor:
+                            # Delete them
+                            async for _, remote, file_path in backup_cursor:
+                                logger.debug(f" Deleted: {remote}:{file_path}")
+                                await delete_file(f"{remote}:{file_path}", self.rclone_purge_args)
+                                deleted_a_file = True
+
+                        # delete event from database
+                        # entries in the `backups` table are automatically deleted by sqlite triggers
+                        await self._db.execute(f"DELETE FROM events WHERE id = '{event_id}'")
+                        await self._db.commit()
+
+                        utilisation = await get_utilisation(self.rclone_destination)
+                        logger.debug(
+                            f"Storage utlisation: {human_readable_size(utilisation)}/{human_readable_size(self.quota)}"
+                        )
+
+                if deleted_a_file:
+                    await tidy_empty_dirs(self.rclone_destination)
+                    logger.info(
+                        "Storage utlisation back below quota limit: "
+                        f"{human_readable_size(utilisation)}/{human_readable_size(self.quota)}"
+                    )
+
+                self._upload_event.clear()
+
+            except Exception as e:
+                logger.error("Unexpected exception occurred during purge:", exc_info=e)
