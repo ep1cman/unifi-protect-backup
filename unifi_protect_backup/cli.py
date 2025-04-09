@@ -113,7 +113,7 @@ def parse_rclone_retention(ctx, param, retention) -> relativedelta:
     "--camera",
     "cameras",
     multiple=True,
-    envvar="ONLY_CAMERAS",
+    envvar="CAMERAS",
     help="IDs of *ONLY* cameras for which events should be backed up. Use multiple times to include "
     "multiple IDs. If being set as an environment variable the IDs should be separated by whitespace. "
     "Alternatively, use a Unifi user with a role which has access restricted to the subset of cameras "
