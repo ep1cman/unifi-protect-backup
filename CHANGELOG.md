@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2025-04-09
+### Added
+- Parallel uploaders are now supported
+- All smart detection types are now supported
+- Migrated the project from poetry to uv
+
+### Fixed
+- Corrected the envar for setting cameras to backup for ONLY_CAMERAS -> CAMERAS
+- Bumped to the latest uiprotect library to fix issue when unifi access devices are present
+
 ## [0.12.0] - 2025-01-18
 ### Added
 - Tool now targets UIProtect instead of pyunifiprotect which should help any lingering auth issues with Unifi OS 4.X
