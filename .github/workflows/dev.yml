@@ -24,10 +24,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-versions }}
 
-      - name: Install uv
+      - name: Install uv (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install uv (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          iwr -useb https://astral.sh/uv/install.ps1 | iex
+          echo "$HOME\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
 
       - name: Install dev dependencies
         run: |
@@ -60,10 +68,17 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install uv
+      - name: Install uv (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install uv (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          iwr -useb https://astral.sh/uv/install.ps1 | iex
+          echo "$HOME\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build
         run: uv build
