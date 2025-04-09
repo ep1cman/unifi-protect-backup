@@ -1490,6 +1490,7 @@ name = "unifi-protect-backup"
 version = "0.12.0"
 source = { editable = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "aiolimiter" },
     { name = "aiorun" },
     { name = "aiosqlite" },
@@ -1516,6 +1517,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = "==3.11.16" },
     { name = "aiolimiter", specifier = ">=1.1.0" },
     { name = "aiorun", specifier = ">=2023.7.2" },
     { name = "aiosqlite", specifier = ">=0.17.0" },
@@ -1530,10 +1532,10 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "bump2version", specifier = ">=1.0.1" },
-    { name = "mypy", specifier = ">=1.11.1" },
-    { name = "pre-commit", specifier = ">=2.12.0" },
-    { name = "pytest", specifier = ">=6.2.4" },
-    { name = "ruff", specifier = ">=0.5.7" },
+    { name = "mypy", specifier = ">=1.15.0" },
+    { name = "pre-commit", specifier = ">=4.2.0" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "ruff", specifier = ">=0.11.4" },
     { name = "types-aiofiles", specifier = ">=24.1.0.20241221" },
     { name = "types-cryptography", specifier = ">=3.3.18" },
     { name = "types-python-dateutil", specifier = ">=2.8.19.10" },

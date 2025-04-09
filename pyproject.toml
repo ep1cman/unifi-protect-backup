@@ -30,6 +30,7 @@ dependencies = [
     "async-lru>=2.0.4",
     "aiolimiter>=1.1.0",
     "uiprotect==7.5.2",
+    "aiohttp==3.11.16",
 ]
 
 [project.urls]
@@ -40,15 +41,15 @@ unifi-protect-backup = "unifi_protect_backup.cli:main"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.11.1",
+    "mypy>=1.15.0",
     "types-pytz>=2021.3.5",
     "types-cryptography>=3.3.18",
     "types-python-dateutil>=2.8.19.10",
-    "bump2version>=1.0.1",
-    "pre-commit>=2.12.0",
-    "ruff>=0.5.7",
     "types-aiofiles>=24.1.0.20241221",
-    "pytest>=6.2.4",
+    "bump2version>=1.0.1",
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.4",
+    "pytest>=8.3.5",
 ]
 
 [tool.hatch.build.targets.wheel]
