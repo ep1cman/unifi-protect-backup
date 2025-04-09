@@ -238,12 +238,18 @@ def setup_logging(verbosity: int, color_logging: bool = False, apprise_notifiers
         logger.setLevel(logging.WEBSOCKET_DATA)  # type: ignore
 
 
+_initialized_loggers = []
+
+
 def setup_event_logger(logger, color_logging):
     """Sets up a logger that also displays the event ID currently being processed."""
-    format = "{asctime} [{levelname:^11s}] {name:<42} :{event}  {message}"
-    sh = create_logging_handler(format, color_logging)
-    logger.addHandler(sh)
-    logger.propagate = False
+    global _initialized_loggers
+    if logger not in _initialized_loggers:
+        format = "{asctime} [{levelname:^11s}] {name:<42} :{event}  {message}"
+        sh = create_logging_handler(format, color_logging)
+        logger.addHandler(sh)
+        logger.propagate = False
+        _initialized_loggers.append(logger)
 
 
 _suffixes = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
@@ -407,7 +413,7 @@ class VideoQueue(asyncio.Queue):
             )
 
         while self.full(item):
-            putter = self._loop.create_future()  # type: ignore
+            putter = self._get_loop().create_future()  # type: ignore
             self._putters.append(putter)  # type: ignore
             try:
                 await putter
