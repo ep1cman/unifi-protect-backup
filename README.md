@@ -203,6 +203,7 @@ Options:
   --experimental-downloader       If set, a new experimental download mechanism will be used to match
                                   what the web UI does. This might be more stable if you are experiencing
                                   a lot of failed downloads with the default downloader.  [default: False]
+  --parallel-uploads INTEGER      Max number of parallel uploads to allow  [default: 1]
   --help                          Show this message and exit.
 ```
 
@@ -230,6 +231,7 @@ always take priority over environment variables):
 - `DOWNLOAD_RATELIMIT`
 - `MAX_EVENT_LENGTH`
 - `EXPERIMENTAL_DOWNLOADER`
+- `PARALLEL_UPLOADS`
 
 ## File path formatting
 
