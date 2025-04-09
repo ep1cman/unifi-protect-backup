@@ -85,6 +85,7 @@ class UnifiProtectBackup:
         download_rate_limit: float | None = None,
         port: int = 443,
         use_experimental_downloader: bool = False,
+        parallel_uploads: int = 1,
     ):
         """Will configure logging settings and the Unifi Protect API (but not actually connect).
 
@@ -117,6 +118,7 @@ class UnifiProtectBackup:
             download_rate_limit (float): Limit how events can be downloaded in one minute. Disabled by default",
             max_event_length (int): Maximum length in seconds for an event to be considered valid and downloaded
             use_experimental_downloader (bool): Use the new experimental downloader (the same method as used by the webUI)
+            parallel_uploads (int): Max number of parallel uploads to allow
         """
         self.color_logging = color_logging
         setup_logging(verbose, self.color_logging)
@@ -155,6 +157,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {download_rate_limit=} events per minute")
         logger.debug(f"  {max_event_length=}s")
         logger.debug(f"  {use_experimental_downloader=}")
+        logger.debug(f"  {parallel_uploads=}")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
@@ -190,6 +193,7 @@ class UnifiProtectBackup:
         self._download_rate_limit = download_rate_limit
         self._max_event_length = timedelta(seconds=max_event_length)
         self._use_experimental_downloader = use_experimental_downloader
+        self._parallel_uploads = parallel_uploads
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -272,18 +276,21 @@ class UnifiProtectBackup:
             )
             tasks.append(downloader.start())
 
-            # Create upload task
+            # Create upload tasks
             #   This will upload the videos in the downloader's buffer to the rclone remotes and log it in the database
-            uploader = VideoUploader(
-                self._protect,
-                upload_queue,
-                self.rclone_destination,
-                self.rclone_args,
-                self.file_structure_format,
-                self._db,
-                self.color_logging,
-            )
-            tasks.append(uploader.start())
+            uploaders = []
+            for i in range(self._parallel_uploads):
+                uploader = VideoUploader(
+                    self._protect,
+                    upload_queue,
+                    self.rclone_destination,
+                    self.rclone_args,
+                    self.file_structure_format,
+                    self._db,
+                    self.color_logging,
+                )
+                uploaders.append(uploader)
+                tasks.append(uploader.start())
 
             # Create event listener task
             #   This will connect to the unifi protect websocket and listen for events. When one is detected it will
@@ -312,7 +319,7 @@ class UnifiProtectBackup:
                 self._db,
                 download_queue,
                 downloader,
-                uploader,
+                uploaders,
                 self.retention,
                 self.detection_types,
                 self.ignore_cameras,

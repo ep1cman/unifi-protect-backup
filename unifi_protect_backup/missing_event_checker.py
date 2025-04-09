@@ -25,7 +25,7 @@ class MissingEventChecker:
         db: aiosqlite.Connection,
         download_queue: asyncio.Queue,
         downloader: VideoDownloader,
-        uploader: VideoUploader,
+        uploaders: List[VideoUploader],
         retention: relativedelta,
         detection_types: List[str],
         ignore_cameras: List[str],
@@ -39,7 +39,7 @@ class MissingEventChecker:
             db (aiosqlite.Connection): Async SQLite database to check for missing events
             download_queue (asyncio.Queue): Download queue to check for on-going downloads
             downloader (VideoDownloader): Downloader to check for on-going downloads
-            uploader (VideoUploader): Uploader to check for on-going uploads
+            uploaders (List[VideoUploader]): Uploaders to check for on-going uploads
             retention (relativedelta): Retention period to limit search window
             detection_types (List[str]): Detection types wanted to limit search
             ignore_cameras (List[str]): Ignored camera IDs to limit search
@@ -50,7 +50,7 @@ class MissingEventChecker:
         self._db: aiosqlite.Connection = db
         self._download_queue: asyncio.Queue = download_queue
         self._downloader: VideoDownloader = downloader
-        self._uploader: VideoUploader = uploader
+        self._uploaders: List[VideoUploader] = uploaders
         self.retention: relativedelta = retention
         self.detection_types: List[str] = detection_types
         self.ignore_cameras: List[str] = ignore_cameras
@@ -102,10 +102,11 @@ class MissingEventChecker:
             if current_download is not None:
                 downloading_event_ids.add(current_download.id)
 
-            uploading_event_ids = {event.id for event, video in self._uploader.upload_queue._queue}  # type: ignore
-            current_upload = self._uploader.current_event
-            if current_upload is not None:
-                uploading_event_ids.add(current_upload.id)
+            uploading_event_ids = {event.id for event, video in self._downloader.upload_queue._queue}  # type: ignore
+            for uploader in self._uploaders:
+                current_upload = uploader.current_event
+                if current_upload is not None:
+                    uploading_event_ids.add(current_upload.id)
 
             missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids | uploading_event_ids)
 

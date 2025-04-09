@@ -239,6 +239,14 @@ what the web UI does. This might be more stable if you are experiencing
 a lot of failed downloads with the default downloader.
 """,
 )
+@click.option(
+    "--parallel-uploads",
+    default=1,
+    show_default=True,
+    envvar="PARALLEL_UPLOADS",
+    type=int,
+    help="Max number of parallel uploads to allow",
+)
 def main(**kwargs):
     """A Python based tool for backing up Unifi Protect event clips as they occur."""
 
