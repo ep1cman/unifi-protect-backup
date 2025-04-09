@@ -169,7 +169,7 @@ all warnings, and websocket data
     show_default=True,
     envvar="DOWNLOAD_BUFFER_SIZE",
     help='How big the download buffer should be (you can use suffixes like "B", "KiB", "MiB", "GiB")',
-    callback=lambda ctx, param, value: human_readable_to_float(value),
+    callback=lambda ctx, param, value: int(human_readable_to_float(value)),
 )
 @click.option(
     "--purge_interval",
