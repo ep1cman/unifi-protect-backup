@@ -7,11 +7,13 @@ import click
 from aiorun import run  # type: ignore
 from dateutil.relativedelta import relativedelta
 
+from uiprotect.data.types import SmartDetectObjectType
+
 from unifi_protect_backup import __version__
 from unifi_protect_backup.unifi_protect_backup_core import UnifiProtectBackup
 from unifi_protect_backup.utils import human_readable_to_float
 
-DETECTION_TYPES = ["motion", "person", "vehicle", "ring", "line"]
+DETECTION_TYPES = ["motion", "ring", "line"] + SmartDetectObjectType.values()
 
 
 def _parse_detection_types(ctx, param, value):
