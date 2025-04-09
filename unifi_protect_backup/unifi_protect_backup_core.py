@@ -16,6 +16,7 @@ from unifi_protect_backup import (
     EventListener,
     MissingEventChecker,
     Purge,
+    StorageQuotaPurge,
     VideoDownloader,
     VideoDownloaderExperimental,
     VideoUploader,
@@ -86,6 +87,7 @@ class UnifiProtectBackup:
         port: int = 443,
         use_experimental_downloader: bool = False,
         parallel_uploads: int = 1,
+        storage_quota: int | None = None,
     ):
         """Will configure logging settings and the Unifi Protect API (but not actually connect).
 
@@ -119,6 +121,7 @@ class UnifiProtectBackup:
             max_event_length (int): Maximum length in seconds for an event to be considered valid and downloaded
             use_experimental_downloader (bool): Use the new experimental downloader (the same method as used by the webUI)
             parallel_uploads (int): Max number of parallel uploads to allow
+            storage_quota (int): Maximum storage utilisation in bytes
         """
         self.color_logging = color_logging
         setup_logging(verbose, self.color_logging)
@@ -158,6 +161,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {max_event_length=}s")
         logger.debug(f"  {use_experimental_downloader=}")
         logger.debug(f"  {parallel_uploads=}")
+        logger.debug(f"  {storage_quota=}")
 
         self.rclone_destination = rclone_destination
         self.retention = retention
@@ -194,6 +198,7 @@ class UnifiProtectBackup:
         self._max_event_length = timedelta(seconds=max_event_length)
         self._use_experimental_downloader = use_experimental_downloader
         self._parallel_uploads = parallel_uploads
+        self._storage_quota = storage_quota
 
     async def start(self):
         """Bootstrap the backup process and kick off the main loop.
@@ -276,6 +281,9 @@ class UnifiProtectBackup:
             )
             tasks.append(downloader.start())
 
+            # A way for uploaders to signal they have uploaded a file
+            upload_signal = asyncio.Event()
+
             # Create upload tasks
             #   This will upload the videos in the downloader's buffer to the rclone remotes and log it in the database
             uploaders = []
@@ -288,6 +296,7 @@ class UnifiProtectBackup:
                     self.file_structure_format,
                     self._db,
                     self.color_logging,
+                    upload_signal,
                 )
                 uploaders.append(uploader)
                 tasks.append(uploader.start())
@@ -301,7 +310,7 @@ class UnifiProtectBackup:
             tasks.append(event_listener.start())
 
             # Create purge task
-            #   This will, every midnight, purge old backups from the rclone remotes and database
+            #   This will, every _purge_interval, purge old backups from the rclone remotes and database
             purge = Purge(
                 self._db,
                 self.retention,
@@ -310,6 +319,12 @@ class UnifiProtectBackup:
                 self.rclone_purge_args,
             )
             tasks.append(purge.start())
+
+            if self._storage_quota is not None:
+                storage_quota_purger = StorageQuotaPurge(
+                    self._db, self._storage_quota, upload_signal, self.rclone_destination, self.rclone_purge_args
+                )
+                tasks.append(storage_quota_purger.start())
 
             # Create missing event task
             #   This will check all the events within the retention period, if any have been missed and not backed up
