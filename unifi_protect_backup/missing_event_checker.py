@@ -45,6 +45,7 @@ class MissingEventChecker:
             ignore_cameras (List[str]): Ignored camera IDs to limit search
             cameras (List[str]): Included (ONLY) camera IDs to limit search
             interval (int): How frequently, in seconds, to check for missing events,
+
         """
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
@@ -111,7 +112,7 @@ class MissingEventChecker:
             missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids | uploading_event_ids)
 
             # Exclude events of unwanted types
-            def wanted_event_type(event_id):
+            def wanted_event_type(event_id, unifi_events=unifi_events):
                 event = unifi_events[event_id]
                 if event.start is None or event.end is None:
                     return False  # This event is still on-going
@@ -156,7 +157,7 @@ class MissingEventChecker:
         await self._db.commit()
 
     async def start(self):
-        """Main loop."""
+        """Run main loop."""
         logger.info("Starting Missing Event Checker")
         while True:
             try:

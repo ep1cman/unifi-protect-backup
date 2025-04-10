@@ -27,7 +27,7 @@ from unifi_protect_backup.utils import (
 
 
 async def get_video_length(video: bytes) -> float:
-    """Uses ffprobe to get the length of the video file passed in as a byte stream."""
+    """Use ffprobe to get the length of the video file passed in as a byte stream."""
     returncode, stdout, stderr = await run_command(
         "ffprobe -v quiet -show_streams -select_streams v:0 -of json -", video
     )
@@ -62,6 +62,7 @@ class VideoDownloaderExperimental:
             color_logging (bool):  Whether or not to add color to logging output
             download_rate_limit (float): Limit how events can be downloaded in one minute",
             max_event_length (timedelta): Maximum length in seconds for an event to be considered valid and downloaded
+
         """
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
@@ -86,7 +87,7 @@ class VideoDownloaderExperimental:
             self._has_ffprobe = False
 
     async def start(self):
-        """Main loop."""
+        """Run main loop."""
         self.logger.info("Starting Downloader")
         while True:
             if self._limiter:
@@ -180,7 +181,7 @@ class VideoDownloaderExperimental:
                 )
 
     async def _download(self, event: Event) -> Optional[bytes]:
-        """Downloads the video clip for the given event."""
+        """Download the video clip for the given event."""
         self.logger.debug("  Downloading video...")
         for x in range(5):
             assert isinstance(event.camera_id, str)
@@ -196,7 +197,7 @@ class VideoDownloaderExperimental:
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
-                self.logger.warning(f"    Failed download attempt {x+1}, retying in 1s", exc_info=e)
+                self.logger.warning(f"    Failed download attempt {x + 1}, retying in 1s", exc_info=e)
                 await asyncio.sleep(1)
         else:
             self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
@@ -221,7 +222,7 @@ class VideoDownloaderExperimental:
         """
         try:
             downloaded_duration = await get_video_length(video)
-            msg = f"  Downloaded video length: {downloaded_duration:.3f}s" f"({downloaded_duration - duration:+.3f}s)"
+            msg = f"  Downloaded video length: {downloaded_duration:.3f}s ({downloaded_duration - duration:+.3f}s)"
             if downloaded_duration < duration:
                 self.logger.warning(msg)
             else:

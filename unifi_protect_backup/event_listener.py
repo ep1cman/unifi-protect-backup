@@ -33,6 +33,7 @@ class EventListener:
             detection_types (List[str]): Desired Event detection types to look for
             ignore_cameras (List[str]): Cameras IDs to ignore events from
             cameras (List[str]): Cameras IDs to ONLY include events from
+
         """
         self._event_queue: asyncio.Queue = event_queue
         self._protect: ProtectApiClient = protect
@@ -43,18 +44,19 @@ class EventListener:
         self.cameras: List[str] = cameras
 
     async def start(self):
-        """Main Loop."""
+        """Run main Loop."""
         logger.debug("Subscribed to websocket")
         self._unsub_websocket_state = self._protect.subscribe_websocket_state(self._websocket_state_callback)
         self._unsub = self._protect.subscribe_websocket(self._websocket_callback)
 
     def _websocket_callback(self, msg: WSSubscriptionMessage) -> None:
-        """Callback for "EVENT" websocket messages.
+        """'EVENT' websocket message callback.
 
         Filters the incoming events, and puts completed events onto the download queue
 
         Args:
             msg (Event): Incoming event data
+
         """
         logger.websocket_data(msg)  # type: ignore
 
@@ -107,12 +109,13 @@ class EventListener:
         logger.debug(f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})")
 
     def _websocket_state_callback(self, state: WebsocketState) -> None:
-        """Callback for websocket state messages.
+        """Websocket state message callback.
 
         Flags the websocket for reconnection
 
         Args:
-            msg (WebsocketState): new state of the websocket
+            state (WebsocketState): new state of the websocket
+
         """
         if state == WebsocketState.DISCONNECTED:
             logger.error("Unifi Protect Websocket lost connection. Reconnecting...")

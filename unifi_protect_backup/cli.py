@@ -29,7 +29,7 @@ def _parse_detection_types(ctx, param, value):
 
 
 def parse_rclone_retention(ctx, param, retention) -> relativedelta:
-    """Parses the rclone `retention` parameter into a relativedelta which can then be used to calculate datetimes."""
+    """Parse the rclone `retention` parameter into a relativedelta which can then be used to calculate datetimes."""
     matches = {k: int(v) for v, k in re.findall(r"([\d]+)(ms|s|m|h|d|w|M|y)", retention)}
 
     # Check that we matched the whole string
@@ -254,8 +254,7 @@ a lot of failed downloads with the default downloader.
     callback=lambda ctx, param, value: int(human_readable_to_float(value)),
 )
 def main(**kwargs):
-    """A Python based tool for backing up Unifi Protect event clips as they occur."""
-
+    """Python based tool for backing up Unifi Protect event clips as they occur."""
     try:
         # Validate only one of the camera select arguments was given
         if kwargs.get("cameras") and kwargs.get("ignore_cameras"):

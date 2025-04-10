@@ -1,3 +1,5 @@
+"""Monkey patch new download method into uiprotect till PR is merged."""
+
 import enum
 from datetime import datetime
 from pathlib import Path
@@ -10,13 +12,15 @@ from uiprotect.exceptions import BadRequest
 from uiprotect.utils import to_js_time
 
 
-# First, let's add the new VideoExportType enum
 class VideoExportType(str, enum.Enum):
+    """Unifi Protect video export types."""
+
     TIMELAPSE = "timelapse"
     ROTATING = "rotating"
 
 
 def monkey_patch_experimental_downloader():
+    """Apply patches to uiprotect to add new download method."""
     from uiprotect.api import ProtectApiClient
 
     # Add the version constant
