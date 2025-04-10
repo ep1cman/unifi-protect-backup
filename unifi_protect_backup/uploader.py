@@ -59,7 +59,7 @@ class VideoUploader:
         self.logger = logging.LoggerAdapter(self.base_logger, {"event": ""})
 
     async def start(self):
-        """Main loop.
+        """Run main loop.
 
         Runs forever looking for video data in the video queue and then uploads it
         using rclone, finally it updates the database
@@ -106,6 +106,7 @@ class VideoUploader:
 
         Raises:
             RuntimeError: If rclone returns a non-zero exit code
+
         """
         returncode, stdout, stderr = await run_command(f'rclone rcat -vv {rclone_args} "{destination}"', video)
         if returncode != 0:
@@ -131,7 +132,7 @@ class VideoUploader:
         await self._db.commit()
 
     async def _generate_file_path(self, event: Event) -> pathlib.Path:
-        """Generates the rclone destination path for the provided event.
+        """Generate the rclone destination path for the provided event.
 
         Generates rclone destination path for the given even based upon the format string
         in `self.file_structure_format`.

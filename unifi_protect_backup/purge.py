@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 async def delete_file(file_path, rclone_purge_args):
-    """Deletes `file_path` via rclone."""
+    """Delete `file_path` via rclone."""
     returncode, stdout, stderr = await run_command(f'rclone delete -vv "{file_path}" {rclone_purge_args}')
     if returncode != 0:
         logger.error(f" Failed to delete file: '{file_path}'")
 
 
 async def tidy_empty_dirs(base_dir_path):
-    """Deletes any empty directories in `base_dir_path` via rclone."""
+    """Delete any empty directories in `base_dir_path` via rclone."""
     returncode, stdout, stderr = await run_command(f'rclone rmdirs -vv --ignore-errors --leave-root "{base_dir_path}"')
     if returncode != 0:
         logger.error(" Failed to tidy empty dirs")
@@ -34,7 +34,7 @@ class Purge:
         db: aiosqlite.Connection,
         retention: relativedelta,
         rclone_destination: str,
-        interval: relativedelta = relativedelta(days=1),
+        interval: relativedelta | None,
         rclone_purge_args: str = "",
     ):
         """Init.
@@ -45,15 +45,16 @@ class Purge:
             rclone_destination (str): What rclone destination the clips are stored in
             interval (relativedelta): How often to purge old clips
             rclone_purge_args (str): Optional extra arguments to pass to `rclone delete` directly.
+
         """
         self._db: aiosqlite.Connection = db
         self.retention: relativedelta = retention
         self.rclone_destination: str = rclone_destination
-        self.interval: relativedelta = interval
+        self.interval: relativedelta = interval if interval is not None else relativedelta(days=1)
         self.rclone_purge_args: str = rclone_purge_args
 
     async def start(self):
-        """Main loop - runs forever."""
+        """Run main loop."""
         while True:
             try:
                 deleted_a_file = False
@@ -63,7 +64,7 @@ class Purge:
                 async with self._db.execute(
                     f"SELECT * FROM events WHERE end < {retention_oldest_time}"
                 ) as event_cursor:
-                    async for event_id, event_type, camera_id, event_start, event_end in event_cursor:
+                    async for event_id, event_type, camera_id, event_start, event_end in event_cursor:  # noqa: B007
                         logger.info(f"Purging event: {event_id}.")
 
                         # For every backup for this event

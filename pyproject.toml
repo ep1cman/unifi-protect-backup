@@ -63,8 +63,14 @@ line-length = 120
 target-version = "py310"
 
 [tool.ruff.lint]
+select = ["E","F","D","B","W"]
+ignore = ["D203", "D213"]
 
 [tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
 
 [tool.mypy]
 allow_redefinition = true

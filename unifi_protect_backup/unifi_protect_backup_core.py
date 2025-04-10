@@ -43,7 +43,7 @@ monkey_patch_experimental_downloader()
 
 
 async def create_database(path: str):
-    """Creates sqlite database and creates the events abd backups tables."""
+    """Create sqlite database and creates the events abd backups tables."""
     db = await aiosqlite.connect(path)
     await db.execute("CREATE TABLE events(id PRIMARY KEY, type, camera_id, start REAL, end REAL)")
     await db.execute(
@@ -117,7 +117,8 @@ class UnifiProtectBackup:
             color_logging (bool): Whether to add color to logging output or not
             download_rate_limit (float): Limit how events can be downloaded in one minute. Disabled by default",
             max_event_length (int): Maximum length in seconds for an event to be considered valid and downloaded
-            use_experimental_downloader (bool): Use the new experimental downloader (the same method as used by the webUI)
+            use_experimental_downloader (bool): Use the new experimental downloader (the same method as used by the
+                                                webUI)
             parallel_uploads (int): Max number of parallel uploads to allow
         """
         self.color_logging = color_logging
@@ -216,7 +217,7 @@ class UnifiProtectBackup:
             delay = 5  # Start with a 5 second delay
             max_delay = 3600  # 1 hour in seconds
 
-            for attempts in range(20):
+            for _ in range(20):
                 try:
                     await self._protect.update()
                     break
@@ -279,7 +280,7 @@ class UnifiProtectBackup:
             # Create upload tasks
             #   This will upload the videos in the downloader's buffer to the rclone remotes and log it in the database
             uploaders = []
-            for i in range(self._parallel_uploads):
+            for _ in range(self._parallel_uploads):
                 uploader = VideoUploader(
                     self._protect,
                     upload_queue,
