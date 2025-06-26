@@ -29,7 +29,7 @@ dependencies = [
     "expiring-dict>=1.1.0",
     "async-lru>=2.0.4",
     "aiolimiter>=1.1.0",
-    "uiprotect==7.5.2",
+    "uiprotect==7.14.1",
     "aiohttp==3.11.16",
 ]
 
