@@ -1545,7 +1545,7 @@ wheels = [
 
 [[package]]
 name = "unifi-protect-backup"
-version = "0.13.0"
+version = "0.13.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
