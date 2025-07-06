@@ -185,11 +185,11 @@ class UnifiProtectBackup:
             verify_ssl=self.verify_ssl,
             subscribed_models={ModelType.EVENT},
         )
-        self.ignore_cameras = ignore_cameras
-        self.cameras = cameras
+        self.ignore_cameras = set(ignore_cameras)
+        self.cameras = set(cameras)
         self._download_queue: asyncio.Queue = asyncio.Queue()
         self._unsub: Callable[[], None]
-        self.detection_types = detection_types
+        self.detection_types = set(detection_types)
         self._has_ffprobe = False
         self._sqlite_path = sqlite_path
         self._db = None

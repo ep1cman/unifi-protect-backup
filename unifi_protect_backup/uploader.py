@@ -46,7 +46,6 @@ class VideoUploader:
             file_structure_format (str): format string for how to structure the uploaded files
             db (aiosqlite.Connection): Async SQlite database connection
             color_logging (bool):  Whether or not to add color to logging output
-            upload_signal (asyncio.Event): Set by the uploader to signal an upload has occured
 
         """
         self._protect: ProtectApiClient = protect
