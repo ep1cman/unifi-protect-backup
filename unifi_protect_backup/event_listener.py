@@ -3,13 +3,14 @@
 import asyncio
 import logging
 from time import sleep
-from typing import List
+from typing import Set
 
 from uiprotect.api import ProtectApiClient
 from uiprotect.websocket import WebsocketState
 from uiprotect.data.nvr import Event
-from uiprotect.data.types import EventType
 from uiprotect.data.websocket import WSAction, WSSubscriptionMessage
+
+from unifi_protect_backup.utils import wanted_event_type
 
 logger = logging.getLogger(__name__)
 
@@ -21,27 +22,27 @@ class EventListener:
         self,
         event_queue: asyncio.Queue,
         protect: ProtectApiClient,
-        detection_types: List[str],
-        ignore_cameras: List[str],
-        cameras: List[str],
+        detection_types: Set[str],
+        ignore_cameras: Set[str],
+        cameras: Set[str],
     ):
         """Init.
 
         Args:
             event_queue (asyncio.Queue): Queue to place events to backup on
             protect (ProtectApiClient): UniFI Protect API client to use
-            detection_types (List[str]): Desired Event detection types to look for
-            ignore_cameras (List[str]): Cameras IDs to ignore events from
-            cameras (List[str]): Cameras IDs to ONLY include events from
+            detection_types (Set[str]): Desired Event detection types to look for
+            ignore_cameras (Set[str]): Cameras IDs to ignore events from
+            cameras (Set[str]): Cameras IDs to ONLY include events from
 
         """
         self._event_queue: asyncio.Queue = event_queue
         self._protect: ProtectApiClient = protect
         self._unsub = None
         self._unsub_websocketstate = None
-        self.detection_types: List[str] = detection_types
-        self.ignore_cameras: List[str] = ignore_cameras
-        self.cameras: List[str] = cameras
+        self.detection_types: Set[str] = detection_types
+        self.ignore_cameras: Set[str] = ignore_cameras
+        self.cameras: Set[str] = cameras
 
     async def start(self):
         """Run main Loop."""
@@ -63,35 +64,10 @@ class EventListener:
         assert isinstance(msg.new_obj, Event)
         if msg.action != WSAction.UPDATE:
             return
-        if msg.new_obj.camera_id in self.ignore_cameras:
-            return
-        if self.cameras and msg.new_obj.camera_id not in self.cameras:
-            return
         if "end" not in msg.changed_data:
             return
-        if msg.new_obj.type not in [
-            EventType.MOTION,
-            EventType.SMART_DETECT,
-            EventType.RING,
-            EventType.SMART_DETECT_LINE,
-        ]:
+        if not wanted_event_type(msg.new_obj, self.detection_types, self.cameras, self.ignore_cameras):
             return
-        if msg.new_obj.type is EventType.MOTION and "motion" not in self.detection_types:
-            logger.extra_debug(f"Skipping unwanted motion detection event: {msg.new_obj.id}")  # type: ignore
-            return
-        if msg.new_obj.type is EventType.RING and "ring" not in self.detection_types:
-            logger.extra_debug(f"Skipping unwanted ring event: {msg.new_obj.id}")  # type: ignore
-            return
-        if msg.new_obj.type is EventType.SMART_DETECT_LINE and "line" not in self.detection_types:
-            logger.extra_debug(f"Skipping unwanted line event: {msg.new_obj.id}")  # type: ignore
-            return
-        elif msg.new_obj.type is EventType.SMART_DETECT:
-            for event_smart_detection_type in msg.new_obj.smart_detect_types:
-                if event_smart_detection_type not in self.detection_types:
-                    logger.extra_debug(  # type: ignore
-                        f"Skipping unwanted {event_smart_detection_type} detection event: {msg.new_obj.id}"
-                    )
-                    return
 
         # TODO: Will this even work? I think it will block the async loop
         while self._event_queue.full():

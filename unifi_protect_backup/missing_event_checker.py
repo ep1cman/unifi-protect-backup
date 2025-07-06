@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import AsyncIterator, List
+from typing import AsyncIterator, List, Set
 
 import aiosqlite
 from dateutil.relativedelta import relativedelta
@@ -12,6 +12,7 @@ from uiprotect.data.nvr import Event
 from uiprotect.data.types import EventType
 
 from unifi_protect_backup import VideoDownloader, VideoUploader
+from unifi_protect_backup.utils import EVENT_TYPES_MAP, wanted_event_type
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +28,9 @@ class MissingEventChecker:
         downloader: VideoDownloader,
         uploaders: List[VideoUploader],
         retention: relativedelta,
-        detection_types: List[str],
-        ignore_cameras: List[str],
-        cameras: List[str],
+        detection_types: Set[str],
+        ignore_cameras: Set[str],
+        cameras: Set[str],
         interval: int = 60 * 5,
     ) -> None:
         """Init.
@@ -41,9 +42,9 @@ class MissingEventChecker:
             downloader (VideoDownloader): Downloader to check for on-going downloads
             uploaders (List[VideoUploader]): Uploaders to check for on-going uploads
             retention (relativedelta): Retention period to limit search window
-            detection_types (List[str]): Detection types wanted to limit search
-            ignore_cameras (List[str]): Ignored camera IDs to limit search
-            cameras (List[str]): Included (ONLY) camera IDs to limit search
+            detection_types (Set[str]): Detection types wanted to limit search
+            ignore_cameras (Set[str]): Ignored camera IDs to limit search
+            cameras (Set[str]): Included (ONLY) camera IDs to limit search
             interval (int): How frequently, in seconds, to check for missing events,
 
         """
@@ -53,9 +54,9 @@ class MissingEventChecker:
         self._downloader: VideoDownloader = downloader
         self._uploaders: List[VideoUploader] = uploaders
         self.retention: relativedelta = retention
-        self.detection_types: List[str] = detection_types
-        self.ignore_cameras: List[str] = ignore_cameras
-        self.cameras: List[str] = cameras
+        self.detection_types: Set[str] = detection_types
+        self.ignore_cameras: Set[str] = ignore_cameras
+        self.cameras: Set[str] = cameras
         self.interval: int = interval
 
     async def _get_missing_events(self) -> AsyncIterator[Event]:
@@ -69,12 +70,7 @@ class MissingEventChecker:
             events_chunk = await self._protect.get_events(
                 start=start_time,
                 end=end_time,
-                types=[
-                    EventType.MOTION,
-                    EventType.SMART_DETECT,
-                    EventType.RING,
-                    EventType.SMART_DETECT_LINE,
-                ],
+                types=list(EVENT_TYPES_MAP.keys()),
                 limit=chunk_size,
             )
 
@@ -109,35 +105,23 @@ class MissingEventChecker:
                 if current_upload is not None:
                     uploading_event_ids.add(current_upload.id)
 
-            missing_event_ids = set(unifi_events.keys()) - (db_event_ids | downloading_event_ids | uploading_event_ids)
+            missing_events = {
+                event_id: event
+                for event_id, event in unifi_events.items()
+                if event_id not in (db_event_ids | downloading_event_ids | uploading_event_ids)
+            }
 
             # Exclude events of unwanted types
-            def wanted_event_type(event_id, unifi_events=unifi_events):
-                event = unifi_events[event_id]
-                if event.start is None or event.end is None:
-                    return False  # This event is still on-going
-                if event.camera_id in self.ignore_cameras:
-                    return False
-                if self.cameras and event.camera_id not in self.cameras:
-                    return False
-                if event.type is EventType.MOTION and "motion" not in self.detection_types:
-                    return False
-                if event.type is EventType.RING and "ring" not in self.detection_types:
-                    return False
-                if event.type is EventType.SMART_DETECT_LINE and "line" not in self.detection_types:
-                    return False
-                elif event.type is EventType.SMART_DETECT:
-                    for event_smart_detection_type in event.smart_detect_types:
-                        if event_smart_detection_type not in self.detection_types:
-                            return False
-                return True
-
-            wanted_event_ids = set(filter(wanted_event_type, missing_event_ids))
+            wanted_events = {
+                event_id: event
+                for event_id, event in missing_events.items()
+                if wanted_event_type(event, self.detection_types, self.cameras, self.ignore_cameras)
+            }
 
             # Yeild events one by one to allow the async loop to start other task while
             # waiting on the full list of events
-            for id in wanted_event_ids:
-                yield unifi_events[id]
+            for event in wanted_events.values():
+                yield event
 
             # Last chunk was in-complete, we can stop now
             if len(events_chunk) < chunk_size:
