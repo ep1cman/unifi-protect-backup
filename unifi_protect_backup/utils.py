@@ -4,12 +4,13 @@ import asyncio
 import logging
 import re
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Set
 
 from apprise import NotifyType
 from async_lru import alru_cache
 from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
+from uiprotect.data.types import EventType, SmartDetectObjectType, SmartDetectAudioType
 
 from unifi_protect_backup import notifications
 
@@ -454,3 +455,38 @@ async def wait_until(dt):
     """Sleep until the specified datetime."""
     now = datetime.now()
     await asyncio.sleep((dt - now).total_seconds())
+
+
+EVENT_TYPES_MAP = {
+    EventType.MOTION: {"motion"},
+    EventType.RING: {"ring"},
+    EventType.SMART_DETECT_LINE: {"line"},
+    EventType.FINGERPRINT_IDENTIFIED: {"fingerprint"},
+    EventType.NFC_CARD_SCANNED: {"nfc"},
+    EventType.SMART_DETECT: {t for t in SmartDetectObjectType.values() if t not in SmartDetectAudioType.values()},
+    EventType.SMART_AUDIO_DETECT: {f"{t}" for t in SmartDetectAudioType.values()},
+}
+
+
+def wanted_event_type(event, wanted_detection_types: Set[str], cameras: Set[str], ignore_cameras: Set[str]):
+    """Return True if this event is one we want."""
+    if event.start is None or event.end is None:
+        return False  # This event is still on-going
+
+    if event.camera_id in ignore_cameras:
+        return False
+
+    if cameras and event.camera_id not in cameras:
+        return False
+
+    if event.type not in EVENT_TYPES_MAP:
+        return False
+
+    if event.type in [EventType.SMART_DETECT, EventType.SMART_AUDIO_DETECT]:
+        detection_types = set(event.smart_detect_types)
+    else:
+        detection_types = EVENT_TYPES_MAP[event.type]
+    if not detection_types & wanted_detection_types:  # No intersection
+        return False
+
+    return True

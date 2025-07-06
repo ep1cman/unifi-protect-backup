@@ -114,7 +114,7 @@ class VideoDownloaderExperimental:
                 output_queue_max_size = human_readable_size(self.upload_queue.maxsize)
                 self.logger.debug(f"Video Download Buffer: {output_queue_current_size}/{output_queue_max_size}")
                 self.logger.debug(f"  Camera: {await get_camera_name(self._protect, event.camera_id)}")
-                if event.type == EventType.SMART_DETECT:
+                if event.type in [EventType.SMART_DETECT, EventType.SMART_AUDIO_DETECT]:
                     self.logger.debug(f"  Type: {event.type.value} ({', '.join(event.smart_detect_types)})")
                 else:
                     self.logger.debug(f"  Type: {event.type.value}")
