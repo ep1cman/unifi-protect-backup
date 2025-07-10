@@ -90,7 +90,7 @@ docker run \
   -e UFP_ADDRESS='UNIFI_PROTECT_IP' \
   -e UFP_SSL_VERIFY='false' \
   -e RCLONE_DESTINATION='my_remote:/unifi_protect_backup' \
-  -v '/path/to/rclone.conf':'/config/rclone/rclone.conf' \
+  -v '/path/to/config/rclone':'/config/rclone/' \
   -v '/path/to/save/database':/config/database/ \
   ghcr.io/ep1cman/unifi-protect-backup
 ```
@@ -369,7 +369,7 @@ If you need to debug your rclone setup, you can invoke rclone directly like so:
 ```
 docker run \
     --rm \
-    -v /path/to/rclone.conf:/config/rclone/rclone.conf \
+    -v /path/to/config/rclone:/config/rclone \
     -e RCLONE_CONFIG='/config/rclone/rclone.conf' \
     --entrypoint rclone \
     ghcr.io/ep1cman/unifi-protect-backup \
@@ -380,7 +380,7 @@ For example to check that your config file is being read properly and list the c
 ```
 docker run \
     --rm \
-    -v /path/to/rclone.conf:/config/rclone/rclone.conf \
+    -v /path/to/config/rclone:/config/rclone \
     -e RCLONE_CONFIG='/config/rclone/rclone.conf' \
     --entrypoint rclone \
     ghcr.io/ep1cman/unifi-protect-backup \
