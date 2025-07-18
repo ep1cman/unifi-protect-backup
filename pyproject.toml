@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "unifi_protect_backup"
-version = "0.13.1"
+version = "0.14.0"
 description = "Python tool to backup unifi event clips in realtime."
 readme = "README.md"
 license = {text = "MIT"}
