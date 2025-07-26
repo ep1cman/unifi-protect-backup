@@ -27,6 +27,7 @@ class VideoUploader:
 
     def __init__(
         self,
+        core,
         protect: ProtectApiClient,
         upload_queue: VideoQueue,
         rclone_destination: str,
@@ -47,6 +48,7 @@ class VideoUploader:
             color_logging (bool):  Whether or not to add color to logging output
 
         """
+        self._core = core
         self._protect: ProtectApiClient = protect
         self.upload_queue: VideoQueue = upload_queue
         self._rclone_destination: str = rclone_destination
@@ -88,6 +90,7 @@ class VideoUploader:
                     self.logger.debug("Uploaded")
                 except SubprocessException:
                     self.logger.error(f" Failed to upload file: '{destination}'")
+                    self._core.missing.update_start_time(event.start)
 
                 self.current_event = None
 

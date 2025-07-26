@@ -283,6 +283,7 @@ class UnifiProtectBackup:
             uploaders = []
             for _ in range(self._parallel_uploads):
                 uploader = VideoUploader(
+                    self,
                     self._protect,
                     upload_queue,
                     self.rclone_destination,
@@ -316,21 +317,21 @@ class UnifiProtectBackup:
             # Create missing event task
             #   This will check all the events within the retention period, if any have been missed and not backed up
             #   they will be added to the event queue
-            missing = MissingEventChecker(
+            self.missing = MissingEventChecker(
                 self._protect,
                 self._db,
                 download_queue,
                 downloader,
                 uploaders,
-                self.retention,
+                datetime.now(timezone.utc) - self.retention,
                 self.detection_types,
                 self.ignore_cameras,
                 self.cameras,
             )
             if self._skip_missing:
                 logger.info("Ignoring missing events")
-                await missing.ignore_missing()
-            tasks.append(missing.start())
+                await self.missing.ignore_missing()
+            tasks.append(self.missing.start())
 
             logger.info("Starting Tasks...")
             await asyncio.gather(*[asyncio.create_task(task) for task in tasks])

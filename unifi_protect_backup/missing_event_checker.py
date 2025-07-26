@@ -2,11 +2,10 @@
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import AsyncIterator, List, Set
 
 import aiosqlite
-from dateutil.relativedelta import relativedelta
 from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
 from uiprotect.data.types import EventType
@@ -27,7 +26,7 @@ class MissingEventChecker:
         download_queue: asyncio.Queue,
         downloader: VideoDownloader,
         uploaders: List[VideoUploader],
-        retention: relativedelta,
+        start_time: datetime,
         detection_types: Set[str],
         ignore_cameras: Set[str],
         cameras: Set[str],
@@ -53,15 +52,17 @@ class MissingEventChecker:
         self._download_queue: asyncio.Queue = download_queue
         self._downloader: VideoDownloader = downloader
         self._uploaders: List[VideoUploader] = uploaders
-        self.retention: relativedelta = retention
+        self.start_time: datetime = start_time
         self.detection_types: Set[str] = detection_types
         self.ignore_cameras: Set[str] = ignore_cameras
         self.cameras: Set[str] = cameras
         self.interval: int = interval
 
     async def _get_missing_events(self) -> AsyncIterator[Event]:
-        start_time = datetime.now() - self.retention
-        end_time = datetime.now()
+        start_time = self.start_time
+        end_time = datetime.now(timezone.utc)
+        # Set next start time to be the end of the times checked for this iteration
+        self.start_time = end_time
         chunk_size = 500
 
         while True:
@@ -76,6 +77,11 @@ class MissingEventChecker:
 
             if not events_chunk:
                 break  # There were no events to backup
+
+            # Make next missing events earlier if there are ongoing events
+            for event in events_chunk:
+                if event.end is None:
+                    self.update_start_time(event.start)
 
             # Filter out on-going events
             unifi_events = {event.id: event for event in events_chunk if event.end is not None}
@@ -139,6 +145,11 @@ class MissingEventChecker:
                 f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
             )
         await self._db.commit()
+
+    def update_start_time(self, start_time: datetime):
+        if start_time < self.start_time:
+            logger.extra_debug(f"Making next missing events checker earlier: '{start_time.strftime('%Y-%m-%dT%H-%M-%S')}'")
+            self.start_time = start_time
 
     async def start(self):
         """Run main loop."""
