@@ -4,7 +4,7 @@ mkdir -p /config/rclone
 
 # For backwards compatibility
 [[ -f "/root/.config/rclone/rclone.conf" ]] && \
-    echo "DEPRECATED: Copying rclone conf from /root/.config/rclone/rclone.conf, please change your mount to /config/rclone/rclone.conf"
+    echo "DEPRECATED: Copying rclone conf from /root/.config/rclone/rclone.conf, please change your mount to /config/rclone/rclone.conf" && \
     cp \
         /root/.config/rclone/rclone.conf \
         /config/rclone/rclone.conf
