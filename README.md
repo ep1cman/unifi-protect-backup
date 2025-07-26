@@ -23,7 +23,7 @@ retention period.
 ## Features
 
 - Listens to events in real-time via the Unifi Protect websocket API
-- Ensures any previous and/or missed events within the retention period are also backed up
+- Ensures any previous and/or missed events within the missing range are also backed up
 - Supports uploading to a [wide range of storage systems using `rclone`](https://rclone.org/overview/)
 - Automatic pruning of old clips
 
@@ -123,6 +123,10 @@ Options:
                                   `--max-age` argument of `rclone`
                                   (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-
                                   older-than-this)  [default: 7d]
+  --missing-range TEXT            How far back should missing events be checked for. Defaults to
+                                  the same as the retention time. Format as per the `--max-age`
+                                  argument of `rclone` (https://rclone.org/filtering/#max-age-don-
+                                  t-transfer-any-file-older-than-this)
   --rclone-args TEXT              Optional extra arguments to pass to `rclone rcat` directly.
                                   Common usage for this would be to set a bandwidth limit, for
                                   example.
@@ -131,14 +135,21 @@ Options:
                                   instead of using the recycle bin on a destination. Google Drive
                                   example: `--drive-use-trash=false`
   --detection-types TEXT          A comma separated list of which types of detections to backup.
-                                  Valid options are: `motion`, `person`, `vehicle`, `ring`
-                                  [default: motion,person,vehicle,ring]
+                                  Valid options are: `motion`, `ring`, `line`, `fingerprint`,
+                                  `nfc`, `person`, `animal`, `vehicle`, `licensePlate`, `package`,
+                                  `face`, `car`, `pet`, `alrmSmoke`, `alrmCmonx`, `smoke_cmonx`,
+                                  `alrmSiren`, `alrmBabyCry`, `alrmSpeak`, `alrmBark`,
+                                  `alrmBurglar`, `alrmCarHorn`, `alrmGlassBreak`  [default: motion
+                                  ,ring,line,fingerprint,nfc,person,animal,vehicle,licensePlate,pa
+                                  ckage,face,car,pet,alrmSmoke,alrmCmonx,smoke_cmonx,alrmSiren,alr
+                                  mBabyCry,alrmSpeak,alrmBark,alrmBurglar,alrmCarHorn,alrmGlassBre
+                                  ak]
   --ignore-camera TEXT            IDs of cameras for which events should not be backed up. Use
                                   multiple times to ignore multiple IDs. If being set as an
                                   environment variable the IDs should be separated by whitespace.
                                   Alternatively, use a Unifi user with a role which has access
                                   restricted to the subset of cameras that you wish to backup.
-   --camera TEXT                   IDs of *ONLY* cameras for which events should be backed up. Use
+  --camera TEXT                   IDs of *ONLY* cameras for which events should be backed up. Use
                                   multiple times to include multiple IDs. If being set as an
                                   environment variable the IDs should be separated by whitespace.
                                   Alternatively, use a Unifi user with a role which has access
@@ -214,6 +225,7 @@ always take priority over environment variables):
 - `UFP_PORT`
 - `UFP_SSL_VERIFY`
 - `RCLONE_RETENTION`
+- `MISSING_RANGE`
 - `RCLONE_DESTINATION`
 - `RCLONE_ARGS`
 - `RCLONE_PURGE_ARGS`
