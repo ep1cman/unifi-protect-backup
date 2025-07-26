@@ -83,8 +83,8 @@ class MissingEventChecker:
             if not unifi_events:
                 break  # No completed events to process
 
-            # Next chunks start time should be the end of the oldest complete event in the current chunk
-            start_time = max([event.end for event in unifi_events.values() if event.end is not None])
+            # Next chunks start time should be the start of the oldest complete event in the current chunk
+            start_time = max([event.start for event in unifi_events.values() if event.end is not None])
 
             # Get list of events that have been backed up from the database
 
