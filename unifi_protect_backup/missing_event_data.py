@@ -26,7 +26,7 @@ class MissingEventData:
 
         """
         if start_time < self.start_time:
-            logger.debug_extra(  # type: ignore
+            logger.extra_debug(  # type: ignore
                 f"Making next missing events checker earlier: '{start_time.strftime('%Y-%m-%dT%H-%M-%S')}'"
             )
             self.start_time = start_time

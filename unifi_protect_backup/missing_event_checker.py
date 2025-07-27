@@ -68,7 +68,7 @@ class MissingEventChecker:
 
         while True:
             # Get list of events that need to be backed up from unifi protect
-            logger.debug_extra(f"Fetching events for interval: {start_time} - {end_time}")  # type: ignore
+            logger.extra_debug(f"Fetching events for interval: {start_time} - {end_time}")  # type: ignore
             events_chunk = await self._protect.get_events(
                 start=start_time,
                 end=end_time,
