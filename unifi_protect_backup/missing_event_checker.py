@@ -150,6 +150,8 @@ class MissingEventChecker:
         """Run main loop."""
         logger.info("Starting Missing Event Checker")
         while True:
+            start_time = self._missing_data.get_start_time()
+
             try:
                 shown_warning = False
 
@@ -180,5 +182,7 @@ class MissingEventChecker:
                     "Unexpected exception occurred during missing event check:",
                     exc_info=e,
                 )
+                # Set start time back to earlier time if missing event check failed
+                self._missing_data.update_start_time(start_time)
 
             await asyncio.sleep(self.interval)
