@@ -107,9 +107,7 @@ class MissingEventChecker:
 
             existing_ids = db_event_ids | downloading_event_ids | uploading_event_ids
             missing_events = {
-                event_id: event
-                for event_id, event in unifi_events.items()
-                if event_id not in existing_ids
+                event_id: event for event_id, event in unifi_events.items() if event_id not in existing_ids
             }
 
             # Exclude events of unwanted types
