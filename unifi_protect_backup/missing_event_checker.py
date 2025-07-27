@@ -89,8 +89,8 @@ class MissingEventChecker:
             if not unifi_events:
                 break  # No completed events to process
 
-            # Next chunks start time should be the end of the oldest complete event in the current chunk
-            start_time = max([event.end for event in unifi_events.values() if event.end is not None])
+            # Next chunks start time should be the start of the oldest complete event in the current chunk
+            start_time = max([event.start for event in unifi_events.values() if event.end is not None])
 
             # Get list of events that have been backed up from the database
 
@@ -111,10 +111,9 @@ class MissingEventChecker:
                 if current_upload is not None:
                     uploading_event_ids.add(current_upload.id)
 
+            existing_ids = db_event_ids | downloading_event_ids | uploading_event_ids
             missing_events = {
-                event_id: event
-                for event_id, event in unifi_events.items()
-                if event_id not in (db_event_ids | downloading_event_ids | uploading_event_ids)
+                event_id: event for event_id, event in unifi_events.items() if event_id not in existing_ids
             }
 
             # Exclude events of unwanted types

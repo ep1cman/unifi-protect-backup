@@ -30,8 +30,11 @@ def _parse_detection_types(ctx, param, value):
     return types
 
 
-def parse_rclone_retention(ctx, param, retention) -> relativedelta:
+def parse_rclone_retention(ctx, param, retention) -> relativedelta | None:
     """Parse the rclone `retention` parameter into a relativedelta which can then be used to calculate datetimes."""
+    if retention is None:
+        return None
+
     matches = {k: int(v) for v, k in re.findall(r"([\d]+)(ms|s|m|h|d|w|M|y)", retention)}
 
     # Check that we matched the whole string
@@ -76,6 +79,15 @@ def parse_rclone_retention(ctx, param, retention) -> relativedelta:
     show_default=True,
     envvar="RCLONE_RETENTION",
     help="How long should event clips be backed up for. Format as per the `--max-age` argument of `rclone` "
+    "(https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
+    callback=parse_rclone_retention,
+)
+@click.option(
+    "--missing-range",
+    default=None,
+    envvar="MISSING_RANGE",
+    help="How far back should missing events be checked for. Defaults to the same as the retention time. "
+    "Format as per the `--max-age` argument of `rclone` "
     "(https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)",
     callback=parse_rclone_retention,
 )
@@ -260,6 +272,9 @@ def main(**kwargs):
                 err=True,
             )
             raise SystemExit(200)  # throw 200 = arg error, service will not be restarted (docker)
+
+        if kwargs.get("missing_range") is None:
+            kwargs["missing_range"] = kwargs.get("retention")
 
         # Only create the event listener and run if validation passes
         event_listener = UnifiProtectBackup(**kwargs)

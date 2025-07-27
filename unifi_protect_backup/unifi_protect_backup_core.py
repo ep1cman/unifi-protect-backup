@@ -68,6 +68,7 @@ class UnifiProtectBackup:
         verify_ssl: bool,
         rclone_destination: str,
         retention: relativedelta,
+        missing_range: relativedelta,
         rclone_args: str,
         rclone_purge_args: str,
         detection_types: List[str],
@@ -98,9 +99,13 @@ class UnifiProtectBackup:
             rclone_destination (str): `rclone` destination path in the format
                                     {rclone remote}:{path on remote}. E.g.
                                     `gdrive:/backups/unifi_protect`
-            retention (str): How long should event clips be backed up for. Format as per the
+            retention (relativedelta): How long should event clips be backed up for. Format as per the
                             `--max-age` argument of `rclone`
                             (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)
+            missing_range (relativedelta): How far back should missing events be checked for. Defaults to
+                                 the same as the retention time. Format as per the
+                                `--max-age` argument of `rclone`
+                                (https://rclone.org/filtering/#max-age-don-t-transfer-any-file-older-than-this)
             rclone_args (str): A bandwidth limit which is passed to the `--bwlimit` argument of
                                    `rclone` (https://rclone.org/docs/#bwlimit-bandwidth-spec)
             rclone_purge_args (str): Optional extra arguments to pass to `rclone delete` directly.
@@ -144,6 +149,7 @@ class UnifiProtectBackup:
         logger.debug(f"  {verify_ssl=}")
         logger.debug(f"  {rclone_destination=}")
         logger.debug(f"  {retention=}")
+        logger.debug(f"  {missing_range=}")
         logger.debug(f"  {rclone_args=}")
         logger.debug(f"  {rclone_purge_args=}")
         logger.debug(f"  {ignore_cameras=}")
@@ -163,6 +169,7 @@ class UnifiProtectBackup:
 
         self.rclone_destination = rclone_destination
         self.retention = retention
+        self.missing_range = missing_range
         self.rclone_args = rclone_args
         self.rclone_purge_args = rclone_purge_args
         self.file_structure_format = file_structure_format
@@ -315,15 +322,15 @@ class UnifiProtectBackup:
             tasks.append(purge.start())
 
             # Create missing event task
-            #   This will check all the events within the retention period, if any have been missed and not backed up
-            #   they will be added to the event queue
+            #   This will check all the events within the missing_range period, if any have been missed and not
+            #   backed up. they will be added to the event queue
             self.missing = MissingEventChecker(
                 self._protect,
                 self._db,
                 download_queue,
                 downloader,
                 uploaders,
-                datetime.now(timezone.utc) - self.retention,
+                datetime.now(timezone.utc) - self.missing_range,
                 self.detection_types,
                 self.ignore_cameras,
                 self.cameras,
