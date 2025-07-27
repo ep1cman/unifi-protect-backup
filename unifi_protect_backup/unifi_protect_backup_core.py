@@ -14,6 +14,7 @@ from uiprotect.data.types import ModelType
 
 from unifi_protect_backup import (
     EventListener,
+    MissingEventData,
     MissingEventChecker,
     Purge,
     VideoDownloader,
@@ -285,13 +286,17 @@ class UnifiProtectBackup:
             )
             tasks.append(downloader.start())
 
+            missing_data = MissingEventData(
+                datetime.now(timezone.utc) - self.missing_range,
+            )
+
             # Create upload tasks
             #   This will upload the videos in the downloader's buffer to the rclone remotes and log it in the database
             uploaders = []
             for _ in range(self._parallel_uploads):
                 uploader = VideoUploader(
-                    self,
                     self._protect,
+                    missing_data,
                     upload_queue,
                     self.rclone_destination,
                     self.rclone_args,
@@ -327,10 +332,10 @@ class UnifiProtectBackup:
             self.missing = MissingEventChecker(
                 self._protect,
                 self._db,
+                missing_data,
                 download_queue,
                 downloader,
                 uploaders,
-                datetime.now(timezone.utc) - self.missing_range,
                 self.detection_types,
                 self.ignore_cameras,
                 self.cameras,

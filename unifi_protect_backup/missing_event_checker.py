@@ -10,7 +10,7 @@ from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
 from uiprotect.data.types import EventType
 
-from unifi_protect_backup import VideoDownloader, VideoUploader
+from unifi_protect_backup import VideoDownloader, VideoUploader, MissingEventData
 from unifi_protect_backup.utils import EVENT_TYPES_MAP, wanted_event_type
 
 logger = logging.getLogger(__name__)
@@ -23,10 +23,10 @@ class MissingEventChecker:
         self,
         protect: ProtectApiClient,
         db: aiosqlite.Connection,
+        missing_data: MissingEventData,
         download_queue: asyncio.Queue,
         downloader: VideoDownloader,
         uploaders: List[VideoUploader],
-        start_time: datetime,
         detection_types: Set[str],
         ignore_cameras: Set[str],
         cameras: Set[str],
@@ -37,6 +37,7 @@ class MissingEventChecker:
         Args:
             protect (ProtectApiClient): UniFi Protect API client to use
             db (aiosqlite.Connection): Async SQLite database to check for missing events
+            missing_data (MissingEventData): Additional data used for missing event checker
             download_queue (asyncio.Queue): Download queue to check for on-going downloads
             downloader (VideoDownloader): Downloader to check for on-going downloads
             uploaders (List[VideoUploader]): Uploaders to check for on-going uploads
@@ -49,25 +50,25 @@ class MissingEventChecker:
         """
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
+        self._missing_data: MissingEventData = missing_data
         self._download_queue: asyncio.Queue = download_queue
         self._downloader: VideoDownloader = downloader
         self._uploaders: List[VideoUploader] = uploaders
-        self.start_time: datetime = start_time
         self.detection_types: Set[str] = detection_types
         self.ignore_cameras: Set[str] = ignore_cameras
         self.cameras: Set[str] = cameras
         self.interval: int = interval
 
     async def _get_missing_events(self) -> AsyncIterator[Event]:
-        start_time = self.start_time
+        start_time = self._missing_data.get_start_time()
         end_time = datetime.now(timezone.utc)
         # Set next start time to be the end of the times checked for this iteration
-        self.start_time = end_time
+        self._missing_data.set_start_time(end_time)
         chunk_size = 500
 
         while True:
             # Get list of events that need to be backed up from unifi protect
-            logger.extra_debug(f"Fetching events for interval: {start_time} - {end_time}")  # type: ignore
+            logger.debug_extra(f"Fetching events for interval: {start_time} - {end_time}")  # type: ignore
             events_chunk = await self._protect.get_events(
                 start=start_time,
                 end=end_time,
@@ -81,7 +82,7 @@ class MissingEventChecker:
             # Make next missing events earlier if there are ongoing events
             for event in events_chunk:
                 if event.end is None:
-                    self.update_start_time(event.start)
+                    self._missing_data.update_start_time(event.start)
 
             # Filter out on-going events
             unifi_events = {event.id: event for event in events_chunk if event.end is not None}
@@ -144,11 +145,6 @@ class MissingEventChecker:
                 f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
             )
         await self._db.commit()
-
-    def update_start_time(self, start_time: datetime):
-        if start_time < self.start_time:
-            logger.extra_debug(f"Making next missing events checker earlier: '{start_time.strftime('%Y-%m-%dT%H-%M-%S')}'")
-            self.start_time = start_time
 
     async def start(self):
         """Run main loop."""
