@@ -214,7 +214,7 @@ def setup_logging(verbosity: int, color_logging: bool = False) -> None:
         logging.DEBUG - 2,
     )
 
-    format = "{asctime} [{levelname:^11s}] {name:<42} :  {message}"
+    format = "{asctime} [{levelname:^11s}] {name:<46} :  {message}"
     sh = create_logging_handler(format, color_logging)
 
     logger = logging.getLogger("unifi_protect_backup")
@@ -248,7 +248,7 @@ def setup_event_logger(logger, color_logging):
     """Set up a logger that also displays the event ID currently being processed."""
     global _initialized_loggers
     if logger not in _initialized_loggers:
-        format = "{asctime} [{levelname:^11s}] {name:<42} :{event}  {message}"
+        format = "{asctime} [{levelname:^11s}] {name:<46} :{event}  {message}"
         sh = create_logging_handler(format, color_logging)
         logger.addHandler(sh)
         logger.propagate = False
