@@ -93,7 +93,7 @@ class MissingEventChecker:
 
         return downloading_event_ids | uploading_event_ids
 
-    async def _get_new_missing_events(self, existing_ids) -> AsyncIterator[Event]:
+    async def _get_new_missing_events(self) -> AsyncIterator[Event]:
         now = datetime.now(timezone.utc)
         retention_start = now - self.retention
 
@@ -110,6 +110,10 @@ class MissingEventChecker:
         end_time = now
         new_last_check_time = end_time
         chunk_size = 500
+
+        existing_ids = (
+            await self._get_ongoing_event_ids() | await self._get_backedup_event_ids() | set(self.missing_events.keys())
+        )
 
         # Check UniFi Protect for new missing events
         while True:
@@ -219,9 +223,7 @@ class MissingEventChecker:
                     await self._add_to_download_queue(event)
 
                 logger.extra_debug("Checking for new missing events")  # type: ignore[attr-defined]
-                async for event in self._get_new_missing_events(
-                    db_event_ids | in_progress_ids | set(self.missing_events.keys())
-                ):
+                async for event in self._get_new_missing_events():
                     logger.debug(f"Found new missing event: '{event.id}")
                     self.missing_events[event.id] = MissingEvent(event, 0)
                     await self._add_to_download_queue(event)
