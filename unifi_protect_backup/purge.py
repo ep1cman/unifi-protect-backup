@@ -62,9 +62,9 @@ class Purge:
                 # For every event older than the retention time
                 retention_oldest_time = time.mktime((datetime.now() - self.retention).timetuple())
                 async with self._db.execute(
-                    f"SELECT * FROM events WHERE end < {retention_oldest_time}"
+                    f"SELECT id FROM events WHERE end < {retention_oldest_time}"
                 ) as event_cursor:
-                    async for event_id, event_type, camera_id, event_start, event_end in event_cursor:  # noqa: B007
+                    async for (event_id,) in event_cursor:  # noqa: B007
                         logger.info(f"Purging event: {event_id}.")
 
                         # For every backup for this event
