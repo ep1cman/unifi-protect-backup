@@ -8,6 +8,7 @@ from .downloader import VideoDownloader
 from .downloader_experimental import VideoDownloaderExperimental
 from .event_listener import EventListener
 from .purge import Purge
+from .missing_event_data import MissingEventData
 from .uploader import VideoUploader
 from .missing_event_checker import MissingEventChecker
 
@@ -16,6 +17,7 @@ __all__ = [
     "VideoDownloaderExperimental",
     "EventListener",
     "Purge",
+    "MissingEventData",
     "VideoUploader",
     "MissingEventChecker",
 ]

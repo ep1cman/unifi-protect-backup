@@ -9,6 +9,7 @@ import aiosqlite
 from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
 
+from unifi_protect_backup import MissingEventData
 from unifi_protect_backup.utils import (
     SubprocessException,
     VideoQueue,
@@ -28,6 +29,7 @@ class VideoUploader:
     def __init__(
         self,
         protect: ProtectApiClient,
+        missing_data: MissingEventData,
         upload_queue: VideoQueue,
         rclone_destination: str,
         rclone_args: str,
@@ -39,6 +41,7 @@ class VideoUploader:
 
         Args:
             protect (ProtectApiClient): UniFi Protect API client to use
+            missing_data (MissingEventData): Additional data used for missing event checker
             upload_queue (VideoQueue): Queue to get video files from
             rclone_destination (str): rclone file destination URI
             rclone_args (str): arguments to pass to the rclone command
@@ -48,6 +51,7 @@ class VideoUploader:
 
         """
         self._protect: ProtectApiClient = protect
+        self._missing_data: MissingEventData = missing_data
         self.upload_queue: VideoQueue = upload_queue
         self._rclone_destination: str = rclone_destination
         self._rclone_args: str = rclone_args
@@ -88,6 +92,7 @@ class VideoUploader:
                     self.logger.debug("Uploaded")
                 except SubprocessException:
                     self.logger.error(f" Failed to upload file: '{destination}'")
+                    self._missing_data.update_start_time(event.start)
 
                 self.current_event = None
 
