@@ -16,6 +16,7 @@ from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
 from uiprotect.data.types import EventType
 
+from unifi_protect_backup import MissingEventData
 from unifi_protect_backup.utils import (
     SubprocessException,
     VideoQueue,
@@ -45,6 +46,7 @@ class VideoDownloaderExperimental:
     def __init__(
         self,
         protect: ProtectApiClient,
+        missing_data: MissingEventData,
         db: aiosqlite.Connection,
         download_queue: asyncio.Queue,
         upload_queue: VideoQueue,
@@ -66,6 +68,7 @@ class VideoDownloaderExperimental:
         """
         self._protect: ProtectApiClient = protect
         self._db: aiosqlite.Connection = db
+        self._missing_data: MissingEventData = missing_data
         self.download_queue: asyncio.Queue = download_queue
         self.upload_queue: VideoQueue = upload_queue
         self.current_event = None
@@ -160,6 +163,8 @@ class VideoDownloaderExperimental:
                             "Event has failed to download 10 times in a row. Permanently ignoring this event"
                         )
                         await self._ignore_event(event)
+                    else:
+                        self._missing_data.update_start_time(event.start)
                     continue
 
                 # Remove successfully downloaded event from failures list
@@ -197,8 +202,8 @@ class VideoDownloaderExperimental:
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
-                self.logger.warning(f"    Failed download attempt {x + 1}, retying in 1s", exc_info=e)
-                await asyncio.sleep(1)
+                self.logger.warning(f"    Failed download attempt {x + 1}, retying in {2 ** x}s", exc_info=e)
+                await asyncio.sleep(2 ** x)
         else:
             self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
             return None

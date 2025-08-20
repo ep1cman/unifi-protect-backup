@@ -4,20 +4,20 @@ __author__ = """sebastian.goscik"""
 __email__ = "sebastian@goscik.com"
 __version__ = "0.14.0"
 
+from .missing_event_data import MissingEventData
 from .downloader import VideoDownloader
 from .downloader_experimental import VideoDownloaderExperimental
 from .event_listener import EventListener
 from .purge import Purge
-from .missing_event_data import MissingEventData
 from .uploader import VideoUploader
 from .missing_event_checker import MissingEventChecker
 
 __all__ = [
+    "MissingEventData",
     "VideoDownloader",
     "VideoDownloaderExperimental",
     "EventListener",
     "Purge",
-    "MissingEventData",
     "VideoUploader",
     "MissingEventChecker",
 ]

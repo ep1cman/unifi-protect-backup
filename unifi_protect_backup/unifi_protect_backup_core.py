@@ -275,8 +275,13 @@ class UnifiProtectBackup:
             else:
                 downloader_cls = VideoDownloader
 
+            missing_data = MissingEventData(
+                datetime.now(timezone.utc) - self.missing_range,
+            )
+
             downloader = downloader_cls(
                 self._protect,
+                missing_data,
                 self._db,
                 download_queue,
                 upload_queue,
@@ -285,10 +290,6 @@ class UnifiProtectBackup:
                 self._max_event_length,
             )
             tasks.append(downloader.start())
-
-            missing_data = MissingEventData(
-                datetime.now(timezone.utc) - self.missing_range,
-            )
 
             # Create upload tasks
             #   This will upload the videos in the downloader's buffer to the rclone remotes and log it in the database
