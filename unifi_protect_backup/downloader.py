@@ -16,6 +16,7 @@ from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
 from uiprotect.data.types import EventType
 
+from unifi_protect_backup import MissingEventData
 from unifi_protect_backup.utils import (
     SubprocessException,
     VideoQueue,
@@ -45,6 +46,7 @@ class VideoDownloader:
     def __init__(
         self,
         protect: ProtectApiClient,
+        missing_data: MissingEventData,
         db: aiosqlite.Connection,
         download_queue: asyncio.Queue,
         upload_queue: VideoQueue,
@@ -56,6 +58,7 @@ class VideoDownloader:
 
         Args:
             protect (ProtectApiClient): UniFi Protect API client to use
+            missing_data (MissingEventData): Additional data used for missing event checker
             db (aiosqlite.Connection): Async SQLite database to check for missing events
             download_queue (asyncio.Queue): Queue to get event details from
             upload_queue (VideoQueue): Queue to place downloaded videos on
@@ -65,6 +68,7 @@ class VideoDownloader:
 
         """
         self._protect: ProtectApiClient = protect
+        self._missing_data: MissingEventData = missing_data
         self._db: aiosqlite.Connection = db
         self.download_queue: asyncio.Queue = download_queue
         self.upload_queue: VideoQueue = upload_queue
@@ -157,6 +161,8 @@ class VideoDownloader:
                             "Event has failed to download 10 times in a row. Permanently ignoring this event"
                         )
                         await self._ignore_event(event)
+                    else:
+                        self._missing_data.update_start_time(event.start)
                     continue
 
                 # Remove successfully downloaded event from failures list
@@ -186,8 +192,8 @@ class VideoDownloader:
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
-                self.logger.warning(f"    Failed download attempt {x + 1}, retying in 1s", exc_info=e)
-                await asyncio.sleep(1)
+                self.logger.warning(f"    Failed download attempt {x + 1}, retying in {2**x}s", exc_info=e)
+                await asyncio.sleep(2**x)
         else:
             self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
             return None

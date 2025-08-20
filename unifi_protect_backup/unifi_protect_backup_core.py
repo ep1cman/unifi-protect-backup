@@ -14,6 +14,7 @@ from uiprotect.data.types import ModelType
 
 from unifi_protect_backup import (
     EventListener,
+    MissingEventData,
     MissingEventChecker,
     Purge,
     VideoDownloader,
@@ -274,8 +275,13 @@ class UnifiProtectBackup:
             else:
                 downloader_cls = VideoDownloader
 
+            missing_data = MissingEventData(
+                datetime.now(timezone.utc) - self.missing_range,
+            )
+
             downloader = downloader_cls(
                 self._protect,
+                missing_data,
                 self._db,
                 download_queue,
                 upload_queue,
@@ -291,6 +297,7 @@ class UnifiProtectBackup:
             for _ in range(self._parallel_uploads):
                 uploader = VideoUploader(
                     self._protect,
+                    missing_data,
                     upload_queue,
                     self.rclone_destination,
                     self.rclone_args,
@@ -323,21 +330,21 @@ class UnifiProtectBackup:
             # Create missing event task
             #   This will check all the events within the missing_range period, if any have been missed and not
             #   backed up. they will be added to the event queue
-            missing = MissingEventChecker(
+            self.missing = MissingEventChecker(
                 self._protect,
                 self._db,
+                missing_data,
                 download_queue,
                 downloader,
                 uploaders,
-                self.missing_range,
                 self.detection_types,
                 self.ignore_cameras,
                 self.cameras,
             )
             if self._skip_missing:
                 logger.info("Ignoring missing events")
-                await missing.ignore_missing()
-            tasks.append(missing.start())
+                await self.missing.ignore_missing()
+            tasks.append(self.missing.start())
 
             logger.info("Starting Tasks...")
             await asyncio.gather(*[asyncio.create_task(task) for task in tasks])
