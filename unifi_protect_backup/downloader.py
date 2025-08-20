@@ -58,6 +58,7 @@ class VideoDownloader:
 
         Args:
             protect (ProtectApiClient): UniFi Protect API client to use
+            missing_data (MissingEventData): Additional data used for missing event checker
             db (aiosqlite.Connection): Async SQLite database to check for missing events
             download_queue (asyncio.Queue): Queue to get event details from
             upload_queue (VideoQueue): Queue to place downloaded videos on
@@ -191,8 +192,8 @@ class VideoDownloader:
                 assert isinstance(video, bytes)
                 break
             except (AssertionError, ClientPayloadError, TimeoutError) as e:
-                self.logger.warning(f"    Failed download attempt {x + 1}, retying in {2 ** x}s", exc_info=e)
-                await asyncio.sleep(2 ** x)
+                self.logger.warning(f"    Failed download attempt {x + 1}, retying in {2**x}s", exc_info=e)
+                await asyncio.sleep(2**x)
         else:
             self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")
             return None
