@@ -30,7 +30,7 @@ dependencies = [
     "async-lru>=2.0.4",
     "aiolimiter>=1.1.0",
     "uiprotect==7.26.0",
-    "aiohttp==3.12.14",
+    "aiohttp==3.13.3",
 ]
 
 [project.urls]
