@@ -17,9 +17,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
-requires-python = ">=3.10.0,<4.0"
+requires-python = ">=3.11.0,<4.0"
 dependencies = [
     "click==8.0.1",
     "aiorun>=2023.7.2",
@@ -29,7 +29,7 @@ dependencies = [
     "expiring-dict>=1.1.0",
     "async-lru>=2.0.4",
     "aiolimiter>=1.1.0",
-    "uiprotect==7.26.0",
+    "uiprotect==10.2.2",
     "aiohttp==3.12.14",
 ]
 
@@ -60,7 +60,7 @@ include = ["unifi_protect_backup", "tests"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E","F","D","B","W"]
