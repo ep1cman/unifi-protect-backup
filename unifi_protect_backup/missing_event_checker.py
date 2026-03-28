@@ -5,6 +5,8 @@ import logging
 from datetime import datetime
 from typing import AsyncIterator, List, Set
 
+from sqlite3 import IntegrityError
+
 import aiosqlite
 from dateutil.relativedelta import relativedelta
 from uiprotect import ProtectApiClient
@@ -132,11 +134,14 @@ class MissingEventChecker:
 
         async for event in self._get_missing_events():
             logger.extra_debug(f"Ignoring event '{event.id}'")
-            await self._db.execute(
-                "INSERT INTO events VALUES "
-                f"('{event.id}', '{event.type.value}', '{event.camera_id}',"
-                f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
-            )
+            try:
+                await self._db.execute(
+                    "INSERT INTO events VALUES "
+                    f"('{event.id}', '{event.type.value}', '{event.camera_id}',"
+                    f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
+                )
+            except IntegrityError:
+                logger.debug(f"Event {event.id} already exists in database, skipping")
         await self._db.commit()
 
     async def start(self):

@@ -258,6 +258,31 @@ def setup_event_logger(logger, color_logging):
 _suffixes = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
 
 
+# Regex patterns for known UniFi Protect event ID formats.
+# The suffix (e.g. camera ID appended by the websocket) is optional.
+_UUID_RE = re.compile(r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:-.+)?$", re.IGNORECASE)
+_HEX_ID_RE = re.compile(r"^([0-9a-f]{24})(?:-.+)?$", re.IGNORECASE)
+
+
+def normalize_event_id(event_id: str) -> str:
+    """Normalize a UniFi Protect event ID to its canonical form.
+
+    UniFi Protect may send event IDs in several formats:
+      - Standard UUID: ``f9f5a34b-867d-4001-9b42-c3429c1785df``
+      - Old hex ID: ``69be9ae203c9f503e4357080``
+      - UUID with appended camera ID: ``<uuid>-<camera_id>``
+      - Hex ID with appended suffix: ``<hex_id>-<suffix>``
+
+    This function extracts just the event ID portion, stripping any appended
+    camera/suffix data so that IDs are consistent between the websocket and API.
+    """
+    m = _UUID_RE.match(event_id) or _HEX_ID_RE.match(event_id)
+    if m:
+        return m.group(1)
+    # Unknown format — return unchanged
+    return event_id
+
+
 def human_readable_size(num: float):
     """Turn a number into a human readable number with ISO/IEC 80000 binary prefixes.
 

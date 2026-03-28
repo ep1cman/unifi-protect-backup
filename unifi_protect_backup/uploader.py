@@ -5,6 +5,8 @@ import pathlib
 import re
 from datetime import datetime
 
+from sqlite3 import IntegrityError
+
 import aiosqlite
 from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
@@ -86,6 +88,8 @@ class VideoUploader:
                     await self._upload_video(video, destination, self._rclone_args)
                     await self._update_database(event, destination)
                     self.logger.debug("Uploaded")
+                except IntegrityError:
+                    self.logger.debug(f" Event {event.id} already exists in database, skipping")
                 except SubprocessException:
                     self.logger.error(f" Failed to upload file: '{destination}'")
 

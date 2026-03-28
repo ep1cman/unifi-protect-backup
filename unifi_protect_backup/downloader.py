@@ -7,6 +7,8 @@ import shutil
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from sqlite3 import IntegrityError
+
 import aiosqlite
 import pytz
 from aiohttp.client_exceptions import ClientPayloadError
@@ -197,11 +199,14 @@ class VideoDownloader:
 
     async def _ignore_event(self, event):
         self.logger.warning("Ignoring event")
-        await self._db.execute(
-            "INSERT INTO events VALUES "
-            f"('{event.id}', '{event.type.value}', '{event.camera_id}',"
-            f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
-        )
+        try:
+            await self._db.execute(
+                "INSERT INTO events VALUES "
+                f"('{event.id}', '{event.type.value}', '{event.camera_id}',"
+                f"'{event.start.timestamp()}', '{event.end.timestamp()}')"
+            )
+        except IntegrityError:
+            self.logger.debug(f"Event {event.id} already exists in database, skipping")
         await self._db.commit()
 
     async def _check_video_length(self, video, duration):

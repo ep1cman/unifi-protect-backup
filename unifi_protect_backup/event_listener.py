@@ -10,7 +10,7 @@ from uiprotect.websocket import WebsocketState
 from uiprotect.data.nvr import Event
 from uiprotect.data.websocket import WSAction, WSSubscriptionMessage
 
-from unifi_protect_backup.utils import wanted_event_type
+from unifi_protect_backup.utils import normalize_event_id, wanted_event_type
 
 logger = logging.getLogger(__name__)
 
@@ -74,13 +74,10 @@ class EventListener:
             logger.extra_debug("Event queue full, waiting 1s...")  # type: ignore
             sleep(1)
 
-        self._event_queue.put_nowait(msg.new_obj)
+        # Normalize the event ID so it matches what the API returns
+        msg.new_obj.id = normalize_event_id(msg.new_obj.id)
 
-        # Unifi protect has started sending the event id in the websocket as a {event_id}-{camera_id} but when the
-        # API is queried they only have {event_id}. Keeping track of these both of these would be complicated so
-        # instead we fudge the ID here to match what the API returns
-        if "-" in msg.new_obj.id:
-            msg.new_obj.id = msg.new_obj.id.split("-")[0]
+        self._event_queue.put_nowait(msg.new_obj)
 
         logger.debug(f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})")
 
