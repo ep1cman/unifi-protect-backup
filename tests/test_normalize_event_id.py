@@ -30,4 +30,5 @@ from unifi_protect_backup.utils import normalize_event_id
     ],
 )
 def test_normalize_event_id(input_id, expected):
+    """Tests event ID normalization."""
     assert normalize_event_id(input_id) == expected
