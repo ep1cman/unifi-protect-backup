@@ -103,10 +103,18 @@ class VideoDownloaderExperimental:
                 self.current_event = event
                 self.logger = logging.LoggerAdapter(self.base_logger, {"event": f" [{event.id}]"})
 
-                # Fix timezones since uiprotect sets all timestamps to UTC. Instead localize them to
-                # the timezone of the unifi protect NVR.
-                event.start = event.start.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
-                event.end = event.end.replace(tzinfo=pytz.utc).astimezone(self._protect.bootstrap.nvr.timezone)
+                # Normalize event timestamps to NVR local time. uiprotect historically returned
+                # naive UTC datetimes, but newer versions may return timezone-aware datetimes
+                # already in local time. Guard against double-converting (issue #248).
+                nvr_tz = self._protect.bootstrap.nvr.timezone
+                if event.start.tzinfo is None:
+                    event.start = event.start.replace(tzinfo=pytz.utc).astimezone(nvr_tz)
+                else:
+                    event.start = event.start.astimezone(nvr_tz)
+                if event.end.tzinfo is None:
+                    event.end = event.end.replace(tzinfo=pytz.utc).astimezone(nvr_tz)
+                else:
+                    event.end = event.end.astimezone(nvr_tz)
 
                 self.logger.info(f"Downloading event: {event.id}")
                 self.logger.debug(f"Remaining Download Queue: {self.download_queue.qsize()}")
@@ -137,6 +145,7 @@ class VideoDownloaderExperimental:
                 # but often longer)
                 time_since_event_ended = datetime.utcnow().replace(tzinfo=timezone.utc) - event.end
                 sleep_time = (timedelta(seconds=5 * 1.5) - time_since_event_ended).total_seconds()
+                sleep_time = min(sleep_time, 60)  # cap: a bad timestamp should never stall the queue
                 if sleep_time > 0:
                     self.logger.debug(f"  Sleeping ({sleep_time}s) to ensure clip is ready to download...")
                     await asyncio.sleep(sleep_time)
