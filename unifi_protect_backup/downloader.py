@@ -171,10 +171,13 @@ class VideoDownloader:
 
                 await self.upload_queue.put((event, video))
                 self.logger.debug("Added to upload queue")
-                self.current_event = None
 
             except Exception as e:
                 self.logger.error(f"Unexpected exception occurred, abandoning event {event.id}:", exc_info=e)
+            finally:
+                # The missing event checker skips whatever this holds, so a failed
+                # download that left it set would never be retried.
+                self.current_event = None
 
     async def _download(self, event: Event) -> Optional[bytes]:
         """Download the video clip for the given event."""
