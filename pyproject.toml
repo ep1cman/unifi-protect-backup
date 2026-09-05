@@ -50,7 +50,11 @@ dev = [
     "pre-commit>=4.2.0",
     "ruff>=0.11.4",
     "pytest>=8.3.5",
+    "pytest-asyncio>=0.24.0",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.hatch.build.targets.wheel]
 packages = ["unifi_protect_backup"]
