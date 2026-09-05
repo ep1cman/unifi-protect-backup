@@ -74,12 +74,12 @@ class EventListener:
         if msg.action != WSAction.UPDATE:
             return
 
-        # `changed_data` is the payload Protect sent, not a diff, so it carries `end` on
-        # every update once an event has finished. Compare old and new objects instead.
+        # `changed_data` is Protect's payload, not a diff: a finished event carries `end`
+        # in every later update, so only the old/new comparison finds where it finished.
         if new_obj.end is None:
             return  # Still on-going
         if isinstance(msg.old_obj, Event) and msg.old_obj.end == new_obj.end:
-            return  # Protect repeating itself, nothing new completed
+            return  # Same end time, nothing new has finished
 
         if not wanted_event_type(new_obj, self.detection_types, self.cameras, self.ignore_cameras):
             return
@@ -93,8 +93,8 @@ class EventListener:
             return
         self._recently_queued[event_id] = True
 
-        # Queue a copy. `new_obj` is uiprotect's cached instance, mutated in place by later
-        # messages, which would undo the NVR timezone the downloader localises `end` to.
+        # Queue a copy: `new_obj` is uiprotect's cached instance and later messages mutate
+        # it in place, overwriting the NVR-local `end` the downloader sets.
         event = new_obj.model_copy()
         event.id = event_id
 
