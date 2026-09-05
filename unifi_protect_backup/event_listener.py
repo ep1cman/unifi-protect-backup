@@ -2,9 +2,9 @@
 
 import asyncio
 import logging
-from time import sleep
 from typing import Set
 
+from expiring_dict import ExpiringDict  # type: ignore
 from uiprotect.api import ProtectApiClient
 from uiprotect.websocket import WebsocketState
 from uiprotect.data.nvr import Event
@@ -13,6 +13,9 @@ from uiprotect.data.websocket import WSAction, WSSubscriptionMessage
 from unifi_protect_backup.utils import normalize_event_id, wanted_event_type
 
 logger = logging.getLogger(__name__)
+
+# How long an event ID is remembered as already queued, in seconds.
+QUEUED_EVENT_TTL = 15 * 60
 
 
 class EventListener:
@@ -44,6 +47,10 @@ class EventListener:
         self.ignore_cameras: Set[str] = ignore_cameras
         self.cameras: Set[str] = cameras
 
+        # Recently queued IDs, to drop repeated websocket messages for the same event.
+        # Failed backups are retried by the missing event checker, not by re-queuing here.
+        self._recently_queued = ExpiringDict(QUEUED_EVENT_TTL)
+
     async def start(self):
         """Run main Loop."""
         logger.debug("Subscribed to websocket")
@@ -62,24 +69,38 @@ class EventListener:
         logger.websocket_data(msg)  # type: ignore
 
         assert isinstance(msg.new_obj, Event)
+        new_obj = msg.new_obj
+
         if msg.action != WSAction.UPDATE:
             return
-        if "end" not in msg.changed_data:
-            return
-        if not wanted_event_type(msg.new_obj, self.detection_types, self.cameras, self.ignore_cameras):
-            return
 
-        # TODO: Will this even work? I think it will block the async loop
-        while self._event_queue.full():
-            logger.extra_debug("Event queue full, waiting 1s...")  # type: ignore
-            sleep(1)
+        # `changed_data` is Protect's payload, not a diff: a finished event carries `end`
+        # in every later update, so only the old/new comparison finds where it finished.
+        if new_obj.end is None:
+            return  # Still on-going
+        if isinstance(msg.old_obj, Event) and msg.old_obj.end == new_obj.end:
+            return  # Same end time, nothing new has finished
+
+        if not wanted_event_type(new_obj, self.detection_types, self.cameras, self.ignore_cameras):
+            return
 
         # Normalize the event ID so it matches what the API returns
-        msg.new_obj.id = normalize_event_id(msg.new_obj.id)
+        event_id = normalize_event_id(new_obj.id)
 
-        self._event_queue.put_nowait(msg.new_obj)
+        # Backstop for updates the comparison cannot catch, e.g. when `old_obj` is missing
+        if event_id in self._recently_queued:
+            logger.extra_debug(f"Ignoring repeated websocket event {event_id}")  # type: ignore
+            return
+        self._recently_queued[event_id] = True
 
-        logger.debug(f"Adding event {msg.new_obj.id} to queue (Current download queue={self._event_queue.qsize()})")
+        # Queue a copy: `new_obj` is uiprotect's cached instance and later messages mutate
+        # it in place, overwriting the NVR-local `end` the downloader sets.
+        event = new_obj.model_copy()
+        event.id = event_id
+
+        self._event_queue.put_nowait(event)
+
+        logger.debug(f"Adding event {event.id} to queue (Current download queue={self._event_queue.qsize()})")
 
     def _websocket_state_callback(self, state: WebsocketState) -> None:
         """Websocket state message callback.
