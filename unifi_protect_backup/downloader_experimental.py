@@ -15,6 +15,7 @@ from expiring_dict import ExpiringDict  # type: ignore
 from uiprotect import ProtectApiClient
 from uiprotect.data.nvr import Event
 from uiprotect.data.types import EventType
+from uiprotect.exceptions import ClientError
 
 from unifi_protect_backup.utils import (
     SubprocessException,
@@ -194,10 +195,11 @@ class VideoDownloaderExperimental:
                 video = await self._protect.download_camera_video(  # type: ignore
                     event.camera_id, prepared_video_file["fileName"]
                 )
-                assert isinstance(video, bytes)
+                if not isinstance(video, bytes):
+                    raise TypeError(f"Video download returned {type(video).__name__}, expected bytes")
                 break
-            except (AssertionError, ClientPayloadError, TimeoutError) as e:
-                self.logger.warning(f"    Failed download attempt {x + 1}, retying in 1s", exc_info=e)
+            except (AssertionError, ClientError, ClientPayloadError, TimeoutError, TypeError) as e:
+                self.logger.warning(f"    Failed download attempt {x + 1}, retrying in 1s", exc_info=e)
                 await asyncio.sleep(1)
         else:
             self.logger.error(f"Download failed after 5 attempts, abandoning event {event.id}:")

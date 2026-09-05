@@ -102,7 +102,8 @@ def monkey_patch_experimental_downloader():
             return await self.api_request_raw(
                 "video/download",
                 params=params,
-                raise_exception=False,
+                # Raise on a non-2xx so the status and reason reach the caller.
+                raise_exception=True,
             )
 
         r = await self.request(
