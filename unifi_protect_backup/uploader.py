@@ -89,7 +89,9 @@ class VideoUploader:
                     await self._update_database(event, destination)
                     self.logger.debug("Uploaded")
                 except IntegrityError:
-                    self.logger.debug(f" Event {event.id} already exists in database, skipping")
+                    # The upload above has already replaced whatever was at `destination`,
+                    # so nothing was skipped.
+                    self.logger.warning(f" Event {event.id} was already backed up; this upload overwrote it")
                 except SubprocessException:
                     self.logger.error(f" Failed to upload file: '{destination}'")
 
