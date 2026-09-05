@@ -14,7 +14,7 @@ from unifi_protect_backup.utils import normalize_event_id, wanted_event_type
 
 logger = logging.getLogger(__name__)
 
-# How long an event ID stays in the "already queued" set, in seconds.
+# How long an event ID is remembered as already queued, in seconds.
 QUEUED_EVENT_TTL = 15 * 60
 
 
@@ -47,10 +47,8 @@ class EventListener:
         self.ignore_cameras: Set[str] = ignore_cameras
         self.cameras: Set[str] = cameras
 
-        # IDs queued recently, to drop repeated websocket messages for one event.
-        # Nothing legitimately re-queues the same ID from here: a backup that fails is
-        # recovered by the missing event checker, not by a websocket replay. So the
-        # window only needs to outlast Protect's own repeats.
+        # Recently queued IDs, to drop repeated websocket messages for the same event.
+        # Failed backups are retried by the missing event checker, not by re-queuing here.
         self._recently_queued = ExpiringDict(QUEUED_EVENT_TTL)
 
     async def start(self):
@@ -76,12 +74,8 @@ class EventListener:
         if msg.action != WSAction.UPDATE:
             return
 
-        # An event we can back up is one that just finished. `changed_data` cannot tell us
-        # that: uiprotect fills it with the raw payload Protect sent, key-renamed, without
-        # ever comparing against the previous state (see `Bootstrap._process_device_update`).
-        # Testing `"end" in changed_data` therefore only means "Protect mentioned end",
-        # which it does on every update for an event, so a single event was being queued
-        # two or three times. Compare the old and new objects instead.
+        # `changed_data` is the payload Protect sent, not a diff, so it carries `end` on
+        # every update once an event has finished. Compare old and new objects instead.
         if new_obj.end is None:
             return  # Still on-going
         if isinstance(msg.old_obj, Event) and msg.old_obj.end == new_obj.end:
@@ -93,20 +87,14 @@ class EventListener:
         # Normalize the event ID so it matches what the API returns
         event_id = normalize_event_id(new_obj.id)
 
-        # Backstop for anything the comparison above misses, e.g. an update we cannot
-        # compare because `old_obj` was absent. Cheap insurance on the one path that
-        # spends money: every event queued twice is a second NVR download and a second
-        # upload that overwrites the object already in the remote.
+        # Backstop for updates the comparison cannot catch, e.g. when `old_obj` is missing
         if event_id in self._recently_queued:
             logger.extra_debug(f"Ignoring repeated websocket event {event_id}")  # type: ignore
             return
         self._recently_queued[event_id] = True
 
-        # Queue a copy, never the object itself. `msg.new_obj` is the instance uiprotect
-        # keeps in its bootstrap cache and mutates in place on the next message for this
-        # event. The downloader localises `event.end` to the NVR timezone, so a later
-        # message writing a fresh UTC value back onto a still-queued object makes the
-        # uploader build the filename from the wrong timezone.
+        # Queue a copy. `new_obj` is uiprotect's cached instance, mutated in place by later
+        # messages, which would undo the NVR timezone the downloader localises `end` to.
         event = new_obj.model_copy()
         event.id = event_id
 

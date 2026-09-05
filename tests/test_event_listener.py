@@ -1,13 +1,4 @@
-"""Tests for the websocket event listener's queuing decisions.
-
-The listener is where duplicate backups were being created. Protect sends several update
-messages per event, and the old guard (`"end" in msg.changed_data`) fired on all of them
-because `changed_data` is the raw payload rather than a diff. Each extra queue entry cost
-a full NVR download and an upload that overwrote the object already in the remote.
-
-These tests are synchronous because `_websocket_callback` is a synchronous callback that
-runs on the event loop thread.
-"""
+"""Tests for the websocket event listener's queuing decisions."""
 
 import asyncio
 from datetime import datetime, timedelta, timezone
@@ -23,8 +14,7 @@ START = datetime(2026, 9, 1, 12, 0, 0, tzinfo=timezone.utc)
 END = START + timedelta(seconds=30)
 CAMERA = "67cb31f301131a03e401cf0e"
 
-# Both formats are live: Protect moved motion/smartDetect to UUIDs in March 2026 but
-# smartAudioDetect and ring still use 24-char MongoDB ObjectIds.
+# Protect uses UUIDs for motion/smartDetect and 24-char ObjectIds for smartAudioDetect/ring.
 UUID_ID = "f9f5a34b-867d-4001-9b42-c3429c1785df"
 OBJECT_ID = "6a9871de000cec03e42f4991"
 
@@ -42,11 +32,7 @@ def make_event(event_id=UUID_ID, end=END, event_type=EventType.MOTION, camera_id
 
 
 def make_msg(new_obj, old_obj=None, action=WSAction.UPDATE):
-    """Build a websocket message.
-
-    `changed_data` is deliberately given the full payload shape, matching what uiprotect
-    actually produces, to make sure nothing depends on it being a diff.
-    """
+    """Build a websocket message, with `changed_data` shaped as uiprotect produces it."""
     return WSSubscriptionMessage(
         action=action,
         new_update_id="update-1",
@@ -58,7 +44,7 @@ def make_msg(new_obj, old_obj=None, action=WSAction.UPDATE):
 
 @pytest.fixture
 def listener():
-    """Build a listener writing into an unbounded queue, matching production wiring."""
+    """Build a listener writing into an unbounded queue."""
     return EventListener(
         event_queue=asyncio.Queue(),
         protect=None,
@@ -80,18 +66,14 @@ def test_completed_event_is_queued(listener):
 
 
 def test_repeated_identical_end_is_not_queued(listener):
-    """The bug. Protect repeats an unchanged `end`; only the first should queue.
-
-    Both messages carry `end` in changed_data, which is exactly why the old guard fired
-    twice and produced two uploads to the same key.
-    """
+    """Protect repeats an unchanged `end`; only the first message should queue."""
     listener._websocket_callback(make_msg(make_event(), old_obj=make_event(end=None)))
     listener._websocket_callback(make_msg(make_event(), old_obj=make_event()))
     assert queued_ids(listener) == [UUID_ID]
 
 
 def test_three_repeats_queue_once(listener):
-    """20% of duplicates in production were triples, not pairs."""
+    """Protect often sends three updates, not two."""
     listener._websocket_callback(make_msg(make_event(), old_obj=make_event(end=None)))
     for _ in range(2):
         listener._websocket_callback(make_msg(make_event(), old_obj=make_event()))
@@ -111,12 +93,10 @@ def test_non_update_action_is_ignored(listener):
 
 
 def test_changed_end_is_queued_once_then_suppressed(listener):
-    """An extended event is backed up once, at its first observed end.
+    """A changed `end` passes the comparison but is then dropped by the ID cache.
 
-    The comparison lets a genuinely changed `end` through, but the ID cache then drops it.
-    That is deliberate. Backing it up twice would write a second file under a second name
-    whose `events` row insert fails on the primary key, leaving a file that `Purge` can
-    never delete.
+    Backing the event up twice would leave a second file whose `events` row insert fails
+    on the primary key, so `Purge` could never delete it.
     """
     listener._websocket_callback(make_msg(make_event(), old_obj=make_event(end=None)))
     listener._websocket_callback(make_msg(make_event(end=END + timedelta(seconds=30)), old_obj=make_event()))
@@ -124,11 +104,7 @@ def test_changed_end_is_queued_once_then_suppressed(listener):
 
 
 def test_missing_old_obj_falls_through_to_the_cache(listener):
-    """With nothing to compare against, queue it rather than risk losing footage.
-
-    Dropping a real event costs footage; queuing a duplicate costs money. The cache stops
-    the second one, so falling through is the safe direction.
-    """
+    """With nothing to compare against, queue it and let the cache stop the repeat."""
     listener._websocket_callback(make_msg(make_event(), old_obj=None))
     listener._websocket_callback(make_msg(make_event(), old_obj=None))
     assert queued_ids(listener) == [UUID_ID]
@@ -148,7 +124,7 @@ def test_ignored_camera_is_not_queued():
 
 
 def test_object_id_format_dedups(listener):
-    """Audio and ring events still use 24-char ObjectIds, about 31% of events."""
+    """Audio and ring events use 24-char ObjectIds rather than UUIDs."""
     audio = dict(event_id=OBJECT_ID, event_type=EventType.SMART_AUDIO_DETECT)
     first = make_event(**audio)
     first.smart_detect_types = ["alrmSpeak"]
@@ -170,10 +146,8 @@ def test_appended_camera_suffix_normalizes_to_one_entry(listener):
 def test_queued_event_is_a_copy(listener):
     """A later message must not be able to mutate an event already in the queue.
 
-    `msg.new_obj` is uiprotect's cached instance. It mutates in place when the next
-    message for that event arrives, and the downloader has by then rewritten `end` into
-    NVR-local time. Sharing the object let a later UTC value leak back in, which filed
-    16,348 clips four hours off.
+    `new_obj` is uiprotect's cached instance and mutates in place, which would put a UTC
+    `end` back onto an event the downloader had already localised to NVR time.
     """
     source = make_event()
     listener._websocket_callback(make_msg(source, old_obj=make_event(end=None)))

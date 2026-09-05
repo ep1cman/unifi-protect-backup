@@ -1,9 +1,7 @@
 """Shared test setup.
 
-The package logs at custom levels (``extra_debug``, ``websocket_data``) that
-``setup_logging`` installs at startup. These tests exercise modules directly rather than
-going through the CLI, so the levels have to be registered here or any logging call
-raises AttributeError.
+These tests exercise modules directly rather than through the CLI, so the custom log
+levels ``setup_logging`` normally installs have to be registered here.
 """
 
 import logging
