@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-mkdir -p /config/rclone
+mkdir -p /config/rclone "$(dirname "${SQLITE_PATH}")"
 
 # For backwards compatibility
 [[ -f "/root/.config/rclone/rclone.conf" ]] && \
